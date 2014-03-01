@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="/home/marco/workspace/boofcv/integration/jar/BoofCV_V4L4J.jar"/>
+	<classpathentry kind="lib" path="/home/marco/workspace/boofcv/lib/BoofCV.jar" sourcepath="/home/marco/workspace/boofcv/main"/>
+	<classpathentry kind="lib" path="/home/marco/workspace/boofcv/lib/DDogleg.jar"/>
+	<classpathentry kind="lib" path="/home/marco/workspace/boofcv/lib/EJML.jar"/>
+	<classpathentry kind="lib" path="/home/marco/workspace/boofcv/lib/GeoRegression.jar"/>
+	<classpathentry kind="lib" path="/home/marco/workspace/boofcv/lib/xstream-1.4.4.jar"/>
+	<classpathentry kind="lib" path="/home/marco/workspace/boofcv/lib/testing/caliper.jar"/>
+	<classpathentry kind="lib" path="/home/marco/workspace/boofcv/lib/testing/junit-4.10.jar"/>
+	<classpathentry kind="lib" path="/home/marco/workspace/boofcv/integration/v4l4j/v4l4j.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
