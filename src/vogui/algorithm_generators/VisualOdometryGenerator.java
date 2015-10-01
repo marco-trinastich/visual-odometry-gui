@@ -1,4 +1,4 @@
-package voGui;
+package vogui.algorithm_generators;
 
 import boofcv.abst.feature.tracker.PointTracker;
 import boofcv.abst.sfm.d3.DepthVisualOdometry;
@@ -12,7 +12,7 @@ import boofcv.struct.image.ImageSingleBand;
 import boofcv.struct.image.ImageType;
 
 
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes","unused"})
 public class VisualOdometryGenerator <I extends ImageSingleBand, Depth extends ImageSingleBand>{
 
 	private Class<I> 									imgType;
@@ -42,7 +42,8 @@ public class VisualOdometryGenerator <I extends ImageSingleBand, Depth extends I
 	
 	
 	
-	public MonocularPlaneVisualOdometry<I> create_monoPlaneInfinity(int thresholdAdd, int thresholdRetire, double inlierPixelTol, int ransacIterations){
+	public MonocularPlaneVisualOdometry<I> create_monoPlaneInfinity(int thresholdAdd, int thresholdRetire, 
+		  double inlierPixelTol, int ransacIterations){
 		//MONOPLANEINFINITY (MONO VISUAL ODOMETRY) PARAMS 
 		//thresholdAdd, thresholdRetire, inlierPixelTol, ransacIterations, tracker, imageType
 		
@@ -59,11 +60,23 @@ public class VisualOdometryGenerator <I extends ImageSingleBand, Depth extends I
 	
 	
 	
-	public MonocularPlaneVisualOdometry<I> create_monoPlaneOverhead(){
+	public MonocularPlaneVisualOdometry<I> create_monoPlaneOverhead(double cellSize, double maxCellsPerPixel,
+		   double mapHeightFraction, double inlierGroundTol, int ransacIterations, int thresholdRetire,
+		   int absoluteMinimumTracks, double respawnTrackFraction, double respawnCoverageFraction){
 		//MONOPLANEOVERHEAD (MONO VISUAL ODOMETRY) PARAMS 
 		//monoPlaneOverhead(cellSize, maxCellsPerPixel, mapHeightFraction, inlierGroundTol, ransacIterations, thresholdRetire, absoluteMinimumTracks, respawnTrackFraction, respawnCoverageFraction, tracker, imageType)
-		
-		return null;
+
+
+		// declares the algorithm and returns the visual odometry		
+		MonocularPlaneVisualOdometry<I> visualOdometry;
+		visualOdometry = FactoryVisualOdometry.monoPlaneOverhead(cellSize, maxCellsPerPixel, mapHeightFraction,
+				inlierGroundTol, ransacIterations, thresholdRetire, absoluteMinimumTracks, respawnTrackFraction,
+				respawnCoverageFraction, tracker, ImageType.single(imgType)); 
+
+		//Pass in intrinsic/extrinsic calibration.  This can be changed in the future.
+		visualOdometry.setCalibration(calibration);
+
+		return visualOdometry;
 	}
 
 	

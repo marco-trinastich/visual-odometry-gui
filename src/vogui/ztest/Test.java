@@ -1,23 +1,24 @@
-package Test;
+package vogui.ztest;
 
 import boofcv.abst.feature.tracker.PointTracker;
 import boofcv.abst.feature.tracker.PointTrackerTwoPass;
+/*
 import boofcv.io.video.CombineFilesTogether;
 import boofcv.io.video.CreateMJpeg;
 import boofcv.misc.BoofMiscOps;
 import boofcv.struct.image.ImageFloat32;
+*/
 import boofcv.struct.image.ImageSingleBand;
 import boofcv.struct.image.ImageUInt8;
+import vogui.algorithm_generators.TrackerGenerator;
 
 import java.awt.*;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.*;
 
-import voGui.TrackerGenerator;
 
-
+@SuppressWarnings("rawtypes")
 public class Test <T extends ImageSingleBand>  {
 
 	Class<T> imgType;
@@ -25,10 +26,14 @@ public class Test <T extends ImageSingleBand>  {
 	/**
 	 * @param args
 	 */
+
+
 	public static void main(String[] args) {
 		//test();
 		buffertest();
+		
 	}
+	
 	
 	public static void buffertest(){
 		
@@ -115,6 +120,7 @@ public class Test <T extends ImageSingleBand>  {
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	public static void test(){
 		String a = " 1 , 20 , 30,   40   , 168";
 		
@@ -149,7 +155,8 @@ public class Test <T extends ImageSingleBand>  {
 
 	            @Override
 	            public void run() {
-	                ScrollPanePaint a;
+	                @SuppressWarnings("unused")
+					ScrollPanePaint a;
 	                a = new ScrollPanePaint();
 	                
 	            }
@@ -187,6 +194,7 @@ public class Test <T extends ImageSingleBand>  {
 	
 	
 	
+	@SuppressWarnings("unchecked")
 	public void classEqualsClass(){
 		 imgType = (Class<T>) ImageUInt8.class;		
 		 System.out.println(imgType.equals(ImageUInt8.class));
@@ -224,7 +232,12 @@ public class Test <T extends ImageSingleBand>  {
 	    
 	    private class MyViewport extends JViewport {
 
-	        public MyViewport() {
+	        /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			public MyViewport() {
 	            this.setOpaque(false);
 	            this.setPreferredSize(new Dimension(6 * TILE, 6 * TILE));
 	        }

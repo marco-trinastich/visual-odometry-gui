@@ -1,4 +1,4 @@
-package Test;
+package vogui.ztest;
 
 import java.awt.AWTEvent;
 import java.awt.Cursor;

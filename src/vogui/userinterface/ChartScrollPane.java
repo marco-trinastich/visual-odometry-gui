@@ -1,4 +1,4 @@
-package voGui;
+package vogui.userinterface;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -259,7 +259,11 @@ public class ChartScrollPane extends JScrollPane {
 	}
 	
 	public int getChartsCount(){
-		return charts_count;
+		int totalCharts = 0;
+		for(Point2D_F64 P: stored_points){
+			if(P==null)totalCharts++;
+		}
+		return totalCharts;
 	}
 	
 	public void setBackgroundColor(Color background_color){
@@ -324,7 +328,7 @@ public class ChartScrollPane extends JScrollPane {
 			
 			@Override
 			public void paintComponent(Graphics g) {
-				// TODO Auto-generated method stub
+				
 				super.paintComponent(g);
 				
 				if(centered_originX){originX = (int)Math.round(this.getWidth()/2);}

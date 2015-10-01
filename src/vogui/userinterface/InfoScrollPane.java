@@ -1,8 +1,11 @@
-package voGui;
+package vogui.userinterface;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -46,6 +49,7 @@ public class InfoScrollPane extends JScrollPane {
 	private ImagePanel				info_panel;
 	
 	private JLabel					lbl_info;
+	public JLabel					lbl_calibration_file;
 	public JLabel					lbl_processed_file;
 	public JLabel					lbl_processed_frame;
 	public JLabel					lbl_elapsed_time;
@@ -54,6 +58,12 @@ public class InfoScrollPane extends JScrollPane {
 	public JLabel					lbl_xpos;
 	public JLabel					lbl_ypos;
 	public JLabel					lbl_zpos;
+	public JLabel					lbl_distanceXZ;
+	public JLabel					lbl_distanceY;
+	public DirectionPanel			pnl_rotation,pnl_altitude;
+
+	private JLabel					lbl_rotation;
+	public JLabel[]					lbl_rotation_row;
 	
 	private JLabel					lbl_tracker_info;
 	public JLabel					lbl_inliers;
@@ -85,7 +95,7 @@ public class InfoScrollPane extends JScrollPane {
 	}
 	
 	public InfoScrollPane(Color bordercolor){
-		this(400, 630, bordercolor);
+		this(400, 845, bordercolor);
 	}
 	
 	public InfoScrollPane(int content_width, int content_height, Color bordercolor){
@@ -128,23 +138,35 @@ public class InfoScrollPane extends JScrollPane {
 
 	private void createInfoPanel(){
 	
-		
-		
 		lbl_info = new JLabel("Elaboration Info:");
 		Font font = lbl_info.getFont();
 		Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
 		lbl_info.setFont(boldFont);
 		
-		
+		lbl_calibration_file = new JLabel("Calibration File: ");
 		lbl_processed_file = new JLabel("Processing File: ");
 		lbl_processed_frame = new JLabel("Processing Frame: ");
 		lbl_elapsed_time = new JLabel("Elapsed Time: ");
 		
-		lbl_pos = new JLabel("Current Position:");
+		lbl_pos = new JLabel("Current Position (Translation):");
 		lbl_pos.setFont(boldFont);
 		lbl_xpos = new JLabel("X: ");
 		lbl_ypos = new JLabel("Y: ");
 		lbl_zpos = new JLabel("Z: ");
+		lbl_distanceXZ = new JLabel("Distance covered (X/Z): ");
+		lbl_distanceY = new JLabel("Altitude covered (Y): ");
+		pnl_rotation = new DirectionPanel(70,70);
+		pnl_rotation.enableBorder(Color.black, 2);
+		pnl_altitude = new DirectionPanel(70,70);
+		pnl_altitude.enableBorder(Color.black, 2);
+		
+		lbl_rotation = new JLabel("Rotation Matrix:");
+		lbl_rotation.setFont(boldFont);
+		lbl_rotation_row = new JLabel[4];
+		lbl_rotation_row[0] = new JLabel("");
+		lbl_rotation_row[1] = new JLabel("");
+		lbl_rotation_row[2] = new JLabel("");
+		lbl_rotation_row[3] = new JLabel("");
 		
 		lbl_tracker_info = new JLabel("Tracker info:");
 		lbl_tracker_info.setFont(boldFont);
@@ -178,6 +200,7 @@ public class InfoScrollPane extends JScrollPane {
 		info_panel = new ImagePanel();
 		
 		info_panel.add(lbl_info);
+		info_panel.add(lbl_calibration_file);
 		info_panel.add(lbl_processed_file);
 		info_panel.add(lbl_processed_frame);
 		info_panel.add(lbl_elapsed_time);
@@ -185,6 +208,15 @@ public class InfoScrollPane extends JScrollPane {
 		info_panel.add(lbl_xpos);
 		info_panel.add(lbl_ypos);
 		info_panel.add(lbl_zpos);
+		info_panel.add(lbl_distanceXZ);
+		info_panel.add(lbl_distanceY);
+		info_panel.add(pnl_rotation);
+		info_panel.add(pnl_altitude);
+		info_panel.add(lbl_rotation);
+		info_panel.add(lbl_rotation_row[0]);
+		info_panel.add(lbl_rotation_row[1]);
+		info_panel.add(lbl_rotation_row[2]);
+		info_panel.add(lbl_rotation_row[3]);
 		info_panel.add(lbl_tracker_info);
 		info_panel.add(lbl_inliers);
 		info_panel.add(lbl_tracks);
@@ -200,51 +232,7 @@ public class InfoScrollPane extends JScrollPane {
 		info_panel.add(lbl_points);
 		info_panel.add(lst_points_scroll);
 		
-		
-		info_panel_layout = new SpringLayout();
-		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_info, 5, SpringLayout.NORTH, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_info, 5, SpringLayout.WEST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_info, -5, SpringLayout.EAST, info_panel);
-		
-		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_processed_file, 10, SpringLayout.SOUTH, lbl_info);
-		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_processed_file, 15, SpringLayout.WEST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_processed_file, -5, SpringLayout.EAST, info_panel);
-		
-		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_processed_frame, 10, SpringLayout.SOUTH, lbl_processed_file);
-		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_processed_frame, 15, SpringLayout.WEST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_processed_frame, -5, SpringLayout.EAST, info_panel);
-		
-		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_elapsed_time, 10, SpringLayout.SOUTH, lbl_processed_frame);
-		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_elapsed_time, 15, SpringLayout.WEST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_elapsed_time, -5, SpringLayout.EAST, info_panel);
-		
-		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_pos, 10, SpringLayout.SOUTH, lbl_elapsed_time);
-		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_pos, 5, SpringLayout.WEST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_pos, -5, SpringLayout.EAST, info_panel);
-		
-		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_xpos, 10, SpringLayout.SOUTH, lbl_pos);
-		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_xpos, 15, SpringLayout.WEST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_xpos, -5, SpringLayout.EAST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_ypos, 10, SpringLayout.SOUTH, lbl_xpos);
-		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_ypos, 15, SpringLayout.WEST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_ypos, -5, SpringLayout.EAST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_zpos, 10, SpringLayout.SOUTH, lbl_ypos);
-		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_zpos, 15, SpringLayout.WEST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_zpos, -5, SpringLayout.EAST, info_panel);
-		
-		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_tracker_info, 10, SpringLayout.SOUTH, lbl_zpos);
-		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_tracker_info, 5, SpringLayout.WEST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_tracker_info, -5, SpringLayout.EAST, info_panel);
-		
-		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_tracks, 10, SpringLayout.SOUTH, lbl_tracker_info);
-		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_tracks, 15, SpringLayout.WEST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_tracks, -5, SpringLayout.EAST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_inliers, 10, SpringLayout.SOUTH, lbl_tracks);
-		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_inliers, 15, SpringLayout.WEST, info_panel);
-		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_inliers, -5, SpringLayout.EAST, info_panel);
-		
-		
-		
+		//Half_width spring, to be used in spring-layout to leave exactly half width
 		Spring half_width = new Spring(){
 
 			@Override
@@ -279,6 +267,83 @@ public class InfoScrollPane extends JScrollPane {
 			
 		};
 		
+		info_panel_layout = new SpringLayout();
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_info, 5, SpringLayout.NORTH, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_info, 5, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_info, -5, SpringLayout.EAST, info_panel);
+		
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_calibration_file, 10, SpringLayout.SOUTH, lbl_info);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_calibration_file, 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_calibration_file, -5, SpringLayout.EAST, info_panel);
+
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_processed_file, 10, SpringLayout.SOUTH, lbl_calibration_file);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_processed_file, 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_processed_file, -5, SpringLayout.EAST, info_panel);
+		
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_processed_frame, 10, SpringLayout.SOUTH, lbl_processed_file);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_processed_frame, 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_processed_frame, -5, SpringLayout.EAST, info_panel);
+		
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_elapsed_time, 10, SpringLayout.SOUTH, lbl_processed_frame);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_elapsed_time, 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_elapsed_time, -5, SpringLayout.EAST, info_panel);
+		
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_pos, 10, SpringLayout.SOUTH, lbl_elapsed_time);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_pos, 5, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_pos, -5, SpringLayout.EAST, info_panel);
+		
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_xpos, 10, SpringLayout.SOUTH, lbl_pos);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_xpos, 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_xpos, -5, SpringLayout.EAST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_ypos, 10, SpringLayout.SOUTH, lbl_xpos);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_ypos, 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_ypos, -5, SpringLayout.EAST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_zpos, 10, SpringLayout.SOUTH, lbl_ypos);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_zpos, 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_zpos, -5, SpringLayout.EAST, info_panel);
+		
+		info_panel_layout.putConstraint(SpringLayout.NORTH, pnl_rotation, -25, SpringLayout.SOUTH, lbl_pos);
+		info_panel_layout.putConstraint(SpringLayout.EAST, pnl_rotation, -5, SpringLayout.EAST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.NORTH, pnl_altitude, 10, SpringLayout.SOUTH, pnl_rotation);
+		info_panel_layout.putConstraint(SpringLayout.EAST, pnl_altitude, -5, SpringLayout.EAST, info_panel);
+
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_distanceXZ, 10, SpringLayout.SOUTH, lbl_zpos);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_distanceXZ, 5, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_distanceXZ, -5, SpringLayout.EAST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_distanceY, 10, SpringLayout.SOUTH, lbl_distanceXZ);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_distanceY, 5, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_distanceY, -5, SpringLayout.EAST, info_panel);
+		
+		
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_rotation, 10, SpringLayout.SOUTH, lbl_distanceY);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_rotation, 5, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_rotation, -5, SpringLayout.EAST, info_panel);
+		
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_rotation_row[0], 10, SpringLayout.SOUTH, lbl_rotation);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_rotation_row[0], 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_rotation_row[0], -5, SpringLayout.EAST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_rotation_row[1], 10, SpringLayout.SOUTH, lbl_rotation_row[0]);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_rotation_row[1], 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_rotation_row[1], -5, SpringLayout.EAST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_rotation_row[2], 10, SpringLayout.SOUTH, lbl_rotation_row[1]);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_rotation_row[2], 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_rotation_row[2], -5, SpringLayout.EAST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_rotation_row[3], 10, SpringLayout.SOUTH, lbl_rotation_row[2]);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_rotation_row[3], 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_rotation_row[3], -5, SpringLayout.EAST, info_panel);
+		
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_tracker_info, 10, SpringLayout.SOUTH, lbl_rotation_row[3]);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_tracker_info, 5, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_tracker_info, -5, SpringLayout.EAST, info_panel);
+		
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_tracks, 10, SpringLayout.SOUTH, lbl_tracker_info);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_tracks, 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_tracks, -5, SpringLayout.EAST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_inliers, 10, SpringLayout.SOUTH, lbl_tracks);
+		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_inliers, 15, SpringLayout.WEST, info_panel);
+		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_inliers, -5, SpringLayout.EAST, info_panel);
+		
+		//FPS info labels requires half_width spring
 		info_panel_layout.putConstraint(SpringLayout.NORTH, lbl_input_fps, 10, SpringLayout.SOUTH, lbl_inliers);
 		info_panel_layout.putConstraint(SpringLayout.WEST, lbl_input_fps, 5, SpringLayout.WEST, info_panel);
 		info_panel_layout.putConstraint(SpringLayout.EAST, lbl_input_fps, half_width, SpringLayout.WEST, info_panel);
@@ -331,10 +396,17 @@ public class InfoScrollPane extends JScrollPane {
 	public void addListData(String data){
 		lst_data.add(data);
 		lst_points.setListData(lst_data.toArray());
+
 		lst_points.revalidate();
 		lst_points.repaint();
+		lst_points_scroll.revalidate();
+		lst_points_scroll.repaint();
+		lbl_points.revalidate();
+		lbl_points.repaint();
+		info_panel.repaint();
+
 		JScrollBar vbar = lst_points_scroll.getVerticalScrollBar();
-		vbar.setValue(vbar.getMaximum());
+		if(vbar!=null)vbar.setValue(vbar.getMaximum());
 	}
 	
 	public void removeListData(int index){
@@ -359,7 +431,24 @@ public class InfoScrollPane extends JScrollPane {
 		lst_points.repaint();
 	}
 	
-	
+	public void refreshList(){
+		lst_points.setListData(new Object[]{});
+		lst_points.setListData(lst_data.toArray());
+
+		lst_points.revalidate();
+		lst_points.repaint();
+		lst_points_scroll.revalidate();
+		lst_points_scroll.repaint();
+		lbl_points.revalidate();
+		lbl_points.repaint();
+		info_panel.revalidate();
+		info_panel.repaint();
+	}
+
+	public void scrollToEndList(){
+		JScrollBar vbar = lst_points_scroll.getVerticalScrollBar();
+		if(vbar!=null)vbar.setValue(vbar.getMaximum());
+	}
 	
 	public void setInfoPanelVisible(boolean visible){
 		if(!visible){
@@ -538,5 +627,72 @@ public class InfoScrollPane extends JScrollPane {
 		
 	}
 	
+	public class DirectionPanel extends ImagePanel{
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 7762678252195354211L;
+		private int dir_x = 0, dir_y = 0;
+		private boolean border_enabled = false;
+		private int border_thickness = 0;
+		private Color border_color;
+		
+		public DirectionPanel (){
+			dir_x = this.getWidth()/2;
+			dir_y = this.getHeight()/2;
+		}
+		
+		public DirectionPanel (int width, int height){
+			super(width, height);
+			dir_x = this.getWidth()/2;
+			dir_y = this.getHeight()/2;
+		}
+		
+		public void setDirection (int x, int y){
+			this.dir_x = x;
+			this.dir_y = y;
+		}
+		
+		public void enableBorder (Color border_color, int border_thickness){
+			this.border_enabled = true;
+			this.border_color = border_color;
+			this.border_thickness = border_thickness;
+		}
+		
+		public void disableBorder (){
+			this.border_enabled = false;
+		}
+		
+		@Override
+		public void paintComponent(Graphics g) {
+			super.paintComponent(g);
+			
+			int cx,cy; //Center coordinates
+			cx = (int)Math.round(this.getWidth()/2);
+			cy = (int)Math.round(this.getHeight()/2);
+			
+			Graphics2D g2 = (Graphics2D) g;
+			
+			g2.setColor(Color.black);
+			g2.setStroke(new BasicStroke(1));
+			g2.drawLine(0, cy, this.getWidth(), cy);
+			g2.drawLine(cx, 0, cx, this.getHeight());
+			
+			g2.setColor(Color.green);
+			g2.setStroke(new BasicStroke(4));
+			g2.drawLine(cx, cy, cx+dir_x, cy-dir_y);
+			
+			if(this.border_enabled & this.border_thickness > 0){
+				g2.setColor(this.border_color);
+				g2.setStroke(new BasicStroke(this.border_thickness));
+				g2.drawRect(border_thickness/2, border_thickness/2, this.getWidth()-border_thickness, this.getHeight()-border_thickness);
+			}
+			
+			g2.dispose();
+			
+		}
+		
+	}
 	
 }

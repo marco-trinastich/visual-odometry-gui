@@ -1,4 +1,4 @@
-package voGui;
+package vogui.algorithm_generators;
 
 
 import boofcv.abst.feature.associate.AssociateDescription2D;
