@@ -120,7 +120,7 @@
       <packagedElement xmi:type="uml:Class" xmi:id="_CHFt-aGCEeW4qIS9Vy7BFQ" name="Core" visibility="public">
         <generalization xmi:id="_CHTwX6GCEeW4qIS9Vy7BFQ" general="_CG8j86GCEeW4qIS9Vy7BFQ"/>
         <ownedOperation xmi:id="_CIZ8waGCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public">
-          <ownedParameter xmi:id="_CIZ8wqGCEeW4qIS9Vy7BFQ" name="parameters" type="_CHc6S6GCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CIZ8wqGCEeW4qIS9Vy7BFQ" name="settings" type="_CHc6S6GCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CIZ8w6GCEeW4qIS9Vy7BFQ" name="start" visibility="public"/>
         <ownedOperation xmi:id="_CIZ8xKGCEeW4qIS9Vy7BFQ" name="internalCopy" visibility="public" isStatic="true">
@@ -167,7 +167,7 @@
           <ownedParameter xmi:id="_CIZ85KGCEeW4qIS9Vy7BFQ" name="return" type="_CHc6S6GCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CIZ85aGCEeW4qIS9Vy7BFQ" name="setParameters" visibility="public">
-          <ownedParameter xmi:id="_CIZ85qGCEeW4qIS9Vy7BFQ" name="parameters" type="_CHc6S6GCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CIZ85qGCEeW4qIS9Vy7BFQ" name="settings" type="_CHc6S6GCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <nestedClassifier xmi:type="uml:Class" xmi:id="_CHFt-qGCEeW4qIS9Vy7BFQ" name="BufferMonitorRunnable" visibility="package" isLeaf="true">
           <generalization xmi:id="_CHTwUaGCEeW4qIS9Vy7BFQ" general="_CG8j86GCEeW4qIS9Vy7BFQ"/>
@@ -215,7 +215,7 @@
         </nestedClassifier>
       </packagedElement>
     </packagedElement>
-    <packagedElement xmi:type="uml:Package" xmi:id="_CHTwYKGCEeW4qIS9Vy7BFQ" name="parameters">
+    <packagedElement xmi:type="uml:Package" xmi:id="_CHTwYKGCEeW4qIS9Vy7BFQ" name="settings">
       <packagedElement xmi:type="uml:Class" xmi:id="_CHTwfqGCEeW4qIS9Vy7BFQ" name="ChartOutputParameters" visibility="public">
         <generalization xmi:id="_CHTwgqGCEeW4qIS9Vy7BFQ" general="_CG8j86GCEeW4qIS9Vy7BFQ"/>
         <ownedAttribute xmi:id="_CIjtkKGCEeW4qIS9Vy7BFQ" name="YFRAMES_CHART" visibility="public" isLeaf="true" isStatic="true" type="_CHTwZqGCEeW4qIS9Vy7BFQ" isReadOnly="true"/>
@@ -223,7 +223,7 @@
         <interfaceRealization xmi:id="_CHTwgaGCEeW4qIS9Vy7BFQ" client="_CHTwfqGCEeW4qIS9Vy7BFQ" supplier="_CHTwgKGCEeW4qIS9Vy7BFQ" contract="_CHTwgKGCEeW4qIS9Vy7BFQ"/>
         <ownedOperation xmi:id="_CIjtkqGCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public"/>
         <ownedOperation xmi:id="_CIjtk6GCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public">
-          <ownedParameter xmi:id="_CIjtlKGCEeW4qIS9Vy7BFQ" name="chartType" type="_CHTwZqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CIjtlKGCEeW4qIS9Vy7BFQ" name="ChartType" type="_CHTwZqGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CIjtlaGCEeW4qIS9Vy7BFQ" name="chartTypeNames" type="_CHTwhKGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CIjtlqGCEeW4qIS9Vy7BFQ" name="chartXZ_Scale" type="_CHFt8aGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CIjtl6GCEeW4qIS9Vy7BFQ" name="chartY_Scale" type="_CHFt8aGCEeW4qIS9Vy7BFQ"/>
@@ -231,7 +231,7 @@
           <ownedParameter xmi:id="_CIjtmaGCEeW4qIS9Vy7BFQ" name="internalImagePreview" type="_CHTwW6GCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CIjtmqGCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public">
-          <ownedParameter xmi:id="_CIjtm6GCEeW4qIS9Vy7BFQ" name="anotherChartOutputParameters" type="_CHTwfqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CIjtm6GCEeW4qIS9Vy7BFQ" name="anotherChartSettings" type="_CHTwfqGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CIjtnKGCEeW4qIS9Vy7BFQ" name="defaultChartTypeNames" visibility="public">
           <ownedParameter xmi:id="_CIjtnaGCEeW4qIS9Vy7BFQ" name="return" type="_CHTwhKGCEeW4qIS9Vy7BFQ" direction="return"/>
@@ -240,7 +240,7 @@
           <ownedParameter xmi:id="_CIjtn6GCEeW4qIS9Vy7BFQ" name="return" type="_CHTwZqGCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CIjtoKGCEeW4qIS9Vy7BFQ" name="setChartType" visibility="public">
-          <ownedParameter xmi:id="_CIjtoaGCEeW4qIS9Vy7BFQ" name="chartType" type="_CHTwZqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CIjtoaGCEeW4qIS9Vy7BFQ" name="ChartType" type="_CHTwZqGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CIjtoqGCEeW4qIS9Vy7BFQ" name="getChartTypeNames" visibility="public">
           <ownedParameter xmi:id="_CIjto6GCEeW4qIS9Vy7BFQ" name="return" type="_CHTwhKGCEeW4qIS9Vy7BFQ" direction="return"/>
@@ -284,7 +284,7 @@
           <ownedParameter xmi:id="_CItejqGCEeW4qIS9Vy7BFQ" name="webcam" type="_CHTwjaGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CItej6GCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public">
-          <ownedParameter xmi:id="_CItekKGCEeW4qIS9Vy7BFQ" name="anotherDeviceParameters" type="_CHTwhaGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CItekKGCEeW4qIS9Vy7BFQ" name="anotherDeviceState" type="_CHTwhaGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CItekaGCEeW4qIS9Vy7BFQ" name="getBuffer" visibility="public">
           <ownedParameter xmi:id="_CItekqGCEeW4qIS9Vy7BFQ" name="return" type="_CHTwiKGCEeW4qIS9Vy7BFQ" direction="return"/>
@@ -330,7 +330,7 @@
           <ownedParameter xmi:id="_CIterqGCEeW4qIS9Vy7BFQ" name="inputPreviewEnabled" type="_CHTwW6GCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CIter6GCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public">
-          <ownedParameter xmi:id="_CItesKGCEeW4qIS9Vy7BFQ" name="anotherInputParameters" type="_CHc6QKGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CItesKGCEeW4qIS9Vy7BFQ" name="anotherInputSettings" type="_CHc6QKGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CItesaGCEeW4qIS9Vy7BFQ" name="getCalibrationPath" visibility="public">
           <ownedParameter xmi:id="_CItesqGCEeW4qIS9Vy7BFQ" name="return" type="_CHTwZqGCEeW4qIS9Vy7BFQ" direction="return"/>
@@ -429,7 +429,7 @@
           <ownedParameter xmi:id="_CIte_6GCEeW4qIS9Vy7BFQ" name="frameDecimateValue" type="_CHFt4aGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CItfAKGCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public">
-          <ownedParameter xmi:id="_CItfAaGCEeW4qIS9Vy7BFQ" name="anotherInternalImageParameters" type="_CHc6RKGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CItfAaGCEeW4qIS9Vy7BFQ" name="anotherImageSettings" type="_CHc6RKGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CItfAqGCEeW4qIS9Vy7BFQ" name="getImageType" visibility="public">
           <ownedParameter xmi:id="_CItfA6GCEeW4qIS9Vy7BFQ" name="return" type="_CHc6RaGCEeW4qIS9Vy7BFQ" direction="return"/>
@@ -513,14 +513,14 @@
         <generalization xmi:id="_CHc6TKGCEeW4qIS9Vy7BFQ" general="_CG8j86GCEeW4qIS9Vy7BFQ"/>
         <ownedOperation xmi:id="_CI2ofKGCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public"/>
         <ownedOperation xmi:id="_CI2ofaGCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public">
-          <ownedParameter xmi:id="_CI2ofqGCEeW4qIS9Vy7BFQ" name="inputParameters" type="_CHc6QKGCEeW4qIS9Vy7BFQ"/>
-          <ownedParameter xmi:id="_CI2of6GCEeW4qIS9Vy7BFQ" name="internalImageParameters" type="_CHc6RKGCEeW4qIS9Vy7BFQ"/>
-          <ownedParameter xmi:id="_CI2ogKGCEeW4qIS9Vy7BFQ" name="trackerParameters" type="_CHc6X6GCEeW4qIS9Vy7BFQ"/>
-          <ownedParameter xmi:id="_CI2ogaGCEeW4qIS9Vy7BFQ" name="visualOdometryParameters" type="_CHc6YqGCEeW4qIS9Vy7BFQ"/>
-          <ownedParameter xmi:id="_CI2ogqGCEeW4qIS9Vy7BFQ" name="chartOutputParameters" type="_CHTwfqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2ofqGCEeW4qIS9Vy7BFQ" name="inputSettings" type="_CHc6QKGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2of6GCEeW4qIS9Vy7BFQ" name="imageSettings" type="_CHc6RKGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2ogKGCEeW4qIS9Vy7BFQ" name="trackerSettings" type="_CHc6X6GCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2ogaGCEeW4qIS9Vy7BFQ" name="visualOdometrySettings" type="_CHc6YqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2ogqGCEeW4qIS9Vy7BFQ" name="chartSettings" type="_CHTwfqGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CI2og6GCEeW4qIS9Vy7BFQ" name="processingParameters" type="_CHc6VaGCEeW4qIS9Vy7BFQ"/>
-          <ownedParameter xmi:id="_CI2ohKGCEeW4qIS9Vy7BFQ" name="processingFlags" type="_CHc6UqGCEeW4qIS9Vy7BFQ"/>
-          <ownedParameter xmi:id="_CI2ohaGCEeW4qIS9Vy7BFQ" name="deviceParameters" type="_CHTwhaGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2ohKGCEeW4qIS9Vy7BFQ" name="processingState" type="_CHc6UqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2ohaGCEeW4qIS9Vy7BFQ" name="deviceState" type="_CHTwhaGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CI2ohqGCEeW4qIS9Vy7BFQ" name="guiComponents" type="_CHc6UaGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2oh6GCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public">
@@ -530,31 +530,31 @@
           <ownedParameter xmi:id="_CI2oiqGCEeW4qIS9Vy7BFQ" name="return" type="_CHc6QKGCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2oi6GCEeW4qIS9Vy7BFQ" name="setInputParameters" visibility="public">
-          <ownedParameter xmi:id="_CI2ojKGCEeW4qIS9Vy7BFQ" name="inputParameters" type="_CHc6QKGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2ojKGCEeW4qIS9Vy7BFQ" name="inputSettings" type="_CHc6QKGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2ojaGCEeW4qIS9Vy7BFQ" name="getInternalImageParameters" visibility="public">
           <ownedParameter xmi:id="_CI2ojqGCEeW4qIS9Vy7BFQ" name="return" type="_CHc6RKGCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2oj6GCEeW4qIS9Vy7BFQ" name="setInternalImageParameters" visibility="public">
-          <ownedParameter xmi:id="_CI2okKGCEeW4qIS9Vy7BFQ" name="internalImageParameters" type="_CHc6RKGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2okKGCEeW4qIS9Vy7BFQ" name="imageSettings" type="_CHc6RKGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2okaGCEeW4qIS9Vy7BFQ" name="getTrackerParameters" visibility="public">
           <ownedParameter xmi:id="_CI2okqGCEeW4qIS9Vy7BFQ" name="return" type="_CHc6X6GCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2ok6GCEeW4qIS9Vy7BFQ" name="setTrackerParameters" visibility="public">
-          <ownedParameter xmi:id="_CI2olKGCEeW4qIS9Vy7BFQ" name="trackerParameters" type="_CHc6X6GCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2olKGCEeW4qIS9Vy7BFQ" name="trackerSettings" type="_CHc6X6GCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2olaGCEeW4qIS9Vy7BFQ" name="getVisualOdometryParameters" visibility="public">
           <ownedParameter xmi:id="_CI2olqGCEeW4qIS9Vy7BFQ" name="return" type="_CHc6YqGCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2ol6GCEeW4qIS9Vy7BFQ" name="setVisualOdometryParameters" visibility="public">
-          <ownedParameter xmi:id="_CI2omKGCEeW4qIS9Vy7BFQ" name="visualOdometryParameters" type="_CHc6YqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2omKGCEeW4qIS9Vy7BFQ" name="visualOdometrySettings" type="_CHc6YqGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2omaGCEeW4qIS9Vy7BFQ" name="getChartOutputParameters" visibility="public">
           <ownedParameter xmi:id="_CI2omqGCEeW4qIS9Vy7BFQ" name="return" type="_CHTwfqGCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2om6GCEeW4qIS9Vy7BFQ" name="setChartOutputParameters" visibility="public">
-          <ownedParameter xmi:id="_CI2onKGCEeW4qIS9Vy7BFQ" name="chartOutputParameters" type="_CHTwfqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2onKGCEeW4qIS9Vy7BFQ" name="chartSettings" type="_CHTwfqGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2onaGCEeW4qIS9Vy7BFQ" name="getProcessingParameters" visibility="public">
           <ownedParameter xmi:id="_CI2onqGCEeW4qIS9Vy7BFQ" name="return" type="_CHc6VaGCEeW4qIS9Vy7BFQ" direction="return"/>
@@ -566,13 +566,13 @@
           <ownedParameter xmi:id="_CI2ooqGCEeW4qIS9Vy7BFQ" name="return" type="_CHc6UqGCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2oo6GCEeW4qIS9Vy7BFQ" name="setProcessingFlags" visibility="public">
-          <ownedParameter xmi:id="_CI2opKGCEeW4qIS9Vy7BFQ" name="processingFlags" type="_CHc6UqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2opKGCEeW4qIS9Vy7BFQ" name="processingState" type="_CHc6UqGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2opaGCEeW4qIS9Vy7BFQ" name="getDeviceParameters" visibility="public">
           <ownedParameter xmi:id="_CI2opqGCEeW4qIS9Vy7BFQ" name="return" type="_CHTwhaGCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2op6GCEeW4qIS9Vy7BFQ" name="setDeviceParameters" visibility="public">
-          <ownedParameter xmi:id="_CI2oqKGCEeW4qIS9Vy7BFQ" name="deviceParameters" type="_CHTwhaGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2oqKGCEeW4qIS9Vy7BFQ" name="deviceState" type="_CHTwhaGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2oqaGCEeW4qIS9Vy7BFQ" name="getGuiComponents" visibility="public">
           <ownedParameter xmi:id="_CI2oqqGCEeW4qIS9Vy7BFQ" name="return" type="_CHc6UaGCEeW4qIS9Vy7BFQ" direction="return"/>
@@ -593,7 +593,7 @@
           <ownedParameter xmi:id="_CI2os6GCEeW4qIS9Vy7BFQ" name="clearVisualOdometry" type="_CHTwW6GCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2otKGCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public">
-          <ownedParameter xmi:id="_CI2otaGCEeW4qIS9Vy7BFQ" name="anotherProcessingFlags" type="_CHc6UqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CI2otaGCEeW4qIS9Vy7BFQ" name="anotherProcessingStateB" type="_CHc6UqGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CI2otqGCEeW4qIS9Vy7BFQ" name="isProcessingVisualOdometry" visibility="public">
           <ownedParameter xmi:id="_CI2ot6GCEeW4qIS9Vy7BFQ" name="return" type="_CHTwW6GCEeW4qIS9Vy7BFQ" direction="return"/>
@@ -721,7 +721,7 @@
           <ownedParameter xmi:id="_CI2pCaGCEeW4qIS9Vy7BFQ" name="trackerShowNewTracks" type="_CHTwW6GCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CJAZcKGCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public">
-          <ownedParameter xmi:id="_CJAZcaGCEeW4qIS9Vy7BFQ" name="anotherTrackerParameters" type="_CHc6X6GCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CJAZcaGCEeW4qIS9Vy7BFQ" name="anotherTrackerSettings" type="_CHc6X6GCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CJAZcqGCEeW4qIS9Vy7BFQ" name="defaultTrackerTypeNames" visibility="public">
           <ownedParameter xmi:id="_CJAZc6GCEeW4qIS9Vy7BFQ" name="return" type="_CHTwhKGCEeW4qIS9Vy7BFQ" direction="return"/>
@@ -828,7 +828,7 @@
           <ownedParameter xmi:id="_CJAZu6GCEeW4qIS9Vy7BFQ" name="monoPlaneOverhead_respawnCoverageFraction" type="_CHFt8aGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CJAZvKGCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public">
-          <ownedParameter xmi:id="_CJAZvaGCEeW4qIS9Vy7BFQ" name="anotherVisualOdometryParameters" type="_CHc6YqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CJAZvaGCEeW4qIS9Vy7BFQ" name="anotherVisualOdometrySettings" type="_CHc6YqGCEeW4qIS9Vy7BFQ"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CJAZvqGCEeW4qIS9Vy7BFQ" name="getVisualOdometryType" visibility="public">
           <ownedParameter xmi:id="_CJAZv6GCEeW4qIS9Vy7BFQ" name="return" type="_CHTwZqGCEeW4qIS9Vy7BFQ" direction="return"/>
@@ -932,7 +932,7 @@
         </ownedOperation>
         <ownedOperation xmi:id="_CIZ86aGCEeW4qIS9Vy7BFQ" name="&lt;init>" visibility="public"/>
         <ownedOperation xmi:id="_CIZ86qGCEeW4qIS9Vy7BFQ" name="start" visibility="public">
-          <ownedParameter xmi:id="_CIZ866GCEeW4qIS9Vy7BFQ" name="device" type="_CHTwZqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CIZ866GCEeW4qIS9Vy7BFQ" name="deviceState" type="_CHTwZqGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CIZ87KGCEeW4qIS9Vy7BFQ" name="width" type="_CHFt4aGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CIZ87aGCEeW4qIS9Vy7BFQ" name="height" type="_CHFt4aGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CIZ87qGCEeW4qIS9Vy7BFQ" name="selImgType" type="_CHTwWKGCEeW4qIS9Vy7BFQ"/>
@@ -940,7 +940,7 @@
           <ownedParameter xmi:id="_CIZ88KGCEeW4qIS9Vy7BFQ" name="return" type="_CHTwW6GCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CIZ88aGCEeW4qIS9Vy7BFQ" name="start" visibility="public">
-          <ownedParameter xmi:id="_CIZ88qGCEeW4qIS9Vy7BFQ" name="device" type="_CHTwZqGCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CIZ88qGCEeW4qIS9Vy7BFQ" name="deviceState" type="_CHTwZqGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CIZ886GCEeW4qIS9Vy7BFQ" name="width" type="_CHFt4aGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CIZ89KGCEeW4qIS9Vy7BFQ" name="height" type="_CHFt4aGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CIZ89aGCEeW4qIS9Vy7BFQ" name="callback" type="_CHTwVKGCEeW4qIS9Vy7BFQ"/>
@@ -1269,7 +1269,7 @@
           <ownedParameter xmi:id="_CJXmC6GCEeW4qIS9Vy7BFQ" name="return" type="_CH5mS6GCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>
         <ownedOperation xmi:id="_CJXmDKGCEeW4qIS9Vy7BFQ" name="reloadParameters" visibility="public" isStatic="true">
-          <ownedParameter xmi:id="_CJXmDaGCEeW4qIS9Vy7BFQ" name="parameters" type="_CHc6S6GCEeW4qIS9Vy7BFQ"/>
+          <ownedParameter xmi:id="_CJXmDaGCEeW4qIS9Vy7BFQ" name="settings" type="_CHc6S6GCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CJXmDqGCEeW4qIS9Vy7BFQ" name="core" type="_CHFt-aGCEeW4qIS9Vy7BFQ"/>
           <ownedParameter xmi:id="_CJXmD6GCEeW4qIS9Vy7BFQ" name="return" type="_CH5mTKGCEeW4qIS9Vy7BFQ" direction="return"/>
         </ownedOperation>

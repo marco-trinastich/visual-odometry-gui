@@ -1,0 +1,168 @@
+<list>
+  <com.mtm.vogui.models.settings.core.InputSettings>
+    <calibrationPath>data/boofcv/applet/vo/drc/mono_plane.yaml</calibrationPath>
+    <calibrationsList>
+      <string>data/boofcv/applet/vo/drc/mono_plane.yaml</string>
+      <string>data/vogui/monocalibrations/intrinsic_Asus_N56VZ_Webcam_1280_720.xml</string>
+      <string>data/vogui/monocalibrations/intrinsic_Microsoft_Kinect_640_480.xml</string>
+      <string>data/vogui/monocalibrations/intrinsic_Microsoft_Kinect_640_480_LowBaseheight.xml</string>
+      <string>data/vogui/monocalibrations/intrinsic_Samsung_GalaxyS2_Camera_320_240.xml</string>
+      <string>data/vogui/monocalibrations/intrinsic_Samsung_GalaxyS2_Camera_320_240_LowBaseheight.xml</string>
+    </calibrationsList>
+    <inputSource>Video</inputSource>
+    <videoPath>data/boofcv/applet/vo/drc/left.mjpeg</videoPath>
+    <videoPathsList>
+      <string>data/boofcv/applet/vo/drc/left.mjpeg</string>
+      <string>data/vogui/media/Smartspace/Smartspace_00_Inside_1280x720.avi</string>
+      <string>data/vogui/media/Smartspace/Smartspace_01_Inside_1280x720.mjpeg</string>
+      <string>data/vogui/media/Smartspace/Smartspace_02_Inside_640x480.mjpeg</string>
+      <string>data/vogui/media/Smartspace/Smartspace_03_Inside_400x400.mjpeg</string>
+      <string>data/vogui/media/Smartspace/Smartspace_04_Inside_Medium_Pitch_0_1_640x480.mjpeg</string>
+      <string>data/vogui/media/Smartspace/Smartspace_05_Inside_Medium_Pitch_0_1_640x480.mp4</string>
+      <string>data/vogui/media/Smartspace/Smartspace_06_Inside_Reverse_Medium_Pitch_0_2_640x480.mjpeg</string>
+      <string>data/vogui/media/Smartspace/Smartspace_07_Inside_Reverse_(20140411_134424)_640x480.mp4</string>
+      <string>data/vogui/media/Smartspace/Smartspace_08_Inside_High_Pitch_(20140409)_1280x720.mp4</string>
+      <string>data/vogui/media/Smartspace/Smartspace_09_Outside_640x480.mp4</string>
+      <string>data/vogui/media/Smartspace/Smartspace_10_Outside_400x400.mjpeg</string>
+      <string>data/vogui/media/Smartspace/Smartspace_11_Inside_Prova_1280x720_Full_Frames.mjpeg</string>
+      <string>data/vogui/media/Smartspace/Smartspace_12_Inside_Prova_1280x720_Half_Frames.mjpeg</string>
+      <string>data/vogui/media/Smartspace/Smartspace_13_Inside_Prova_1280x720_Quarter_Frames.mjpeg</string>
+      <string>data/vogui/media/Smartspace/Smartspace_14_Inside_Prova_640x360_Full_Frames.mjpeg</string>
+      <string>data/vogui/media/Smartspace/Inside_132_frames_1280x720/</string>
+      <string>data/vogui/media/Smartspace/Inside_456_frames_1280x720/</string>
+      <string>data/vogui/media/Smartspace/Inside_660_frames_1280x720/</string>
+      <string>data/vogui/media/LibViso/LibViso_01_Sample_Video_1344x372.avi</string>
+      <string>data/vogui/media/LibViso/LibViso_02_Sample_Video_400x400.mjpeg</string>
+      <string>data/vogui/media/LibViso/2010_03_09_drive_0019/</string>
+    </videoPathsList>
+    <deviceType>V4L4J</deviceType>
+    <devicePath>/dev/video0</devicePath>
+    <devicePathsList>
+      <string>/dev/video0</string>
+      <string>/dev/video1</string>
+    </devicePathsList>
+    <deviceWidth>320</deviceWidth>
+    <deviceHeight>240</deviceHeight>
+    <device__Control__SustainFramerate__Enabled>false</device__Control__SustainFramerate__Enabled>
+    <device__Control__TimeoutImageIO__Enabled>false</device__Control__TimeoutImageIO__Enabled>
+    <device__Control__KeepFormat__Enabled>false</device__Control__KeepFormat__Enabled>
+    <inputPreviewEnabled>true</inputPreviewEnabled>
+  </com.mtm.vogui.models.settings.core.InputSettings>
+  <com.mtm.vogui.models.settings.core.InternalImageSettings>
+    <imageType>
+      <imageTypeName>GrayF32 (32bit float)</imageTypeName>
+      <imageTypeClass>boofcv.struct.image.GrayF32</imageTypeClass>
+    </imageType>
+    <imageTypesList>
+      <com.mtm.vogui.models.settings.core.InternalImageSettings_-ImageTypeDescriptor>
+        <imageTypeName>GrayU8 (8bit int unsigned)</imageTypeName>
+        <imageTypeClass>boofcv.struct.image.GrayU8</imageTypeClass>
+      </com.mtm.vogui.models.settings.core.InternalImageSettings_-ImageTypeDescriptor>
+      <com.mtm.vogui.models.settings.core.InternalImageSettings_-ImageTypeDescriptor reference="../../imageType"/>
+    </imageTypesList>
+    <imageKeepOriginal>true</imageKeepOriginal>
+    <imageResizeWidth>400</imageResizeWidth>
+    <imageResizeHeight>400</imageResizeHeight>
+    <imageBufferSize>0</imageBufferSize>
+    <frameDecimateEnabled>false</frameDecimateEnabled>
+    <frameDecimateValue>1</frameDecimateValue>
+  </com.mtm.vogui.models.settings.core.InternalImageSettings>
+  <com.mtm.vogui.models.settings.core.TrackerSettings>
+    <trackerType>klt</trackerType>
+    <trackerTypeNames>
+      <entry>
+        <string>klt</string>
+        <string>KLT (Standard)</string>
+      </entry>
+      <entry>
+        <string>klt2</string>
+        <string>KLT (Modern)</string>
+      </entry>
+      <entry>
+        <string>surf</string>
+        <string>Surf (Standard)</string>
+      </entry>
+      <entry>
+        <string>surf2</string>
+        <string>Surf (Dda Two Pass)</string>
+      </entry>
+      <entry>
+        <string>default</string>
+        <string>&lt;html&gt;&lt;b&gt;Default Tracker (KLT, standard param.)&lt;/b&gt;&lt;/html&gt;</string>
+      </entry>
+    </trackerTypeNames>
+    <kltTracker__templateRadius>3</kltTracker__templateRadius>
+    <kltTracker__pyramidLevels>4</kltTracker__pyramidLevels>
+    <kltTracker__maxFeatures>600</kltTracker__maxFeatures>
+    <kltTracker__radius>3</kltTracker__radius>
+    <kltTracker__threshold>1.0</kltTracker__threshold>
+    <surfTracker__maxFeaturesPerScale>200</surfTracker__maxFeaturesPerScale>
+    <surfTracker__extractRadius>3</surfTracker__extractRadius>
+    <surfTracker__initialSampleSize>2</surfTracker__initialSampleSize>
+    <trackerShowActiveTracks>true</trackerShowActiveTracks>
+    <trackerShowNewTracks>false</trackerShowNewTracks>
+  </com.mtm.vogui.models.settings.core.TrackerSettings>
+  <com.mtm.vogui.models.settings.core.VisualOdometrySettings>
+    <visualOdometryType>monoPlaneInfinity</visualOdometryType>
+    <visualOdometryTypeNames>
+      <entry>
+        <string>monoPlaneInfinity</string>
+        <string>monoPlaneInfinity</string>
+      </entry>
+      <entry>
+        <string>monoPlaneOverhead</string>
+        <string>monoPlaneOverhead</string>
+      </entry>
+      <entry>
+        <string>stereoDepth</string>
+        <string>stereoDepth (not implemented)</string>
+      </entry>
+      <entry>
+        <string>stereoDualTrackerPnP</string>
+        <string>stereoDualTrackerPnP (not implemented)</string>
+      </entry>
+      <entry>
+        <string>stereoQuadPnP</string>
+        <string>stereoQuadPnP (not implemented)</string>
+      </entry>
+      <entry>
+        <string>depthDepthPnP</string>
+        <string>depthDepthPnP (not implemented)</string>
+      </entry>
+      <entry>
+        <string>default</string>
+        <string>&lt;html&gt;&lt;b&gt;Default VO (monoPlaneInfinity, standard param.)&lt;/b&gt;&lt;/html&gt;</string>
+      </entry>
+    </visualOdometryTypeNames>
+    <monoPlaneInfinity__thresholdAdd>75</monoPlaneInfinity__thresholdAdd>
+    <monoPlaneInfinity__thresholdRetire>2</monoPlaneInfinity__thresholdRetire>
+    <monoPlaneInfinity__inlierPixelTol>1.5</monoPlaneInfinity__inlierPixelTol>
+    <monoPlaneInfinity__ransacIterations>200</monoPlaneInfinity__ransacIterations>
+    <monoPlaneOverhead__cellSize>0.06</monoPlaneOverhead__cellSize>
+    <monoPlaneOverhead__maxCellsPerPixel>25.0</monoPlaneOverhead__maxCellsPerPixel>
+    <monoPlaneOverhead__mapHeightFraction>0.7</monoPlaneOverhead__mapHeightFraction>
+    <monoPlaneOverhead__inlierGroundTol>1.5</monoPlaneOverhead__inlierGroundTol>
+    <monoPlaneOverhead__ransacIterations>300</monoPlaneOverhead__ransacIterations>
+    <monoPlaneOverhead__thresholdRetire>2</monoPlaneOverhead__thresholdRetire>
+    <monoPlaneOverhead__absoluteMinimumTracks>100</monoPlaneOverhead__absoluteMinimumTracks>
+    <monoPlaneOverhead__respawnTrackFraction>0.5</monoPlaneOverhead__respawnTrackFraction>
+    <monoPlaneOverhead__respawnCoverageFraction>0.6</monoPlaneOverhead__respawnCoverageFraction>
+  </com.mtm.vogui.models.settings.core.VisualOdometrySettings>
+  <com.mtm.vogui.models.settings.core.ChartOutputSettings>
+    <chartType>YFrames</chartType>
+    <chartTypeNames class="org.apache.commons.collections4.bidimap.TreeBidiMap" serialization="custom">
+      <org.apache.commons.collections4.bidimap.TreeBidiMap>
+        <default/>
+        <int>2</int>
+        <com.mtm.vogui.models.enums.ChartType>YSeconds</com.mtm.vogui.models.enums.ChartType>
+        <string>X/Z (translation) and Y/seconds (altitude per second)</string>
+        <com.mtm.vogui.models.enums.ChartType>YFrames</com.mtm.vogui.models.enums.ChartType>
+        <string>X/Z (translation) and Y/frames (altitude per frame)</string>
+      </org.apache.commons.collections4.bidimap.TreeBidiMap>
+    </chartTypeNames>
+    <chartXZ__Scale>10.0</chartXZ__Scale>
+    <chartY__Scale>1.0</chartY__Scale>
+    <fullResolutionPreview>false</fullResolutionPreview>
+    <internalImagePreview>false</internalImagePreview>
+  </com.mtm.vogui.models.settings.core.ChartOutputSettings>
+</list>
