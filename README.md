@@ -1,6 +1,6 @@
-# VisualOdometry GUI
+# Visual Odometry GUI
 
-VisualOdometry GUI is a graphical user interface application for a **Tracking and Mapping System based on Visual Odometry**. It is a Java-based application that leverages the **BoofCV library** for computer vision tasks, enabling users to implement and experiment with various visual odometry algorithms. The application processes input from **video feeds** or **live cameras** and generates a **2D map** as an output, providing a comprehensive platform for visual odometry research and development.
+Visual Odometry GUI is a graphical user interface application for a **Tracking and Mapping System based on Visual Odometry**. It is a Java-based application that leverages the **BoofCV library** for computer vision tasks, enabling users to implement and experiment with various visual odometry algorithms. The application processes input from **video feeds** or **live cameras** and generates a **2D map** as an output, providing a comprehensive platform for visual odometry research and development.
 
 ## Key Features
 

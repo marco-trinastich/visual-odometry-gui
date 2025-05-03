@@ -1,3 +1,8 @@
+/*
+ * Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+ * Licensed under GNU GPL v3 - see LICENSE file for details
+ */
+
 package com.mtm.vogui.gui.components.chart;
 
 
@@ -12,8 +17,6 @@ import java.awt.*;
  * Chart ViewPort (ChartScrollPane Component)
  * </p>
  * Component painting above and below chart panel (legend, permanent axis names, etc.)
- *
- * @author Marco Trinastich 2015-2024
  */
 public class ChartViewPort extends JViewport {
     private final ChartState state;

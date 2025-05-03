@@ -1,3 +1,8 @@
+/*
+ * Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+ * Licensed under GNU GPL v3 - see LICENSE file for details
+ */
+
 package com.mtm.vogui.factory;
 
 import boofcv.abst.sfm.d3.*;
@@ -18,9 +23,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Visual Odometry algorithm factory
- * </p>
- *
- * @author Marco Trinastich
  */
 @SuppressWarnings({"unused", "unchecked", "rawtypes"})
 public class VisualOdometryFactory {

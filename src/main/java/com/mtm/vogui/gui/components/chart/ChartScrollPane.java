@@ -1,3 +1,8 @@
+/*
+ * Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+ * Licensed under GNU GPL v3 - see LICENSE file for details
+ */
+
 package com.mtm.vogui.gui.components.chart;
 
 import java.awt.*;
@@ -19,8 +24,6 @@ import org.jetbrains.annotations.NotNull;
  * ChartScrollPane
  * <p/>
  * This panel handles a generic scrollable point chart
- *
- * @author Marco Trinastich 2015-2024
  */
 public class ChartScrollPane extends JScrollPane implements PropertyChangeListener {
 

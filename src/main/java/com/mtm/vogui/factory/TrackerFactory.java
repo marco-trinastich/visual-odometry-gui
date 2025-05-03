@@ -1,3 +1,8 @@
+/*
+ * Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+ * Licensed under GNU GPL v3 - see LICENSE file for details
+ */
+
 package com.mtm.vogui.factory;
 
 
@@ -18,9 +23,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Tracker algorithms factory
- * </p>
- *
- * @author Marco Trinastich
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class TrackerFactory {

@@ -1,3 +1,8 @@
+/*
+ * Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+ * Licensed under GNU GPL v3 - see LICENSE file for details
+ */
+
 package com.mtm.vogui.gui.components.chart;
 
 
@@ -16,8 +21,6 @@ import java.util.ArrayList;
  * Chart Panel (ChartScrollPane Component)
  * </p>
  * Component responsible for chart painting
- *
- * @author Marco Trinastich 2015-2024
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

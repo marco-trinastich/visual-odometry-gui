@@ -1,3 +1,8 @@
+/*
+ * Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+ * Licensed under GNU GPL v3 - see LICENSE file for details
+ */
+
 package com.mtm.vogui.gui.components.info;
 
 import javax.swing.*;
@@ -24,8 +29,6 @@ import java.awt.*;
  * InfoScrollPane
  * <p/>
  * This panel contains all Visual Odometry processing details
- *
- * @author Marco Trinastich 2015-2024
  */
 public class InfoScrollPane extends JScrollPane {
 

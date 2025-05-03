@@ -1,3 +1,8 @@
+/*
+ * Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+ * Licensed under GNU GPL v3 - see LICENSE file for details
+ */
+
 package com.mtm.vogui.core.integration.bridge;
 
 import au.edu.jcu.v4l4j.*;
@@ -23,8 +28,6 @@ import java.util.List;
 /**
  * Wrapper around V4L4J for processing videos with BoofCv.
  * </p>
- *
- * @author Marco Trinastich
  */
 @SuppressWarnings("unused")
 public class V4l4jVideo extends WindowAdapter implements CaptureCallback {

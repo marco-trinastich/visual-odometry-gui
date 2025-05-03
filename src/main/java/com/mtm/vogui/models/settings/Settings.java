@@ -1,3 +1,8 @@
+/*
+ * Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+ * Licensed under GNU GPL v3 - see LICENSE file for details
+ */
+
 package com.mtm.vogui.models.settings;
 
 import com.mtm.vogui.models.config.Config;
@@ -34,8 +39,6 @@ import java.util.ArrayList;
  * - core engine uses settings to set up a vo processing<p/>
  * - gui, core and devices exchange messages during processing through this class [ProcessingFlags,
  * ProcessingParameters, DeviceParameters, Images Buffer]<p/>
- *
- * @author Marco Trinastich
  */
 
 @Data

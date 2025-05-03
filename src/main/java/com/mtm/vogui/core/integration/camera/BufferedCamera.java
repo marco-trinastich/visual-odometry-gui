@@ -1,3 +1,8 @@
+/*
+ * Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+ * Licensed under GNU GPL v3 - see LICENSE file for details
+ */
+
 package com.mtm.vogui.core.integration.camera;
 
 import com.mtm.vogui.core.integration.shared.BufferMonitor;
@@ -20,8 +25,6 @@ import java.util.function.Consumer;
  * BufferedCamera
  * <p>
  * Abstract class that implements a generic contract for a buffering-based video device.
- *
- * @author Marco Trinastich 2024
  */
 public abstract class BufferedCamera {
 

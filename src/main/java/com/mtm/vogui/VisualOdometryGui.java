@@ -1,3 +1,8 @@
+/*
+ * Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+ * Licensed under GNU GPL v3 - see LICENSE file for details
+ */
+
 package com.mtm.vogui;
 
 import com.mtm.vogui.gui.GuiApplication;
@@ -9,9 +14,6 @@ import jakarta.inject.Inject;
 /**
  * Visual Odometry GUI
  * (Tracking and Mapping System based on Visual Odometry)
- *
- * @author Marco Trinastich
- * created in 2015
  */
 @QuarkusMain
 public class VisualOdometryGui {
