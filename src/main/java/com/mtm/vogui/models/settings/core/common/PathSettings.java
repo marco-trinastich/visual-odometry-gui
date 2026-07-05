@@ -33,9 +33,8 @@ public abstract class PathSettings implements Serializable {
     }
 
     public void loadDefaults() {
-        this.paths = this.defaultPaths();
+        // No built-in defaults: paths are user-provided and persisted in the settings file
+        this.paths = new String[]{};
         this.path = CommonUtils.getStringArrayFirst(this.paths);
     }
-
-    protected abstract String[] defaultPaths();
 }

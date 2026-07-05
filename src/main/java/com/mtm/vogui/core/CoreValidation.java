@@ -8,7 +8,6 @@ package com.mtm.vogui.core;
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.enums.settings.ChartType;
 import com.mtm.vogui.models.settings.Settings;
-import com.mtm.vogui.models.settings.core.tracker.TrackerSettings;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -109,14 +108,13 @@ public class CoreValidation {
         }
 
         //Tracker Type Check
-        if (trackerType == null || trackerType.isEmpty()) {
+        if (trackerType == null) {
             JOptionPane.showConfirmDialog(mainFrame, "Select a correct Tracker Type!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
             return false;
         }
 
         //KLT Tracker pyramidScaling Check (KLT Trackers only)
-        if ((trackerType.equals(TrackerSettings.KLT) || trackerType.equals(TrackerSettings.KLT2) || trackerType.equals(TrackerSettings.DEFAULT_TRACKER))
-                && kltTrackerPyramidLevels == 0) {
+        if (trackerType.isKlt() && kltTrackerPyramidLevels == 0) {
 
             int choice = JOptionPane.showConfirmDialog(
                     mainFrame,

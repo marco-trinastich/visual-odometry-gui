@@ -38,7 +38,8 @@ public class Messages {
     public final static String CONSUMER_EXCEPTION = "Error: Cannot consume input value. Caller: %s (details: %s)";
 
     // Logging
-    public final static String LOAD_SETTINGS_EXCEPTION = "Error loading settings from: %s";
+    public final static String LOAD_SETTINGS_EXCEPTION = "Error loading settings from: %s (%s)";
+    public final static String SAVE_SETTINGS_EXCEPTION = "Error saving settings to: %s (%s)";
     public final static String V4L4J_DEVICE_FPS_LOG = """
             \s
             Fps status:

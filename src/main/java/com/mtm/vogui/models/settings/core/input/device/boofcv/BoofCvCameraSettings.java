@@ -17,7 +17,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 /**
  * BoofCv camera settings
@@ -35,8 +34,9 @@ public class BoofCvCameraSettings implements Serializable, WithDefault<BoofCvCam
 
     private String path;
 
+    // Runtime-discovered, never persisted (neither xml nor dat)
     @XStreamOmitField
-    private List<Webcam> webcams;
+    private transient List<Webcam> webcams;
 
     @Inject
     public BoofCvCameraSettings() {
@@ -49,23 +49,25 @@ public class BoofCvCameraSettings implements Serializable, WithDefault<BoofCvCam
     }
 
     public String @NotNull [] paths() {
-        return this.webcams.stream().map(Webcam::getName).toArray(String[]::new);
+        return this.availableWebcams().stream().map(Webcam::getName).toArray(String[]::new);
     }
 
     public String getFirstOrEmptyPath() {
-        return this.webcams != null && !this.webcams.isEmpty() ? this.webcams.getFirst().getName() : "";
+        return !this.availableWebcams().isEmpty() ? this.availableWebcams().getFirst().getName() : "";
     }
 
     public Webcam webcam() {
         // Returns selected webcam by path id if it exists, otherwise the first available one, otherwise null
-        return Stream.ofNullable(this.webcams)
-                .findFirst()
-                .orElse(new ArrayList<>())
-                .stream()
+        return this.availableWebcams().stream()
                 .filter(Objects::nonNull)
                 .filter(x -> x.getName().contains(this.path))
                 .findFirst()
-                .orElse(!this.webcams.isEmpty() ? this.webcams.getFirst() : null);
+                .orElse(!this.availableWebcams().isEmpty() ? this.availableWebcams().getFirst() : null);
+    }
+
+    private List<Webcam> availableWebcams() {
+        // The field is transient/omitted, so it is null on deserialized instances: discover lazily
+        return this.webcams != null ? this.webcams : this.reloadWebcams(null);
     }
 
     public void reloadWebcams() {

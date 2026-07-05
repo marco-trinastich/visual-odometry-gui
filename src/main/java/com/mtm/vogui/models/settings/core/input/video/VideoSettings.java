@@ -5,7 +5,6 @@
 
 package com.mtm.vogui.models.settings.core.input.video;
 
-import com.mtm.vogui.models.constants.SettingsConstants;
 import com.mtm.vogui.models.interfaces.WithDefault;
 import com.mtm.vogui.models.settings.core.common.PathSettings;
 import jakarta.enterprise.context.Dependent;
@@ -26,11 +25,5 @@ public class VideoSettings extends PathSettings implements WithDefault<VideoSett
 
     public VideoSettings(VideoSettings video) {
         super(video);
-    }
-
-    @Override
-    protected String[] defaultPaths() {
-        // Default video list (example vo videos)
-        return SettingsConstants.DEFAULT_VIDEO_PATHS;
     }
 }

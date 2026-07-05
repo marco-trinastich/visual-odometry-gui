@@ -5,12 +5,12 @@
 
 package com.mtm.vogui.models.settings.core.tracker;
 
+import com.mtm.vogui.models.enums.settings.TrackerType;
 import com.mtm.vogui.models.interfaces.WithDefault;
 import jakarta.enterprise.context.Dependent;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.LinkedHashMap;
 
 /**
  * Tracker settings
@@ -20,15 +20,7 @@ import java.util.LinkedHashMap;
 @Dependent
 public class TrackerSettings implements Serializable, WithDefault<TrackerSettings> {
 
-    private String trackerType;
-    //trackerType Constants
-    public static final String KLT = "klt";
-    public static final String KLT2 = "klt2";
-    public static final String SURF = "surf";
-    public static final String SURF2 = "surf2";
-    public static final String DEFAULT_TRACKER = "default"; //KLT Tracker
-
-    private LinkedHashMap<String, String> trackerTypeNames; //Key is trackerType, Value is displayed trackerName
+    private TrackerType trackerType;
 
     //KLT Parameters
     private int kltTracker_templateRadius;
@@ -53,42 +45,26 @@ public class TrackerSettings implements Serializable, WithDefault<TrackerSetting
         loadDefaults();
     }
 
-    public TrackerSettings(String trackerType, LinkedHashMap<String, String> trackerTypeNames,
-                           int kltTracker_templateRadius, int kltTracker_pyramidLevels, int kltTracker_maxFeatures,
-                           int kltTracker_radius, float kltTracker_threshold, int surfTracker_maxFeaturesPerScale,
-                           int surfTracker_extractRadius, int surfTracker_initialSampleSize, boolean trackerShowActiveTracks,
-                           boolean trackerShowNewTracks) {
-        //Custom initialization
-        this.setTrackerType(trackerType);
-        this.setTrackerTypeNames(trackerTypeNames);
-        this.setKltTracker_templateRadius(kltTracker_templateRadius);
-        this.setKltTracker_pyramidLevels(kltTracker_pyramidLevels);
-        this.setKltTracker_maxFeatures(kltTracker_maxFeatures);
-        this.setKltTracker_radius(kltTracker_radius);
-        this.setKltTracker_threshold(kltTracker_threshold);
-        this.setSurfTracker_maxFeaturesPerScale(surfTracker_maxFeaturesPerScale);
-        this.setSurfTracker_extractRadius(surfTracker_extractRadius);
-        this.setSurfTracker_initialSampleSize(surfTracker_initialSampleSize);
-        this.setTrackerShowActiveTracks(trackerShowActiveTracks);
-        this.setTrackerShowNewTracks(trackerShowNewTracks);
-    }
-
     /**
      * Copy constructor
      */
     public TrackerSettings(TrackerSettings anotherTrackerSettings) {
-        this(anotherTrackerSettings.getTrackerType(), anotherTrackerSettings.getTrackerTypeNames(),
-                anotherTrackerSettings.getKltTracker_templateRadius(), anotherTrackerSettings.getKltTracker_pyramidLevels(),
-                anotherTrackerSettings.getKltTracker_maxFeatures(), anotherTrackerSettings.getKltTracker_radius(),
-                anotherTrackerSettings.getKltTracker_threshold(), anotherTrackerSettings.getSurfTracker_maxFeaturesPerScale(),
-                anotherTrackerSettings.getSurfTracker_extractRadius(), anotherTrackerSettings.getSurfTracker_initialSampleSize(),
-                anotherTrackerSettings.isTrackerShowActiveTracks(), anotherTrackerSettings.isTrackerShowNewTracks());
+        this.trackerType = anotherTrackerSettings.trackerType;
+        this.kltTracker_templateRadius = anotherTrackerSettings.kltTracker_templateRadius;
+        this.kltTracker_pyramidLevels = anotherTrackerSettings.kltTracker_pyramidLevels;
+        this.kltTracker_maxFeatures = anotherTrackerSettings.kltTracker_maxFeatures;
+        this.kltTracker_radius = anotherTrackerSettings.kltTracker_radius;
+        this.kltTracker_threshold = anotherTrackerSettings.kltTracker_threshold;
+        this.surfTracker_maxFeaturesPerScale = anotherTrackerSettings.surfTracker_maxFeaturesPerScale;
+        this.surfTracker_extractRadius = anotherTrackerSettings.surfTracker_extractRadius;
+        this.surfTracker_initialSampleSize = anotherTrackerSettings.surfTracker_initialSampleSize;
+        this.trackerShowActiveTracks = anotherTrackerSettings.trackerShowActiveTracks;
+        this.trackerShowNewTracks = anotherTrackerSettings.trackerShowNewTracks;
     }
 
     public void loadDefaults() {
         //Default values
-        this.setTrackerType(KLT);                               //Sets default tracker type to KLT
-        this.setTrackerTypeNames(defaultTrackerTypeNames());    //Sets default tracker types names (KLT,KLT2,SURF,SURF2,Default(KLT))
+        this.setTrackerType(TrackerType.Klt);                   //Sets default tracker type to KLT
         this.setKltTracker_templateRadius(3);                   //Sets default klt templateRadius=3
         this.setKltTracker_pyramidLevels(4);                    //Sets default klt pyramidScaling=[1,2,4,8]
         this.setKltTracker_maxFeatures(600);                    //Sets default klt maxFeatures=600 (Also 200 is a good value)
@@ -101,33 +77,12 @@ public class TrackerSettings implements Serializable, WithDefault<TrackerSetting
         this.setTrackerShowNewTracks(false);                    //Tracker Show New Tracks disabled by default
     }
 
-    public LinkedHashMap<String, String> defaultTrackerTypeNames() {
-        LinkedHashMap<String, String> defTrackerTypeNames = new LinkedHashMap<>();
-
-        defTrackerTypeNames.put(KLT, "KLT (Standard)");
-        defTrackerTypeNames.put(KLT2, "KLT (Modern)");
-        defTrackerTypeNames.put(SURF, "Surf (Standard)");
-        defTrackerTypeNames.put(SURF2, "Surf (Dda Two Pass)");
-        defTrackerTypeNames.put(DEFAULT_TRACKER, "<html><b>Default Tracker (KLT, standard param.)</b></html>");
-
-        return defTrackerTypeNames;
-    }
-
-    public String getTrackerType() {
+    public TrackerType getTrackerType() {
         return trackerType;
     }
 
-    public void setTrackerType(String trackerType) {
+    public void setTrackerType(TrackerType trackerType) {
         this.trackerType = trackerType;
-    }
-
-    public LinkedHashMap<String, String> getTrackerTypeNames() {
-        return trackerTypeNames;
-    }
-
-
-    public void setTrackerTypeNames(LinkedHashMap<String, String> trackerTypeNames) {
-        this.trackerTypeNames = trackerTypeNames;
     }
 
     public int getKltTracker_templateRadius() {

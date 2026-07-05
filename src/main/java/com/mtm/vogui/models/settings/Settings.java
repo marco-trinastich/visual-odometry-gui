@@ -9,11 +9,6 @@ import com.mtm.vogui.models.config.Config;
 import com.mtm.vogui.models.constants.Messages;
 import com.mtm.vogui.models.enums.settings.SettingsType;
 import com.mtm.vogui.models.settings.core.*;
-import com.mtm.vogui.models.settings.core.chart.ChartSettings;
-import com.mtm.vogui.models.settings.core.image.ImageSettings;
-import com.mtm.vogui.models.settings.core.input.InputSettings;
-import com.mtm.vogui.models.settings.core.tracker.TrackerSettings;
-import com.mtm.vogui.models.settings.core.visualodometry.VisualOdometrySettings;
 import com.mtm.vogui.models.settings.state.State;
 import com.mtm.vogui.utilities.CommonUtils;
 import com.thoughtworks.xstream.XStream;
@@ -26,10 +21,11 @@ import jakarta.inject.Singleton;
 import lombok.Data;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
 /**
  * Settings
@@ -78,62 +74,79 @@ public class Settings {
         CoreSettings parameters = null;
 
         // If xml settings exist, load parameters from xml file
-        Path settingsXml = CommonUtils.getPath(config.settings().fileName(), SettingsType.XML.value());
+        Path settingsXml = xmlPath();
         if (Files.exists(settingsXml)) {
             try {
-                XStream xstream = new XStream();
-
-                // Set xml parser permissions
-                xstream.addPermission(NoTypePermission.NONE);
-                xstream.addPermission(NullPermission.NULL);
-                xstream.addPermission(PrimitiveTypePermission.PRIMITIVES); // allow primitive types
-                xstream.allowTypesByWildcard(config.settings().allowedXmlClasses());
-
-                // Parse xml
-                ArrayList<?> loadedArray = (ArrayList<?>) xstream.fromXML(settingsXml.toFile());
-
-                // Rebuild parameters
-                parameters = new CoreSettings(
-                        (InputSettings) loadedArray.get(0),
-                        (ImageSettings) loadedArray.get(1),
-                        (TrackerSettings) loadedArray.get(2),
-                        (VisualOdometrySettings) loadedArray.get(3),
-                        (ChartSettings) loadedArray.get(4)
-                );
+                parameters = (CoreSettings) buildXStream().fromXML(settingsXml.toFile());
             } catch (Exception exc) {
-                Log.warnf(Messages.LOAD_SETTINGS_EXCEPTION, settingsXml.getFileName().toString());
+                Log.warnf(Messages.LOAD_SETTINGS_EXCEPTION, settingsXml, exc);
             }
         }
 
         return assignFrom(parameters);
     }
 
-    public void loadFromDat() {
+    public boolean loadFromDat() {
         CoreSettings parameters = null;
 
         // If serialized settings exist, load parameters from dat file
-        Path settingsDat = CommonUtils.getPath(config.settings().fileName(), SettingsType.DAT.value());
+        Path settingsDat = datPath();
         if (Files.exists(settingsDat)) {
-            try {
-                // Initialize ObjectInputStream
-                ObjectInputStream objectInputStream =
-                        new ObjectInputStream(new FileInputStream(settingsDat.toFile()));
-
-                // Rebuild parameters
-                parameters = new CoreSettings(
-                        (InputSettings) objectInputStream.readObject(),
-                        (ImageSettings) objectInputStream.readObject(),
-                        (TrackerSettings) objectInputStream.readObject(),
-                        (VisualOdometrySettings) objectInputStream.readObject(),
-                        (ChartSettings) objectInputStream.readObject()
-                );
-                objectInputStream.close();
+            try (ObjectInputStream objectInputStream =
+                         new ObjectInputStream(new FileInputStream(settingsDat.toFile()))) {
+                parameters = (CoreSettings) objectInputStream.readObject();
             } catch (Exception exc) {
-                Log.warnf(Messages.LOAD_SETTINGS_EXCEPTION, settingsDat.getFileName().toString());
+                Log.warnf(Messages.LOAD_SETTINGS_EXCEPTION, settingsDat, exc);
             }
         }
 
-        assignFrom(parameters);
+        return assignFrom(parameters);
+    }
+
+    public boolean saveToXml() {
+        Path settingsXml = xmlPath();
+        try {
+            Files.writeString(settingsXml, buildXStream().toXML(this.core()));
+            return true;
+        } catch (Exception exc) {
+            Log.warnf(Messages.SAVE_SETTINGS_EXCEPTION, settingsXml, exc);
+            return false;
+        }
+    }
+
+    public boolean saveToDat() {
+        Path settingsDat = datPath();
+        try (ObjectOutputStream objectOutputStream =
+                     new ObjectOutputStream(new FileOutputStream(settingsDat.toFile()))) {
+            objectOutputStream.writeObject(this.core());
+            return true;
+        } catch (Exception exc) {
+            Log.warnf(Messages.SAVE_SETTINGS_EXCEPTION, settingsDat, exc);
+            return false;
+        }
+    }
+
+    public Path xmlPath() {
+        return CommonUtils.getPath(config.settings().fileName(), SettingsType.XML.value());
+    }
+
+    public Path datPath() {
+        return CommonUtils.getPath(config.settings().fileName(), SettingsType.DAT.value());
+    }
+
+    private XStream buildXStream() {
+        XStream xstream = new XStream();
+
+        // Honor XStream annotations (e.g. @XStreamOmitField), ignored by default
+        xstream.processAnnotations(CoreSettings.class);
+
+        // Set xml parser permissions
+        xstream.addPermission(NoTypePermission.NONE);
+        xstream.addPermission(NullPermission.NULL);
+        xstream.addPermission(PrimitiveTypePermission.PRIMITIVES); // allow primitive types
+        xstream.allowTypesByWildcard(config.settings().allowedXmlClasses());
+
+        return xstream;
     }
 
     public Settings deepClone() {

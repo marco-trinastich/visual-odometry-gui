@@ -6,6 +6,7 @@
 package com.mtm.vogui.gui;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDateTime;
@@ -57,7 +58,6 @@ import com.mtm.vogui.utilities.*;
 import boofcv.BoofVersion;
 import boofcv.gui.image.ImagePanel;
 
-import com.thoughtworks.xstream.XStream;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -1017,15 +1017,6 @@ public class GuiApplication {
 
         SpringLayout panelLayout;
 
-        // Tracker type
-        var lblTrackerType = new JLabel("<html><b>Tracker Type:</b></html>");
-        var txtTrackerType = new JComboBox<String>(
-                trackerSettings.getTrackerTypeNames().values().toArray(new String[]{}));
-        txtTrackerType.setSelectedItem(trackerSettings.getTrackerTypeNames().get(trackerSettings.getTrackerType()));
-        /*Listener*/
-        txtTrackerType.addActionListener(
-                new TrackerTypeChangeListener(txtTrackerType, this.settings));
-
         // KLT tracker components
 
         // templateRadius
@@ -1092,14 +1083,6 @@ public class GuiApplication {
         kltTrackerPanel.add(txtKltTrackerThreshold);
 
         kltTrackerPanel.setOpaque(false);
-        kltTrackerPanel.setVisible(trackerSettings.getTrackerType().equals(TrackerSettings.DEFAULT_TRACKER) ||
-                trackerSettings.getTrackerType().equals(TrackerSettings.KLT) ||
-                trackerSettings.getTrackerType().equals(TrackerSettings.KLT2));
-
-        kltTrackerPanel.setEnabled(!trackerSettings.getTrackerType().equals(TrackerSettings.DEFAULT_TRACKER));
-        for (Component comp : kltTrackerPanel.getComponents()) {
-            comp.setEnabled(!trackerSettings.getTrackerType().equals(TrackerSettings.DEFAULT_TRACKER));
-        }
 
         // layout
         panelLayout = new SpringLayout();
@@ -1174,8 +1157,6 @@ public class GuiApplication {
         surfTrackerPanel.add(txtSurfTrackerInitialSampleSize);
 
         surfTrackerPanel.setOpaque(false);
-        surfTrackerPanel.setVisible(trackerSettings.getTrackerType().equals(TrackerSettings.SURF) ||
-                trackerSettings.getTrackerType().equals(TrackerSettings.SURF2));
 
         // layout
         panelLayout = new SpringLayout();
@@ -1217,6 +1198,16 @@ public class GuiApplication {
         /*Listener*/
         chkTrackerShowNewTracks.addActionListener(
                 new ParameterCheckBoxListener("trackerShowNewTracks", chkTrackerShowNewTracks, this.settings));
+
+        // Tracker type
+        var lblTrackerType = new JLabel("<html><b>Tracker Type:</b></html>");
+        var txtTrackerType = new DisplayValueComboBox<>(
+                TrackerType.values(),
+                trackerSettings::setTrackerType,
+                index -> TrackerType.values()[index],
+                selection -> this.switchTrackerPanel(selection.current().value(), kltTrackerPanel, surfTrackerPanel)
+        );
+        txtTrackerType.setSelectedItem(trackerSettings.getTrackerType());
 
         // Fill guiComponents
 
@@ -1277,7 +1268,23 @@ public class GuiApplication {
 
         trackerSettingsPanel.setLayout(panelLayout);
 
+        this.switchTrackerPanel(trackerSettings.getTrackerType(), kltTrackerPanel, surfTrackerPanel);
+
         return trackerSettingsPanel;
+    }
+
+    private void switchTrackerPanel(@NotNull TrackerType selectedTrackerType,
+                                    @NotNull JPanel kltTrackerPanel,
+                                    @NotNull JPanel surfTrackerPanel) {
+        //For KLT-based trackers (KLT, KLT-Modern, Default) shows the KLT panel, disabled when Default
+        kltTrackerPanel.setVisible(selectedTrackerType.isKlt());
+        kltTrackerPanel.setEnabled(!TrackerType.Default.is(selectedTrackerType));
+        for (Component component : kltTrackerPanel.getComponents()) {
+            component.setEnabled(!TrackerType.Default.is(selectedTrackerType));
+        }
+
+        //For SURF-based trackers shows the SURF panel
+        surfTrackerPanel.setVisible(selectedTrackerType.isSurf());
     }
 
     private @NotNull JPanel createVisualOdometrySettingsPanel() {
@@ -1995,12 +2002,7 @@ public class GuiApplication {
     public static Boolean refreshGuiFromParameters(Settings settings) {
 
         try {
-            EventListener listener;//Used for some components Listeners, to save, disable and re-enable
-            //them (to prevent side-effects when loading)
-
-
             /**Extracts all components from guiComponents and Resets them to new Parameters value*/
-
 
             /**Input Settings Panel Reloading**/
 
@@ -2122,19 +2124,9 @@ public class GuiApplication {
             // Tracker settings
 
             // Tracker type ComboBox
-            JComboBox txtTrackerType = (JComboBox) settings.state().guiComponents().get("txtTrackerType");
-            listener = null;
-            for (ActionListener actionListener : txtTrackerType.getActionListeners()) {
-                if (actionListener instanceof TrackerTypeChangeListener) listener = actionListener;
-            }
-            txtTrackerType.removeActionListener((ActionListener) listener); //Disable Listener (not needed when only changing model, but safer)
-            //Reloading Contents
-            txtTrackerType.setModel(new DefaultComboBoxModel<>(
-                    settings.core().tracker().getTrackerTypeNames().values().toArray(new String[]{})));
-            txtTrackerType.addActionListener((ActionListener) listener); //Enable Listener
-            txtTrackerType.setSelectedItem( //Select item triggering Listener (for GUI Changes)
-                    settings.core().tracker().getTrackerTypeNames().get(
-                            settings.core().tracker().getTrackerType()));
+            var txtTrackerType = (DisplayValueComboBox<TrackerType>) settings.state().guiComponents()
+                    .get("txtTrackerType");
+            txtTrackerType.setSelectedItem(settings.core().tracker().getTrackerType());
 
             //KLT Tracker
 
@@ -2420,38 +2412,25 @@ public class GuiApplication {
                 case "loadSettings": //On click on Load Settings
                     switch (saveFormat) {
                         case "XML":
-                            try {
-                                //Update Parameters reference into the passed Core to the new Parameters
-                                this.settings.loadFromXml();
-                                boolean loadSuccess = refreshGuiFromParameters(this.settings);
-                                //Updates Status Label content
-                                if (loadSuccess)
-                                    chartInfoPanel.setAppStatus(AppStatus.XMLSettingsLoaded);
-                                else throw new Exception();
-
-                            } catch (Exception exc) {
-                                if (!new File("settings.xml").exists()) {
-                                    chartInfoPanel.setAppStatus(AppStatus.XMLSettingsNotFound);
-                                } else {
-                                    chartInfoPanel.setAppStatus(AppStatus.XMLSettingsLoadError);
-                                }
+                            //Update Parameters reference into the passed Core to the new Parameters
+                            //and updates Status Label content
+                            if (this.settings.loadFromXml() && refreshGuiFromParameters(this.settings)) {
+                                chartInfoPanel.setAppStatus(AppStatus.XMLSettingsLoaded);
+                            } else if (!Files.exists(this.settings.xmlPath())) {
+                                chartInfoPanel.setAppStatus(AppStatus.XMLSettingsNotFound);
+                            } else {
+                                chartInfoPanel.setAppStatus(AppStatus.XMLSettingsLoadError);
                             }
                             break;
                         case "Serialized":
-                            try {
-                                //Update Parameters reference into the passed Core to the new Parameters
-                                this.settings.loadFromDat();
-                                boolean loadSuccess = refreshGuiFromParameters(this.settings);
-                                //Updates Status Label content
-                                if (loadSuccess)
-                                    chartInfoPanel.setAppStatus(AppStatus.DATSettingsLoaded);
-                                else throw new Exception();
-                            } catch (Exception exc) {
-                                if (!new File("settings.dat").exists()) {
-                                    chartInfoPanel.setAppStatus(AppStatus.DATSettingsNotFound);
-                                } else {
-                                    chartInfoPanel.setAppStatus(AppStatus.DATSettingsLoadError);
-                                }
+                            //Update Parameters reference into the passed Core to the new Parameters
+                            //and updates Status Label content
+                            if (this.settings.loadFromDat() && refreshGuiFromParameters(this.settings)) {
+                                chartInfoPanel.setAppStatus(AppStatus.DATSettingsLoaded);
+                            } else if (!Files.exists(this.settings.datPath())) {
+                                chartInfoPanel.setAppStatus(AppStatus.DATSettingsNotFound);
+                            } else {
+                                chartInfoPanel.setAppStatus(AppStatus.DATSettingsLoadError);
                             }
                             break;
                         default:
@@ -2461,48 +2440,16 @@ public class GuiApplication {
                 case "saveSettings": //On single-click on Save Settings
                     switch (saveFormat) {
                         case "XML":
-                            try {
-                                ArrayList<Object> parametersToWrite = new ArrayList<>();
-                                parametersToWrite.add(this.settings.core().input());
-                                parametersToWrite.add(this.settings.core().image());
-                                parametersToWrite.add(this.settings.core().tracker());
-                                parametersToWrite.add(this.settings.core().visualOdometry());
-                                parametersToWrite.add(this.settings.core().chart());
-
-                                XStream xstream = new XStream();
-                                String xmlOutput = xstream.toXML(parametersToWrite);
-                                byte[] contentInBytes = xmlOutput.getBytes();
-
-                                FileOutputStream fileOutputStream = new FileOutputStream("settings.xml");
-                                fileOutputStream.write(contentInBytes);
-                                fileOutputStream.flush();
-                                fileOutputStream.close();
-
-                                //Updates Status Label content
-                                chartInfoPanel.setAppStatus(AppStatus.XMLSettingsSaved);
-                            } catch (IOException exc) {
-                                chartInfoPanel.setAppStatus(AppStatus.XMLSettingsSaveError);
-                                exc.printStackTrace();
-                            }
+                            //Updates Status Label content
+                            chartInfoPanel.setAppStatus(this.settings.saveToXml()
+                                    ? AppStatus.XMLSettingsSaved
+                                    : AppStatus.XMLSettingsSaveError);
                             break;
                         case "Serialized":
-                            try {
-                                ObjectOutputStream objectOutputStream = new ObjectOutputStream(
-                                        new FileOutputStream("settings.dat"));
-                                objectOutputStream.writeObject(this.settings.core().input());
-                                objectOutputStream.writeObject(this.settings.core().image());
-                                objectOutputStream.writeObject(this.settings.core().tracker());
-                                objectOutputStream.writeObject(this.settings.core().visualOdometry());
-                                objectOutputStream.writeObject(this.settings.core().chart());
-                                objectOutputStream.flush();
-                                objectOutputStream.close();
-
-                                //Updates Status Label content
-                                chartInfoPanel.setAppStatus(AppStatus.DATSettingsSaved);
-                            } catch (Exception exc) {
-                                chartInfoPanel.setAppStatus(AppStatus.DATSettingsSaveError);
-                                exc.printStackTrace();
-                            }
+                            //Updates Status Label content
+                            chartInfoPanel.setAppStatus(this.settings.saveToDat()
+                                    ? AppStatus.DATSettingsSaved
+                                    : AppStatus.DATSettingsSaveError);
                             break;
                         default:
                             break;
@@ -2986,51 +2933,6 @@ public class GuiApplication {
                             controllerCheckBox.isSelected() ? "<html><b>Show New Tracks</b></html>" : "<html>Show New Tracks</html>");
                     break;
             }
-        }
-    }
-
-    private final class TrackerTypeChangeListener implements ActionListener {
-
-        private final JComboBox<String> txtTrackerType;
-        private final Settings settings;
-
-        private TrackerTypeChangeListener(JComboBox<String> txtTrackerType, Settings settings) {
-
-            this.txtTrackerType = txtTrackerType;
-            this.settings = settings;
-
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent evt) {
-            final JPanel kltTrackerPanel = (JPanel) this.settings.state().guiComponents().get("kltTrackerPanel");
-            final JPanel surfTrackerPanel = (JPanel) this.settings.state().guiComponents().get("surfTrackerPanel");
-
-            //Obtains selectedTrackerType using selected Index in Tracker Type (Names) ComboBox
-            String selectedTrackerType = "";
-            Iterator<String> trackerTypes = this.settings.core().tracker().getTrackerTypeNames().keySet().iterator();
-            for (int i = 0; i < txtTrackerType.getSelectedIndex(); i++) {
-                trackerTypes.next();
-            }
-            selectedTrackerType = trackerTypes.next();
-
-            //Updates trackerType parameter to the new selectedTrackerType value
-            this.settings.core().tracker().setTrackerType(selectedTrackerType);
-
-            //Depending on which Tracker Type has been selected does some other actions:
-
-            //For default (that is KLT Two-Pass with default parameters), KLT and KLT Two-Pass tracker: Shows KLT Tracker Panel (else hides it)
-            kltTrackerPanel.setVisible(selectedTrackerType.equals(TrackerSettings.DEFAULT_TRACKER) ||
-                    selectedTrackerType.equals(TrackerSettings.KLT) ||
-                    selectedTrackerType.equals(TrackerSettings.KLT2));
-            kltTrackerPanel.setEnabled(!selectedTrackerType.equals(TrackerSettings.DEFAULT_TRACKER));//If default disables klt settings panel
-            for (Component comp : kltTrackerPanel.getComponents()) {
-                comp.setEnabled(!selectedTrackerType.equals(TrackerSettings.DEFAULT_TRACKER));//And each component in klt settings panel is enabled/disabled
-            }
-
-            //For SURF or SURF Two-Pass tracker: Shows SURF Tracker Panel (else hides it)
-            surfTrackerPanel.setVisible(selectedTrackerType.equals(TrackerSettings.SURF) ||
-                    selectedTrackerType.equals(TrackerSettings.SURF2));
         }
     }
 

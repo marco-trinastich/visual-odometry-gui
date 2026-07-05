@@ -5,12 +5,10 @@
 
 package com.mtm.vogui.models.settings.core.input.calibration;
 
-import com.mtm.vogui.models.constants.SettingsConstants;
 import com.mtm.vogui.models.interfaces.WithDefault;
 import com.mtm.vogui.models.settings.core.common.PathSettings;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Calibration settings
@@ -27,11 +25,5 @@ public class CalibrationSettings extends PathSettings implements WithDefault<Cal
 
     public CalibrationSettings(CalibrationSettings calibration) {
         super(calibration);
-    }
-
-    @Override
-    protected String @NotNull [] defaultPaths() {
-        // Default calibrations list
-        return SettingsConstants.DEFAULT_CALIBRATION_PATHS;
     }
 }

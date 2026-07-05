@@ -13,8 +13,8 @@ import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.core.processing.tracking.Tracker;
 import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.InvalidImageFormatException;
+import com.mtm.vogui.models.enums.settings.TrackerType;
 import com.mtm.vogui.models.settings.Settings;
-import com.mtm.vogui.models.settings.core.tracker.TrackerSettings;
 import com.mtm.vogui.models.settings.core.visualodometry.monoplaneinfinity.MonoPlaneInfinitySettings;
 import com.mtm.vogui.utilities.CoreUtils;
 import georegression.struct.se.Se3_F64;
@@ -100,8 +100,8 @@ public class CoreSetup {
 
         switch (trackerType) {
             //If the KLT or KLT-Modern Tracker has been selected:
-            case TrackerSettings.KLT:
-            case TrackerSettings.KLT2:
+            case Klt:
+            case Klt2:
                 // Klt
                 var kltTrackerTemplateRadius = params.frozenSettings().core().tracker().getKltTracker_templateRadius();
                 var kltTrackerPyramidLevels = params.frozenSettings().core().tracker().getKltTracker_pyramidLevels();
@@ -146,7 +146,7 @@ public class CoreSetup {
                 try {
                     //If the pyramidLevels is valid
                     //Depending on whether KLT or KLT2 generates a working tracker:
-                    if (trackerType.equals(TrackerSettings.KLT)) {
+                    if (TrackerType.Klt.is(trackerType)) {
                         params.tracker(
                                 trackerFactory.createKLT(kltTrackerTemplateRadius, kltTrackerPyramidLevels,
                                         kltTrackerMaxFeatures, kltTrackerRadius,
@@ -161,7 +161,7 @@ public class CoreSetup {
                     return false;
                 }
                 break;
-            case TrackerSettings.SURF:
+            case Surf:
                 // Surf
                 var surfTrackerMaxFeaturesPerScale = params.frozenSettings().core().tracker()
                         .getSurfTracker_maxFeaturesPerScale();
@@ -178,7 +178,7 @@ public class CoreSetup {
                     return false;
                 }
                 break;
-            case TrackerSettings.SURF2:
+            case Surf2:
                 // TODO: implement other trackers
 //                //If the SURF-2Pass Tracker has been selected:
 //                try {
@@ -191,7 +191,7 @@ public class CoreSetup {
 //                    return false;
 //                }
                 break;
-            case TrackerSettings.DEFAULT_TRACKER:
+            case Default:
                 //If the Default Tracker (KLT with default parameters) has been selected:
                 try {
                     // Tries to generate the Tracker
