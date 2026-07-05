@@ -37,8 +37,6 @@ public class AWTDragMoveListener implements AWTEventListener {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
 		//Usage
 //		long eventMask = AWTEvent.MOUSE_MOTION_EVENT_MASK + AWTEvent.MOUSE_EVENT_MASK;
 //		Toolkit.getDefaultToolkit()

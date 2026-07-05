@@ -28,6 +28,11 @@ import java.util.stream.Stream;
 @Dependent
 public class BoofCvCameraSettings implements Serializable, WithDefault<BoofCvCameraSettings> {
 
+    // Webcam discovery relies on BridJ natives, which do not exist for macOS ARM (Apple Silicon)
+    private static final boolean WEBCAM_DISCOVERY_SUPPORTED =
+            !(System.getProperty("os.name", "").toLowerCase().contains("mac")
+                    && System.getProperty("os.arch", "").contains("aarch64"));
+
     private String path;
 
     @XStreamOmitField
@@ -68,7 +73,20 @@ public class BoofCvCameraSettings implements Serializable, WithDefault<BoofCvCam
     }
 
     public List<Webcam> reloadWebcams(List<Webcam> webcams) {
-        this.webcams = webcams != null ? webcams : Webcam.getWebcams();
+        if (webcams != null) {
+            this.webcams = webcams;
+            return this.webcams;
+        }
+        if (!WEBCAM_DISCOVERY_SUPPORTED) {
+            this.webcams = new ArrayList<>();
+            return this.webcams;
+        }
+        try {
+            this.webcams = Webcam.getWebcams();
+        } catch (Throwable exc) {
+            System.err.println("BoofCv webcam discovery unavailable: " + exc.getMessage());
+            this.webcams = new ArrayList<>();
+        }
         return this.webcams;
     }
 

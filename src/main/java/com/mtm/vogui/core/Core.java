@@ -17,10 +17,8 @@ import com.mtm.vogui.models.core.exceptions.BufferTimeoutException;
 import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.VoProcessingException;
 import com.mtm.vogui.models.settings.Settings;
-import com.mtm.vogui.models.settings.core.visualodometry.VisualOdometrySettings;
 import com.mtm.vogui.models.core.processing.tracking.PointFactory;
 import com.mtm.vogui.models.enums.gui.AppStatus;
-import com.mtm.vogui.models.enums.settings.SourceType;
 import com.mtm.vogui.gui.components.info.InfoScrollPane;
 
 import javax.swing.*;

@@ -11,15 +11,13 @@ import com.mtm.vogui.models.settings.core.common.PathSettings;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 
-import java.io.Serializable;
-
 /**
  * Video settings
  * <p/>
  * Options related to input video.
  */
 @Dependent
-public class VideoSettings extends PathSettings implements Serializable, WithDefault<VideoSettings> {
+public class VideoSettings extends PathSettings implements WithDefault<VideoSettings> {
 
     @Inject
     public VideoSettings() {

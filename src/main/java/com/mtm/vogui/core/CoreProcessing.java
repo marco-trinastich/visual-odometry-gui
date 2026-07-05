@@ -21,7 +21,6 @@ import com.mtm.vogui.models.core.processing.frames.ProcessedFrame;
 import com.mtm.vogui.models.core.processing.tracking.TrackingStatus;
 import com.mtm.vogui.models.enums.core.ProcessingState;
 import com.mtm.vogui.models.enums.gui.AppStatus;
-import com.mtm.vogui.models.enums.settings.SourceType;
 import com.mtm.vogui.models.core.exceptions.BufferTimeoutException;
 import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.UnknownSourceException;
@@ -51,6 +50,7 @@ public class CoreProcessing {
         switch (settings.state().processing().get()) {
             case Paused -> handlePauseVO(settings, counter);
             case Stopped, Cleared -> shouldContinue = false;
+            default -> { /* Running, StandBy, Completed, Error: keep processing */ }
         }
 
         return shouldContinue;

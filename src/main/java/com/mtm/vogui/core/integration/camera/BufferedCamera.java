@@ -211,7 +211,6 @@ public abstract class BufferedCamera {
         }
     }
 
-    @SuppressWarnings("unused")
     protected void stripBufferTop(long limit) {
         long excess = this.buffer.size() - limit;
         for (long i = 0; i <= excess; i++) {

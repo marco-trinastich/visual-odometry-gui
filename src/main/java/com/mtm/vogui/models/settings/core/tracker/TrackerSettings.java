@@ -7,7 +7,6 @@ package com.mtm.vogui.models.settings.core.tracker;
 
 import com.mtm.vogui.models.interfaces.WithDefault;
 import jakarta.enterprise.context.Dependent;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
 import java.io.Serializable;

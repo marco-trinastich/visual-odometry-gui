@@ -237,7 +237,6 @@ public class ImageUtils {
         return graphicsConfiguration;
     }
 
-    @SuppressWarnings("unused")
     public static VolatileImage getVolatileFromBuffered(BufferedImage image) {
         VolatileImage vImg = null;
         GraphicsConfiguration graphicsConfiguration = getGraphicsConfiguration();

@@ -6,7 +6,6 @@
 package com.mtm.vogui.gui.editors;
 
 import com.mtm.vogui.models.interfaces.WithValue;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,10 +30,10 @@ public class ValueComboBoxEditor<T extends WithValue> implements ComboBoxEditor 
 
     @Override
     @SuppressWarnings("unchecked")
-    public void setItem(@NotNull Object object) {
+    public void setItem(Object object) {
         T item = (T) object;
         this.lastItem = item;
-        this.editor.setText(item.value());
+        this.editor.setText(item != null ? item.value() : "");
     }
 
     @Override

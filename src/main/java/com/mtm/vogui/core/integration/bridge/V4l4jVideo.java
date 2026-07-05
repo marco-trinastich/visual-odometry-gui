@@ -29,7 +29,6 @@ import java.util.List;
  * Wrapper around V4L4J for processing videos with BoofCv.
  * </p>
  */
-@SuppressWarnings("unused")
 public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
 
     private FrameGrabber frameGrabber;

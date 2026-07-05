@@ -5,7 +5,6 @@
 
 package com.mtm.vogui.ztest;
 
-import boofcv.abst.tracker.PointTracker;
 /*
 import boofcv.io.video.CombineFilesTogether;
 import boofcv.io.video.CreateMJpeg;
@@ -14,15 +13,11 @@ import boofcv.struct.image.ImageFloat32;
 */
 import boofcv.struct.image.ImageGray;
 import boofcv.struct.image.GrayU8;
-import com.mtm.vogui.factory.TrackerFactory;
-import com.mtm.vogui.models.enums.settings.ImageTypeDescriptor;
-import com.mtm.vogui.models.core.exceptions.InvalidImageFormatException;
 
 import java.awt.*;
 import java.util.ArrayList;
 
 import javax.swing.*;
-
 
 @SuppressWarnings("rawtypes")
 public class Test<T extends ImageGray<T>> {
@@ -33,21 +28,20 @@ public class Test<T extends ImageGray<T>> {
      * @param args
      */
     public static void main(String[] args) {
-        //test();
-        //buffertest();
-        //test2();
+        // test();
+        // buffertest();
+        // test2();
     }
 
     public static void test2() {
-        String a = "Fotocamera HD FaceTime (integrata) 0x8020000005ac8514";
-        String b = "Fotocamera di iPhone di Marco ADFEB003-49E9-462C-ABA2-89A200000001";
+        // String a = "Fotocamera HD FaceTime (integrata) 0x8020000005ac8514";
+        // String b = "Fotocamera di iPhone di Marco
+        // ADFEB003-49E9-462C-ABA2-89A200000001";
     }
-
 
     public static void buffertest() {
         final ArrayList<String> buffer = new ArrayList<>();
         final int buff_size = 10;
-
 
         final ArrayList<String> sourcedata = new ArrayList<>();
         for (int i = 1; i <= 100; i++) {
@@ -66,47 +60,40 @@ public class Test<T extends ImageGray<T>> {
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
 
-
-                    if (data_pos == 99) return;
-
+                    if (data_pos == 99)
+                        return;
 
                     if (buffer.size() < buff_size) {
                         data_pos++;
                         buffer.add(sourcedata.get(data_pos));
                     } else {
                         System.out.println("BUFFER FULL!");
-                        data_pos++; //Flusso input continuo (i dati vengono prodotti continuamente anche se il buffer è pieno)
-                        //==> Se PRODUCER è più veloce di CONSUMER, perdiamo dati
+                        data_pos++; // Flusso input continuo (i dati vengono prodotti continuamente anche se il
+                                    // buffer è pieno)
+                        // ==> Se PRODUCER è più veloce di CONSUMER, perdiamo dati
                     }
 
-
                 }
-
 
             }
 
         });
-
 
         Thread consumer = new Thread(new Runnable() {
 
             @Override
             public void run() {
 
-
                 while (true) {
 
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-
 
                     if (buffer.size() > 0) {
                         String read_data = buffer.get(0);
@@ -126,8 +113,6 @@ public class Test<T extends ImageGray<T>> {
 
     }
 
-
-    @SuppressWarnings("unchecked")
     public static void test() {
         String a = " 1 , 20 , 30,   40   , 168";
 
@@ -141,12 +126,14 @@ public class Test<T extends ImageGray<T>> {
             System.out.println("NULL");
         }
 
+        /* 
         TrackerFactory c = null;
         try {
             c = TrackerFactory.from(ImageTypeDescriptor.GrayU8);
             PointTracker<GrayU8> p = (PointTracker<GrayU8>) c.createDefault().instance();
         } catch (InvalidImageFormatException ignored) {
         }
+        */
 
         double b = 1.111;
         System.out.println(b);
@@ -196,13 +183,11 @@ public class Test<T extends ImageGray<T>> {
         app.classEqualsClass();
     }
 
-
     @SuppressWarnings("unchecked")
     public void classEqualsClass() {
         imgType = (Class<T>) GrayU8.class;
         System.out.println(imgType.equals(GrayU8.class));
     }
-
 
     /**
      * @see <a href="http://stackoverflow.com/a/10097538/230513">Link1</a>
@@ -217,7 +202,6 @@ public class Test<T extends ImageGray<T>> {
         private static final long serialVersionUID = 1L;
         private static final int TILE = 64;
 
-
         public ScrollPanePaint() {
             JViewport viewport = new MyViewport();
             viewport.setView(new MyPanel());
@@ -229,7 +213,6 @@ public class Test<T extends ImageGray<T>> {
             this.setLocationRelativeTo(null);
             this.setVisible(true);
         }
-
 
         private class MyViewport extends JViewport {
 
@@ -279,11 +262,10 @@ public class Test<T extends ImageGray<T>> {
             }
         }
 
-
     }
 
-
-    //extracts an array of integer from strings formatted this way: 1,2,3,4 (comma separated numbers)
+    // extracts an array of integer from strings formatted this way: 1,2,3,4 (comma
+    // separated numbers)
     static private int[] extract_IntArray(String string) {
 
         int[] result = null;
@@ -304,7 +286,8 @@ public class Test<T extends ImageGray<T>> {
                         System.arraycopy(tmp, 0, result, 0, tmp.length);
                         result[result.length - 1] = value;
                     }
-                    if (stringpart.length() == firstcomma + 1) return null;
+                    if (stringpart.length() == firstcomma + 1)
+                        return null;
                     stringpart = stringpart.substring(firstcomma + 1, stringpart.length());
                 } catch (Exception e) {
                     return null;

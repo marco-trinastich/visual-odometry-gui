@@ -13,7 +13,6 @@ import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.core.processing.tracking.Tracker;
 import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.InvalidImageFormatException;
-import com.mtm.vogui.models.enums.settings.VisualOdometryType;
 import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.models.settings.core.tracker.TrackerSettings;
 import com.mtm.vogui.models.settings.core.visualodometry.monoplaneinfinity.MonoPlaneInfinitySettings;
@@ -243,6 +242,7 @@ public class CoreSetup {
                         voEngine = voFactory.createMonoPlaneOverhead(voSettings.monoPlaneOverhead());
                 case Default ->
                         voEngine = voFactory.createMonoPlaneInfinity(new MonoPlaneInfinitySettings());
+                default -> { /* StereoDepth, StereoDualPnP, StereoQuadPnP, DepthDepthPnP: not implemented, voEngine stays null */ }
             }
         } catch (Exception ignored) {
         }

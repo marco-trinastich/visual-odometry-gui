@@ -7,6 +7,7 @@ package com.mtm.vogui.factory;
 
 
 import boofcv.abst.feature.detect.interest.PointDetectorTypes;
+import boofcv.abst.tracker.PointTracker;
 import boofcv.alg.filter.derivative.GImageDerivativeOps;
 import boofcv.factory.feature.associate.ConfigAssociate;
 import boofcv.factory.feature.describe.ConfigDescribeRegion;
@@ -60,7 +61,7 @@ public class TrackerFactory {
         config.detDesc.detectPoint.general.radius = radius;
         config.detDesc.detectPoint.general.threshold = threshold;
 
-        return Tracker.from(config, FactoryPointTracker.tracker(config, imageType, derivativeType));
+        return toTracker(config);
     }
 
     /**
@@ -81,7 +82,7 @@ public class TrackerFactory {
         config.detDesc.detectPoint.general.radius = 3;
         config.detDesc.detectPoint.general.threshold = 1;
 
-        return Tracker.from(config, FactoryPointTracker.tracker(config, imageType, derivativeType));
+        return toTracker(config);
     }
 
     /**
@@ -104,7 +105,7 @@ public class TrackerFactory {
         config.associate.greedy.maxErrorThreshold = 5;
 
 
-        return Tracker.from(config, FactoryPointTracker.tracker(config, imageType, derivativeType));
+        return toTracker(config);
     }
 
     /**
@@ -126,7 +127,7 @@ public class TrackerFactory {
         config.associate.type = ConfigAssociate.AssociationType.GREEDY;
         config.associate.greedy.maxErrorThreshold = 5;
 
-        return Tracker.from(config, FactoryPointTracker.tracker(config, imageType, derivativeType));
+        return toTracker(config);
     }
 
     /**
@@ -140,7 +141,7 @@ public class TrackerFactory {
         // Detector
         config.detDesc.typeDetector = ConfigDetectInterestPoint.Type.POINT;
 
-        return Tracker.from(config, FactoryPointTracker.tracker(config, imageType, derivativeType));
+        return toTracker(config);
     }
 
     /**
@@ -156,7 +157,7 @@ public class TrackerFactory {
         // Describe
         config.detDesc.typeDescribe = ConfigDescribeRegion.Type.BRIEF;
 
-        return Tracker.from(config, FactoryPointTracker.tracker(config, imageType, derivativeType));
+        return toTracker(config);
     }
 
     /**
@@ -172,7 +173,17 @@ public class TrackerFactory {
         // Describe
         config.detDesc.typeDescribe = ConfigDescribeRegion.Type.SURF_STABLE;
 
-        return Tracker.from(config, FactoryPointTracker.tracker(config, imageType, derivativeType));
+        return toTracker(config);
+    }
+
+    /**
+     * Builds the {@link Tracker} wrapper from a config, bridging the raw-typed BoofCV factory
+     * output to the parameterized signature of {@link Tracker#from} (safe: imageType is
+     * constrained to ImageGray subclasses in {@link #from}).
+     */
+    private Tracker toTracker(ConfigPointTracker config) {
+        PointTracker instance = FactoryPointTracker.tracker(config, imageType, derivativeType);
+        return Tracker.from(config, (PointTracker<? extends ImageGray<?>>) instance);
     }
 
     /**

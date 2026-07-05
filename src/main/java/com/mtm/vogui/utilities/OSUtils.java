@@ -20,7 +20,6 @@ public class OSUtils {
         return (OS.contains("nix") || OS.contains("nux") || OS.indexOf("aix") > 0);
     }
 
-    @SuppressWarnings("unused")
     public static boolean isSolaris() {
         return (OS.contains("sunos"));
     }

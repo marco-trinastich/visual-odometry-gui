@@ -11,9 +11,8 @@ import georegression.struct.point.Point2D_F64;
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 
-public class DragMoveScrollBarsListener extends MouseInputAdapter implements MouseMotionListener {
+public class DragMoveScrollBarsListener extends MouseInputAdapter {
 
     private Point2D_F64 start_point = new Point2D_F64(0, 0);
     private Point2D_F64 start_bars_values = new Point2D_F64(0, 0);
@@ -28,8 +27,6 @@ public class DragMoveScrollBarsListener extends MouseInputAdapter implements Mou
 
     @Override
     public void mouseReleased(MouseEvent evt) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override

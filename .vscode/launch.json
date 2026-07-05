@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Visual Odometry GUI",
+            "request": "launch",
+            "mainClass": "com.mtm.vogui.VisualOdometryGui",
+            "projectName": "vogui",
+            "vmArgs": "-Djava.awt.headless=false -Xdock:name=VisualOdometryGUI"
+        }
+    ]
+}

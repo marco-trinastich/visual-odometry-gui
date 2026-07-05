@@ -90,7 +90,6 @@ public abstract class ImageButton extends JButton {
         this.setDefaultIcon();
     }
 
-    @SuppressWarnings("unused")
     public void setOpacity(float opacity) {
         this.setOpacity(opacity, opacity, opacity, opacity);
     }

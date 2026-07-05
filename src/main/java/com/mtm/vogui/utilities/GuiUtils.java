@@ -196,7 +196,6 @@ public class GuiUtils {
         GuiUtils.setUIProperty(property, newValue, key -> key::endsWith);
     }
 
-    @SuppressWarnings("unused")
     public static void setUIPropertyContains(String property, Object newValue) {
         GuiUtils.setUIProperty(property, newValue, key -> key::contains);
     }

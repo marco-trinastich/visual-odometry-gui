@@ -51,8 +51,8 @@ public class CoreUtils {
                 // Read video file
                 video = getMediaManager().openVideo(videoPath, ImageUtils.getImageType(imageType));
             } else if (videoFile.exists() && videoFile.isDirectory()) {
-                // Read images sequence folder
-                video = new LoadFileImageSequence<>(ImageUtils.getImageType(imageType), videoPath, "");
+                // Read images sequence folder (raw: getImageType's wildcard defeats diamond inference in ECJ)
+                video = new LoadFileImageSequence(ImageUtils.getImageType(imageType), videoPath, "");
             }
         } catch (Exception e) {
             Log.errorf(Messages.OPEN_VIDEO_ERROR, Arrays.toString(e.getStackTrace()));

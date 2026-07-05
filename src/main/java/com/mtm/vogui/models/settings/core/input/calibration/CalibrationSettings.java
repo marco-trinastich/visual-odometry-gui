@@ -12,15 +12,13 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-
 /**
  * Calibration settings
  * <p/>
  * Options related to calibration.
  */
 @Dependent
-public class CalibrationSettings extends PathSettings implements Serializable, WithDefault<CalibrationSettings> {
+public class CalibrationSettings extends PathSettings implements WithDefault<CalibrationSettings> {
 
     @Inject
     public CalibrationSettings() {

@@ -7,7 +7,6 @@ package com.mtm.vogui.core;
 
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.enums.settings.ChartType;
-import com.mtm.vogui.models.enums.settings.SourceType;
 import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.models.settings.core.tracker.TrackerSettings;
 import org.jetbrains.annotations.NotNull;

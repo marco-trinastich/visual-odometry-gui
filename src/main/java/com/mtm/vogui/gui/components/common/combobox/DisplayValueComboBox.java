@@ -61,7 +61,6 @@ public class DisplayValueComboBox<T extends Enum<T> & WithValue> extends Adjusta
         super.setSelectedItem(item.value());
     }
 
-    @SuppressWarnings("unused")
     public T getSelectedItemT() {
         return this.generator.apply(this.getSelectedIndex());
     }

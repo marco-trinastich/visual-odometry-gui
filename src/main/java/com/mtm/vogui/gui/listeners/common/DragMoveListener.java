@@ -9,10 +9,8 @@ import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 
-public class DragMoveListener extends MouseInputAdapter
-        implements MouseMotionListener {
+public class DragMoveListener extends MouseInputAdapter {
     private final Cursor dc;
     private final Cursor hc = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     private final Rectangle rect = new Rectangle();

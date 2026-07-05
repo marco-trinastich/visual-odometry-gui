@@ -5,7 +5,6 @@
 
 package com.mtm.vogui.models.core.processing.tracking;
 
-import com.mtm.vogui.gui.components.chart.ChartScrollPane;
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.core.processing.ProcessingStatus;
 import com.mtm.vogui.models.enums.settings.ChartType;

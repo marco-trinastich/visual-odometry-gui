@@ -13,7 +13,6 @@ import com.mtm.vogui.models.settings.core.tracker.TrackerSettings;
 import com.mtm.vogui.models.settings.core.visualodometry.VisualOdometrySettings;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 

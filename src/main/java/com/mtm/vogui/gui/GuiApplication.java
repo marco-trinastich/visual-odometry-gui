@@ -443,7 +443,6 @@ public class GuiApplication {
     private @NotNull JPanel createInputSettingsPanel() {
         /* Parameters Managed from Input Settings Panel */
         InputSettings inputSettings = settings.core().input();
-        ChartSettings chartSettings = settings.core().chart();
         HashMap<String, Component> guiComponents = settings.state().guiComponents();
 
 
@@ -2861,6 +2860,7 @@ public class GuiApplication {
             this.settings = settings;
         }
 
+        @SuppressWarnings("unchecked") // component-registry lookups: JComboBox<String> casts are safe by construction
         private void getComponents() {
             this.optVideoSource = (JRadioButton) this.settings.state().guiComponents().get("optVideoSource");
             this.txtVideoSource = (JComboBox<String>) this.settings.state().guiComponents().get("txtVideoSource");

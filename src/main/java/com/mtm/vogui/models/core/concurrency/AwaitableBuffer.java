@@ -63,7 +63,6 @@ public class AwaitableBuffer<T> {
     }
 
     public void awake() {
-        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         this.awaitable.set(new Object());
     }
 

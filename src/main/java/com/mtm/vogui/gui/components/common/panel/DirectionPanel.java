@@ -49,7 +49,6 @@ public class DirectionPanel extends JPanel {
         this.borderStyle = borderStyle;
     }
 
-    @SuppressWarnings("unused")
     public void disableBorder() {
         this.borderEnabled = false;
     }

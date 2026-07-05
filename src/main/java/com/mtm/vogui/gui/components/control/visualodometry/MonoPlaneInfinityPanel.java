@@ -8,7 +8,6 @@ package com.mtm.vogui.gui.components.control.visualodometry;
 import com.mtm.vogui.gui.components.common.textfield.DoubleTextField;
 import com.mtm.vogui.gui.components.common.textfield.IntegerTextField;
 import com.mtm.vogui.models.constants.GuiConstants;
-import com.mtm.vogui.models.enums.settings.VisualOdometryType;
 import com.mtm.vogui.models.settings.core.visualodometry.VisualOdometrySettings;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;

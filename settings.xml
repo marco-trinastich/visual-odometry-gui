@@ -1,39 +1,38 @@
 <list>
   <com.mtm.vogui.models.settings.core.InputSettings>
-    <calibrationPath>data/boofcv/applet/vo/drc/mono_plane.yaml</calibrationPath>
+    <calibrationPath>assets/datasets/boofcv/applet/vo/drc/mono_plane.yaml</calibrationPath>
     <calibrationsList>
-      <string>data/boofcv/applet/vo/drc/mono_plane.yaml</string>
-      <string>data/vogui/monocalibrations/intrinsic_Asus_N56VZ_Webcam_1280_720.xml</string>
-      <string>data/vogui/monocalibrations/intrinsic_Microsoft_Kinect_640_480.xml</string>
-      <string>data/vogui/monocalibrations/intrinsic_Microsoft_Kinect_640_480_LowBaseheight.xml</string>
-      <string>data/vogui/monocalibrations/intrinsic_Samsung_GalaxyS2_Camera_320_240.xml</string>
-      <string>data/vogui/monocalibrations/intrinsic_Samsung_GalaxyS2_Camera_320_240_LowBaseheight.xml</string>
+      <string>assets/datasets/boofcv/applet/vo/drc/mono_plane.yaml</string>
+      <string>assets/datasets/vogui/calibrations/mono/intrinsic_Asus_N56VZ_Webcam_1280_720.xml</string>
+      <string>assets/datasets/vogui/calibrations/mono/intrinsic_Microsoft_Kinect_640_480.xml</string>
+      <string>assets/datasets/vogui/calibrations/mono/intrinsic_Microsoft_Kinect_640_480_LowBaseheight.xml</string>
+      <string>assets/datasets/vogui/calibrations/mono/intrinsic_Samsung_GalaxyS2_Camera_320_240.xml</string>
+      <string>assets/datasets/vogui/calibrations/mono/intrinsic_Samsung_GalaxyS2_Camera_320_240_LowBaseheight.xml</string>
     </calibrationsList>
     <inputSource>Video</inputSource>
-    <videoPath>data/boofcv/applet/vo/drc/left.mjpeg</videoPath>
+    <videoPath>assets/datasets/boofcv/applet/vo/drc/left_mono.mjpeg</videoPath>
     <videoPathsList>
-      <string>data/boofcv/applet/vo/drc/left.mjpeg</string>
-      <string>data/vogui/media/Smartspace/Smartspace_00_Inside_1280x720.avi</string>
-      <string>data/vogui/media/Smartspace/Smartspace_01_Inside_1280x720.mjpeg</string>
-      <string>data/vogui/media/Smartspace/Smartspace_02_Inside_640x480.mjpeg</string>
-      <string>data/vogui/media/Smartspace/Smartspace_03_Inside_400x400.mjpeg</string>
-      <string>data/vogui/media/Smartspace/Smartspace_04_Inside_Medium_Pitch_0_1_640x480.mjpeg</string>
-      <string>data/vogui/media/Smartspace/Smartspace_05_Inside_Medium_Pitch_0_1_640x480.mp4</string>
-      <string>data/vogui/media/Smartspace/Smartspace_06_Inside_Reverse_Medium_Pitch_0_2_640x480.mjpeg</string>
-      <string>data/vogui/media/Smartspace/Smartspace_07_Inside_Reverse_(20140411_134424)_640x480.mp4</string>
-      <string>data/vogui/media/Smartspace/Smartspace_08_Inside_High_Pitch_(20140409)_1280x720.mp4</string>
-      <string>data/vogui/media/Smartspace/Smartspace_09_Outside_640x480.mp4</string>
-      <string>data/vogui/media/Smartspace/Smartspace_10_Outside_400x400.mjpeg</string>
-      <string>data/vogui/media/Smartspace/Smartspace_11_Inside_Prova_1280x720_Full_Frames.mjpeg</string>
-      <string>data/vogui/media/Smartspace/Smartspace_12_Inside_Prova_1280x720_Half_Frames.mjpeg</string>
-      <string>data/vogui/media/Smartspace/Smartspace_13_Inside_Prova_1280x720_Quarter_Frames.mjpeg</string>
-      <string>data/vogui/media/Smartspace/Smartspace_14_Inside_Prova_640x360_Full_Frames.mjpeg</string>
-      <string>data/vogui/media/Smartspace/Inside_132_frames_1280x720/</string>
-      <string>data/vogui/media/Smartspace/Inside_456_frames_1280x720/</string>
-      <string>data/vogui/media/Smartspace/Inside_660_frames_1280x720/</string>
-      <string>data/vogui/media/LibViso/LibViso_01_Sample_Video_1344x372.avi</string>
-      <string>data/vogui/media/LibViso/LibViso_02_Sample_Video_400x400.mjpeg</string>
-      <string>data/vogui/media/LibViso/2010_03_09_drive_0019/</string>
+      <string>assets/datasets/boofcv/applet/vo/drc/left_mono.mjpeg</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_00_Inside_1280x720.avi</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_01_Inside_1280x720.mjpeg</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_02_Inside_640x480.mjpeg</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_03_Inside_400x400.mjpeg</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_04_Inside_Medium_Pitch_0_1_640x480.mjpeg</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_05_Inside_Medium_Pitch_0_1_640x480.mp4</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_06_Inside_Reverse_Medium_Pitch_0_2_640x480.mjpeg</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_07_Inside_Reverse_(20140411_134424)_640x480.mp4</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_08_Inside_High_Pitch_(20140409)_1280x720.mp4</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_09_Outside_640x480.mp4</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_10_Outside_400x400.mjpeg</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_11_Inside_Prova_1280x720_Full_Frames.mjpeg</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_12_Inside_Prova_1280x720_Half_Frames.mjpeg</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_13_Inside_Prova_1280x720_Quarter_Frames.mjpeg</string>
+      <string>assets/datasets/vogui/media/smartspace/Smartspace_14_Inside_Prova_640x360_Full_Frames.mjpeg</string>
+      <string>assets/datasets/vogui/media/smartspace/Inside_132_frames_1280x720/</string>
+      <string>assets/datasets/vogui/media/smartspace/Inside_456_frames_1280x720/</string>
+      <string>assets/datasets/vogui/media/smartspace/Inside_660_frames_1280x720/</string>
+      <string>assets/datasets/vogui/media/libviso2/LibViso_01_Sample_Video_1344x372.avi</string>
+      <string>assets/datasets/vogui/media/libviso2/LibViso_02_Sample_Video_400x400.mjpeg</string>
     </videoPathsList>
     <deviceType>V4L4J</deviceType>
     <devicePath>/dev/video0</devicePath>

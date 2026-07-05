@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Visual Odometry algorithm factory
  */
-@SuppressWarnings({"unused", "unchecked", "rawtypes"})
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class VisualOdometryFactory {
     @Setter
     private Object calibration;
@@ -57,6 +57,10 @@ public class VisualOdometryFactory {
 
     public MonocularPlaneVisualOdometry<? extends ImageGray<?>> createMonoPlaneOverhead(@NotNull
                                                                                         MonoPlaneOverheadSettings settings) {
+        // Raw locals make the invocation explicitly unchecked: BoofCV's factory cannot infer T
+        // from the wildcard-typed tracker instance (javac tolerates it, ECJ rejects it)
+        PointTracker rawTracker = tracker.instance();
+        ImageType rawImageType = ImageType.single(imgType);
         MonocularPlaneVisualOdometry<? extends ImageGray<?>> visualOdometry = FactoryVisualOdometry.monoPlaneOverhead(
                 settings.cellSize(),
                 settings.maxCellsPerPixel(),
@@ -67,8 +71,8 @@ public class VisualOdometryFactory {
                 settings.absoluteMinimumTracks(),
                 settings.respawnTrackFraction(),
                 settings.respawnCoverageFraction(),
-                (PointTracker<? extends ImageGray>) tracker.instance(),
-                ImageType.single(imgType)
+                rawTracker,
+                rawImageType
         );
         visualOdometry.setCalibration((MonoPlaneParameters) calibration);
 

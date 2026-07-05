@@ -87,9 +87,9 @@ public enum AppStatus implements WithValue {
             };
         } else {
             message = switch (ex) {
-                case BufferTimeoutException ignored -> AppStatus.BufferException;
-                case VoProcessingException ignored -> AppStatus.VoException;
-                case UnknownSourceException ignored -> AppStatus.UnknownDevice;
+                case BufferTimeoutException _ -> AppStatus.BufferException;
+                case VoProcessingException _ -> AppStatus.VoException;
+                case UnknownSourceException _ -> AppStatus.UnknownDevice;
                 default -> AppStatus.VoUnexpectedError;
             };
         }

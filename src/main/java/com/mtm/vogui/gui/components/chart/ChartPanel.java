@@ -70,7 +70,6 @@ public class ChartPanel extends JPanel {
         if (this.state.series() == null || !this.state.hasPoints())
             return;
 
-        int currentChart = 0;
         try {
 
             if (this.settings.showAxis()) {

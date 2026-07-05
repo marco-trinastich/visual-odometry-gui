@@ -13,8 +13,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-
 /**
  * V4l4j camera settings
  * <p/>
@@ -23,7 +21,7 @@ import java.io.Serializable;
 @Data
 @Dependent
 @EqualsAndHashCode(callSuper = true)
-public class V4l4jCameraSettings extends PathSettings implements Serializable, WithDefault<V4l4jCameraSettings> {
+public class V4l4jCameraSettings extends PathSettings implements WithDefault<V4l4jCameraSettings> {
 
     private boolean sustainFramerate;
     private boolean timeoutImageIO;
