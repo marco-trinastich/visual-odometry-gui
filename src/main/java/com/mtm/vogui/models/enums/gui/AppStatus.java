@@ -77,6 +77,7 @@ public enum AppStatus implements WithValue {
 
         if (ex == null) {
             message = switch (state) {
+                case Init -> AppStatus.Init;
                 case StandBy -> AppStatus.Ready;
                 case Running -> AppStatus.Processing;
                 case Paused -> AppStatus.Paused;

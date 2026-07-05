@@ -14,7 +14,6 @@ import com.mtm.vogui.models.core.processing.fps.FpsCounter;
 import com.mtm.vogui.models.core.processing.frames.ProcessedFrame;
 import com.mtm.vogui.models.enums.core.ProcessingState;
 import com.mtm.vogui.models.core.exceptions.BufferTimeoutException;
-import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.VoProcessingException;
 import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.models.core.processing.tracking.PointFactory;
@@ -99,8 +98,14 @@ public class Core {
         infoPanel.setAppStatus(AppStatus.ValidSettings);
 
         // Open calibration
-        if (!CoreSetup.openCalibration(this.params)) {
-            JOptionPane.showConfirmDialog(mainFrame, "Calibration file isn't valid or the specified file doesn't exist!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+        var calibrationResult = CoreSetup.openCalibration(this.params);
+        if (!calibrationResult.isOk()) {
+            String message = switch (calibrationResult) {
+                case NotFound -> "Calibration file doesn't exist or can't be opened!\nCheck the calibration path.";
+                case LegacyXmlFormat -> "Calibration file uses the legacy BoofCV XML format,\nwhich is no longer supported.\nConvert it to the current YAML format (*.yaml).";
+                default -> "Calibration file isn't a valid YAML camera calibration!";
+            };
+            JOptionPane.showConfirmDialog(mainFrame, message, "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
             infoPanel.setAppStatus(AppStatus.InvalidCalibration);
             return false;
         }
@@ -201,9 +206,10 @@ public class Core {
 
         if (result.state().is(ProcessingState.Error)) {
             // Ensure resources cleanup
+            // (any exception is swallowed: cleanup must never propagate and kill the vo task)
             try {
                 CoreProcessing.closeSource(this.settings, this.params);
-            } catch (CameraException ignored) {
+            } catch (Exception ignored) {
             }
         }
     }

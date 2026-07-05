@@ -37,8 +37,7 @@ public class AppConstants {
     public static final String BUFFER_MONITOR_THREAD = "Buffer Monitor Thread";
     public static final String FPS_COUNTER_THREAD = "Fps Counter Thread";
     public static final String VO_EXECUTOR_THREAD = "VO Executor Thread";
-    public static final String VO_STOP_THREAD = "VO Stop Thread";
-    public static final String VO_CLEAR_THREAD = "VO Clear Thread";
+    public static final String VO_TOOLBAR_THREAD = "VO Toolbar Thread";
     public static final String VO_TIMED_STOP_THREAD = "VO Timed Stop Thread";
     public static final String VO_TIMED_STOP_COUNTDOWN_THREAD = "VO Timed Stop Countdown Thread";
 

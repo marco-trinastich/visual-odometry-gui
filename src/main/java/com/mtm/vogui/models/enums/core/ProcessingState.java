@@ -11,6 +11,7 @@ import lombok.Getter;
 
 @Getter
 public enum ProcessingState implements WithValue, Comparable {
+    Init("Init"),
     StandBy("StandBy"),
     Running("Running"),
     Paused("Paused"),

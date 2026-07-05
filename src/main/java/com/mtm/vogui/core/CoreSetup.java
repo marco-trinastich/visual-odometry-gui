@@ -13,6 +13,7 @@ import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.core.processing.tracking.Tracker;
 import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.InvalidImageFormatException;
+import com.mtm.vogui.models.enums.core.CalibrationLoadResult;
 import com.mtm.vogui.models.enums.settings.TrackerType;
 import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.models.settings.core.visualodometry.monoplaneinfinity.MonoPlaneInfinitySettings;
@@ -21,6 +22,9 @@ import georegression.struct.se.Se3_F64;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
 
 public class CoreSetup {
 
@@ -29,17 +33,36 @@ public class CoreSetup {
      * </>
      * Tries to open a mono, stereo or depth calibration
      */
-    static boolean openCalibration(@NotNull ProcessingParameters params) {
+    static CalibrationLoadResult openCalibration(@NotNull ProcessingParameters params) {
         String calibrationPath = params.frozenSettings().core().input().calibration().path();
 
-        // Load YAML calibration file (containing camera description)
+        // Read the whole calibration file (containing camera description)
+        String content;
+        try (Reader reader = CoreUtils.getMediaManager().openFile(calibrationPath)) {
+            if (reader == null) {
+                return CalibrationLoadResult.NotFound;
+            }
+            var writer = new StringWriter();
+            reader.transferTo(writer);
+            content = writer.toString();
+        } catch (Exception ignored) {
+            return CalibrationLoadResult.NotFound;
+        }
+
+        // Legacy calibrations (BoofCV <= 0.17) were XStream-serialized XML files,
+        // no longer readable by CalibrationIO (YAML only)
+        if (content.stripLeading().startsWith("<")) {
+            return CalibrationLoadResult.LegacyXmlFormat;
+        }
+
+        // Load YAML calibration
         Object calibration = null;
         try {
-            calibration = params.calibration(CalibrationIO.load(CoreUtils.getMediaManager().openFile(calibrationPath)));
+            calibration = params.calibration(CalibrationIO.load(new StringReader(content)));
         } catch (Exception ignored) {
         }
 
-        return calibration != null;
+        return calibration != null ? CalibrationLoadResult.Ok : CalibrationLoadResult.Invalid;
     }
 
     /**

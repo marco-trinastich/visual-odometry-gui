@@ -76,13 +76,22 @@ public class CoreProcessing {
 
     public static void closeSource(@NotNull Settings settings, @NotNull ProcessingParameters params)
             throws CameraException {
-        // Close source
+        // Close source (may be missing or partially initialized if setup failed early)
         var sourceType = params.frozenSettings().core().input().source();
+        if (sourceType == null) {
+            return;
+        }
         switch (sourceType) {
-            case Video -> params.video().close();
+            case Video -> {
+                if (params.video() != null) {
+                    params.video().close();
+                }
+            }
             case Device -> {
-                settings.state().device().stop();
-                settings.state().device().clearBuffer();
+                if (settings.state().device() != null) {
+                    settings.state().device().stop();
+                    settings.state().device().clearBuffer();
+                }
             }
         }
     }

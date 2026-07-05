@@ -479,8 +479,9 @@ public class GuiApplication {
         btnCalibrationBrowsing.addActionListener(
                 new BrowseButtonListener(guiComponents, txtCalibration,
                         "Open Calibration",
-                        new String[]{".xml"},
-                        new String[]{"XML Camera Calibration File (*.xml)"},
+                        new String[]{".yaml", ".yml"},
+                        new String[]{"YAML Camera Calibration (*.yaml)", "YAML Camera Calibration (*.yml)",
+                                "YAML Camera Calibration (*.yaml, *.yml)"},
                         false));
 
 
@@ -2522,11 +2523,33 @@ public class GuiApplication {
         }
 
         private @NotNull Future<?> startVisualOdometry(boolean isTimed) {
+            // Signal setup phase and lock the whole toolbar until the setup outcome is known
+            CoreUtils.setProcessingStateSafe(this.settings, ProcessingState.Init);
+            this.setToolbarStatus(false, false, false, false,
+                    false, false);
+
+            // Enable the processing controls only once setup succeeds and processing actually starts
+            var toolbarWatcher = Executors.newSingleThreadExecutor(NamedThreadFactory.from(AppConstants.VO_TOOLBAR_THREAD));
+            toolbarWatcher.submit(() -> {
+                this.settings.state().processing().waitUntilNot(ProcessingState.Init);
+                SwingUtilities.invokeLater(() -> {
+                    // No-op if processing already ended (toolbar restored by the vo task itself)
+                    if (this.settings.state().processing().is(ProcessingState.Running) ||
+                            this.settings.state().processing().is(ProcessingState.Paused)) {
+                        this.setRunningToolbar(isTimed);
+                    }
+                });
+            });
+            toolbarWatcher.shutdown();
+
             // Run vo processing in dedicated thread
-            this.setRunningToolbar(isTimed);
             return voExecutor.submit(() -> {
-                this.core.start();
-                this.setReadyToolbar(null);
+                try {
+                    this.core.start();
+                } finally {
+                    // Always restore the toolbar, whatever the processing outcome
+                    SwingUtilities.invokeLater(() -> this.setReadyToolbar(null));
+                }
             });
         }
 
@@ -2548,33 +2571,15 @@ public class GuiApplication {
         }
 
         private void stopVisualOdometry() {
-            // Notify stop to vo thread
+            // Notify stop to vo thread; the vo task itself restores the toolbar on exit
             CoreUtils.setProcessingStateSafe(this.settings, ProcessingState.Stopped);
-
-            Executors.newSingleThreadExecutor(NamedThreadFactory.from(AppConstants.VO_STOP_THREAD)).submit(() -> {
-                // Wait for task full stop (or error) and reset toolbar
-                this.settings.state().processing().waitUntil(
-                        ProcessingState.StandBy,
-                        ProcessingState.Error
-                );
-                this.setReadyToolbar(null);
-            });
         }
 
         private void clearVisualOdometry() {
             if (this.settings.state().processing().is(ProcessingState.Running) ||
                     this.settings.state().processing().is(ProcessingState.Paused)) {
-                // Notify clear to vo thread
+                // Notify clear to vo thread; the vo task itself restores the toolbar on exit
                 CoreUtils.setProcessingStateSafe(this.settings, ProcessingState.Cleared);
-
-                Executors.newSingleThreadExecutor(NamedThreadFactory.from(AppConstants.VO_CLEAR_THREAD)).submit(() -> {
-                    // Wait for task full stop (or error) and reset toolbar
-                    this.settings.state().processing().waitUntil(
-                            ProcessingState.StandBy,
-                            ProcessingState.Error
-                    );
-                    this.setReadyToolbar(false);
-                });
             } else {
                 CoreRendering.renderClearAllPoints(this.settings);
                 CoreRendering.renderAppStatus(this.settings, AppStatus.Cleared);
@@ -2725,8 +2730,14 @@ public class GuiApplication {
         public void actionPerformed(ActionEvent evt) {        //When clicking the browsing button
             String dialogPath = (String) pathComboBox.getSelectedItem();//assumes the current Path TextComponent
             //content as the current searching path
+            File currentFile = resolveAgainstWorkingDirectory(dialogPath);
 
-            JFileChooser browse = new JFileChooser(dialogPath);    //Creates a new File Browsing Dialog at dialogPath path
+            //Creates a new File Browsing Dialog starting from the current path
+            //(or from the application working directory when the current path is empty/invalid)
+            JFileChooser browse = new JFileChooser(resolveStartingDirectory(currentFile));
+            if (currentFile != null && currentFile.isFile()) {
+                browse.setSelectedFile(currentFile);            //Preselects the currently configured file
+            }
             browse.setDialogTitle(dialogTitle);                    //Sets title to dialogTitle
             for (int i = 0; i < dialogFileFilterExtension.length; i++) {
                 final String fileExt = dialogFileFilterExtension[i];
@@ -2782,6 +2793,25 @@ public class GuiApplication {
                 //to the Path parameter, thanks to
                 //the TextComponent change Listener)
             }
+        }
+
+        private static File resolveAgainstWorkingDirectory(String path) {
+            if (path == null || path.isBlank()) {
+                return null;
+            }
+            File file = new File(path.trim());
+            return file.isAbsolute() ? file : new File(System.getProperty("user.dir"), file.getPath());
+        }
+
+        private static @NotNull File resolveStartingDirectory(File currentFile) {
+            // Nearest existing ancestor directory of the current path
+            File dir = currentFile != null && currentFile.isDirectory() ? currentFile
+                    : currentFile != null ? currentFile.getParentFile() : null;
+            while (dir != null && !dir.isDirectory()) {
+                dir = dir.getParentFile();
+            }
+            // Fallback: application working directory
+            return dir != null ? dir : new File(System.getProperty("user.dir"));
         }
     }
 
