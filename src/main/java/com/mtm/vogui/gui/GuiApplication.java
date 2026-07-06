@@ -560,6 +560,8 @@ public class GuiApplication {
                     if (!selection.previous().value().is(selection.current().value())) {
                         inputSettings.device().reloadPaths();
                         txtDevicePath.setModel(new DefaultComboBoxModel<>(inputSettings.device().paths()));
+                        // Selecting the item commits it to settings through the combo listener
+                        txtDevicePath.setSelectedItem(inputSettings.device().path());
                     }
                 }
         );

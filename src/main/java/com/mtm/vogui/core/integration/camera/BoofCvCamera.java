@@ -19,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
@@ -47,8 +49,7 @@ public class BoofCvCamera extends BufferedCamera {
             if (this.webcam == null) {
                 throw new CameraStartException();
             }
-            UtilWebcamCapture.adjustResolution(this.webcam, input.device().targetWidth(),
-                    input.device().targetHeight());
+            this.adjustResolution(input.device().targetWidth(), input.device().targetHeight());
             this.webcam.open();
             Executors.newSingleThreadExecutor(NamedThreadFactory.from(AppConstants.BOOFCV_CAMERA_THREAD))
                     .submit(this::captureCycle);
@@ -99,10 +100,32 @@ public class BoofCvCamera extends BufferedCamera {
         return null;
     }
 
+    private void adjustResolution(int targetWidth, int targetHeight) {
+        // The AVFoundation-based native driver only starts with resolutions the device advertises,
+        // so pick the closest supported one instead of forcing a custom size like UtilWebcamCapture
+        var sizes = this.webcam.getViewSizes();
+        if (sizes == null || sizes.length == 0) {
+            UtilWebcamCapture.adjustResolution(this.webcam, targetWidth, targetHeight);
+            return;
+        }
+        var best = Arrays.stream(sizes)
+                .min(Comparator.comparingLong(size ->
+                        (long) (size.width - targetWidth) * (size.width - targetWidth)
+                                + (long) (size.height - targetHeight) * (size.height - targetHeight)))
+                .orElse(sizes[0]);
+        this.webcam.setViewSize(best);
+    }
+
     private void captureCycle() {
         try {
             while (this.webcam.isOpen() && !this.stopRequested.get()) {
-                this.fillBufferAndRender(this.webcam.getImage());
+                var image = this.webcam.getImage();
+                if (image == null) {
+                    // The device may not have produced a frame yet
+                    Thread.sleep(5);
+                    continue;
+                }
+                this.fillBufferAndRender(image);
             }
         } catch (Exception ex) {
             Log.errorf(Messages.DEVICE_BOOFCV_CAPTURE_ERROR, ex.getMessage());

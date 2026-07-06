@@ -7,6 +7,7 @@ package com.mtm.vogui.models.settings.core.input.device.boofcv;
 
 import com.github.sarxos.webcam.Webcam;
 import com.mtm.vogui.models.interfaces.WithDefault;
+import com.mtm.vogui.utilities.WebcamDriverUtils;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -27,10 +28,11 @@ import java.util.Objects;
 @Dependent
 public class BoofCvCameraSettings implements Serializable, WithDefault<BoofCvCameraSettings> {
 
-    // Webcam discovery relies on BridJ natives, which do not exist for macOS ARM (Apple Silicon)
-    private static final boolean WEBCAM_DISCOVERY_SUPPORTED =
-            !(System.getProperty("os.name", "").toLowerCase().contains("mac")
-                    && System.getProperty("os.arch", "").contains("aarch64"));
+    static {
+        // This class is the single webcam discovery entry point, so the driver is guaranteed
+        // to be active before any sarxos Webcam API call
+        WebcamDriverUtils.useNativeDriver();
+    }
 
     private String path;
 
@@ -45,7 +47,7 @@ public class BoofCvCameraSettings implements Serializable, WithDefault<BoofCvCam
 
     public BoofCvCameraSettings(@NotNull BoofCvCameraSettings boofCv) {
         this.webcams = this.reloadWebcams(boofCv.webcams);
-        this.path = boofCv.path != null ? boofCv.path : this.getFirstOrEmptyPath();
+        this.path = boofCv.path != null && !boofCv.path.isEmpty() ? boofCv.path : this.getFirstOrEmptyPath();
     }
 
     public String @NotNull [] paths() {
@@ -79,15 +81,16 @@ public class BoofCvCameraSettings implements Serializable, WithDefault<BoofCvCam
             this.webcams = webcams;
             return this.webcams;
         }
-        if (!WEBCAM_DISCOVERY_SUPPORTED) {
-            this.webcams = new ArrayList<>();
-            return this.webcams;
-        }
         try {
             this.webcams = Webcam.getWebcams();
         } catch (Throwable exc) {
             System.err.println("BoofCv webcam discovery unavailable: " + exc.getMessage());
             this.webcams = new ArrayList<>();
+        }
+
+        // An empty path may have been persisted while discovery was unavailable: heal it
+        if (this.path == null || this.path.isEmpty()) {
+            this.path = this.getFirstOrEmptyPath();
         }
         return this.webcams;
     }

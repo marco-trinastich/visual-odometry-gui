@@ -7,7 +7,7 @@
             "request": "launch",
             "mainClass": "com.mtm.vogui.VisualOdometryGui",
             "projectName": "vogui",
-            "vmArgs": "-Djava.awt.headless=false -Xdock:name=VisualOdometryGUI"
+            "vmArgs": "-Djava.awt.headless=false -Xdock:name=VisualOdometryGUI --enable-native-access=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED"
         }
     ]
 }
