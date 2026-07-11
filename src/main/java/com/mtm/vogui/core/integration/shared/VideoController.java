@@ -116,7 +116,7 @@ public class VideoController implements VideoCallBack {
         this.fpsStatus.setAverage(this.counter.getStatus());
 
         // Log to console
-        Log.infof(Messages.V4L4J_DEVICE_FPS_LOG,
+        Log.infof(Messages.DEVICE_FPS_LOG,
                 this.fpsStatus.averageFPS(),
                 this.fpsStatus.currentFPS(),
                 this.fpsStatus.totalProcessed(),

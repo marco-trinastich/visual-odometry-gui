@@ -84,14 +84,6 @@ public class V4l4jCamera extends BufferedCamera {
         return this;
     }
 
-    /**
-     * Node actually opened (discovery may have resolved an unknown requested
-     * path to the first available device).
-     */
-    public String getDevicePath() {
-        return this.devicePath;
-    }
-
     @Override
     public void stop() throws CameraException {
         if (this.running.get()) {
@@ -109,6 +101,23 @@ public class V4l4jCamera extends BufferedCamera {
         }
     }
 
+    /**
+     * Node actually opened (discovery may have resolved an unknown requested
+     * path to the first available device).
+     */
+    @Override
+    public String getDevicePath() {
+        return this.devicePath;
+    }
+
+    @Override
+    public Dimension getFrameSize() {
+        if (this.controller != null) {
+            return this.controller.frameSize();
+        }
+        return null;
+    }
+
     @Override
     public double getCurrentFPS() {
         if (this.controller != null) {
@@ -123,14 +132,6 @@ public class V4l4jCamera extends BufferedCamera {
             return this.controller.getAverageFPS();
         }
         return 0;
-    }
-
-    @Override
-    public Dimension getFrameSize() {
-        if (this.controller != null) {
-            return this.controller.frameSize();
-        }
-        return null;
     }
 
     private void checkDeviceError() {

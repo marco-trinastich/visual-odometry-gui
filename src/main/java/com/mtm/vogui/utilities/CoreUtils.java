@@ -15,8 +15,7 @@ import boofcv.io.wrapper.DefaultMediaManager;
 import boofcv.io.wrapper.images.LoadFileImageSequence;
 import boofcv.struct.image.*;
 import com.mtm.vogui.core.CoreRendering;
-import com.mtm.vogui.core.integration.camera.BoofCvCamera;
-import com.mtm.vogui.core.integration.camera.V4l4jCamera;
+import com.mtm.vogui.core.integration.camera.CameraFactory;
 import com.mtm.vogui.models.constants.Messages;
 import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
@@ -66,15 +65,11 @@ public class CoreUtils {
         return video != null;
     }
 
-    public static boolean openDeviceV4L4J(AppContext context, ProcessingParameters params) throws CameraException {
-        if (!OSUtils.isUnix()) {
-            // If not unix, exit
-            return false;
-        }
-
+    public static boolean openDevice(AppContext context, ProcessingParameters params,
+                                     CameraFactory cameraFactory) throws CameraException {
         try {
-            // Creates new V4L4J device
-            var camera = V4l4jCamera.from(
+            // Start input device
+            var camera = cameraFactory.create(
                     context,
                     image -> CoreRendering.renderInputVideo(context, image),
                     buffer -> CoreRendering.renderBufferStatus(context, buffer)
@@ -86,35 +81,7 @@ public class CoreUtils {
             CoreRendering.renderDeviceResolution(context, camera.getFrameSize());
             return true;
         } catch (Throwable e) {
-            // Throwable: missing V4L4J natives surface as LinkageError, not Exception
-            LogUtils.errorf(e, Messages.OPEN_DEVICE_ERROR, e.getMessage());
-
-            // Close device
-            if (context.state().device() != null) {
-                context.state().device().stop();
-                context.state().device().clearBuffer();
-            }
-
-            return false;
-        }
-    }
-
-    public static boolean openDeviceBoofCv(AppContext context, ProcessingParameters params) throws CameraException {
-        try {
-            // Start input device
-            var camera = BoofCvCamera.from(
-                    context,
-                    image -> CoreRendering.renderInputVideo(context, image),
-                    buffer -> CoreRendering.renderBufferStatus(context, buffer)
-            ).start();
-            context.state().device(camera);
-            params.frameSize(camera.getFrameSize());
-            // Reflect into GUI/settings the device actually opened and the resolution it granted
-            CoreRendering.renderDevicePath(context, camera.getDeviceName());
-            CoreRendering.renderDeviceResolution(context, camera.getFrameSize());
-            return true;
-        } catch (Throwable e) {
-            // Throwable: missing webcam natives surface as LinkageError, not Exception
+            // Throwable: missing capture natives surface as LinkageError, not Exception
             LogUtils.errorf(e, Messages.OPEN_DEVICE_ERROR, e.getMessage());
 
             // Close device

@@ -11,7 +11,10 @@ import lombok.Getter;
 
 @Getter
 public enum DeviceType implements WithValue, Comparable {
-    BoofCv("BoofCv"),
+    // Constant names follow the codebase Cv-suffix convention (class prefixes, Jackson
+    // persistence); display values use the official project spellings
+    BoofCv("BoofCV"),
+    OpenCv("OpenCV"),
     V4L4J("V4L4J");
 
     private final String value;

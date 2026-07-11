@@ -77,6 +77,23 @@ public class BoofCvCamera extends BufferedCamera {
         }
     }
 
+    /**
+     * Name of the device actually opened (discovery may have fallen back to the
+     * first available one when the requested path didn't match any webcam).
+     */
+    @Override
+    public String getDevicePath() {
+        return this.webcam != null ? this.webcam.getName() : null;
+    }
+
+    @Override
+    public Dimension getFrameSize() {
+        if (this.webcam != null) {
+            return webcam.getViewSize();
+        }
+        return null;
+    }
+
     @Override
     public double getCurrentFPS() {
         if (this.webcam != null) {
@@ -91,22 +108,6 @@ public class BoofCvCamera extends BufferedCamera {
             return this.webcam.getFPS();
         }
         return 0;
-    }
-
-    @Override
-    public Dimension getFrameSize() {
-        if (this.webcam != null) {
-            return webcam.getViewSize();
-        }
-        return null;
-    }
-
-    /**
-     * Name of the device actually opened (discovery may have fallen back to the
-     * first available one when the requested path didn't match any webcam).
-     */
-    public String getDeviceName() {
-        return this.webcam != null ? this.webcam.getName() : null;
     }
 
     private void adjustResolution(int targetWidth, int targetHeight) {

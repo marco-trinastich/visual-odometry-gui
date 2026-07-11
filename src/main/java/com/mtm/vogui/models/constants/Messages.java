@@ -30,6 +30,9 @@ public class Messages {
             "first real frame";
     public final static String DEVICE_BOOFCV_CAPTURE_ERROR = "Error during BoofCv capture.\n Cause: %s";
     public final static String DEVICE_BOOFCV_CLOSE_ERROR = "Error closing BoofCv device.\n Cause: %s";
+    public final static String DEVICE_OPENCV_CAPTURE_ERROR = "Error during OpenCv capture.\n Cause: %s";
+    public final static String DEVICE_OPENCV_CLOSE_ERROR = "Error closing OpenCv device.\n Cause: %s";
+    public final static String DEVICE_OPENCV_NO_FRAME = "Device delivered no image on startup";
 
     // Gui
     public final static String DISPLAY_VALUE_NOT_EDITABLE_EXCEPTION = "Error: Cannot set a display value combo box " +
@@ -43,7 +46,7 @@ public class Messages {
     // Logging
     public final static String LOAD_SETTINGS_EXCEPTION = "Error loading settings from: %s (%s)";
     public final static String SAVE_SETTINGS_EXCEPTION = "Error saving settings to: %s (%s)";
-    public final static String V4L4J_DEVICE_FPS_LOG = """
+    public final static String DEVICE_FPS_LOG = """
             \s
             Fps status:
             \s

@@ -32,6 +32,7 @@ public class AppConstants {
     public static final String EMPTY_STRING = "";
 
     // Threads
+    public static final String OPENCV_CAMERA_THREAD = "OpenCv Camera Thread";
     public static final String BOOFCV_CAMERA_THREAD = "BoofCv Camera Thread";
     public static final String V4L4J_CAMERA_THREAD = "V4l4j Camera Thread";
     public static final String BUFFER_MONITOR_THREAD = "Buffer Monitor Thread";

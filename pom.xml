@@ -10,21 +10,29 @@
     <version>1.0.0</version>
 
     <properties>
+        <!-- Runtime (Quarkus CDI/config) -->
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.37.1</quarkus.platform.version>
+        <!-- Vision -->
+        <boofcv.version>1.1.3</boofcv.version>
+        <!-- Capture: OpenCv path (JavaCV) -->
+        <javacv.version>1.5.13</javacv.version>
+        <opencv.version>4.13.0-${javacv.version}</opencv.version>
+        <openblas.version>0.3.31-${javacv.version}</openblas.version>
+        <!-- Capture: BoofCv path (JNA-based native webcam driver) -->
+        <jna.version>5.18.1</jna.version>
+        <!-- Utilities -->
+        <lombok.version>1.18.46</lombok.version>
+        <!-- Build -->
         <compiler-plugin.version>3.12.1</compiler-plugin.version>
         <surefire-plugin.version>3.2.5</surefire-plugin.version>
         <skipITs>true</skipITs>
-        <javafx.version>22</javafx.version>
-        <boofcv.version>1.1.3</boofcv.version>
-        <jna.version>5.18.1</jna.version>
-        <lombok.version>1.18.46</lombok.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.release>25</maven.compiler.release>
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.home/>
     </properties>
 
@@ -51,63 +59,124 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <!-- Quarkus -->
+        <!-- Runtime (Quarkus CDI/config) -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5</artifactId>
-            <scope>test</scope>
-        </dependency>
 
-        <!-- BoofCV -->
+        <!-- Vision -->
         <dependency>
             <groupId>org.boofcv</groupId>
             <artifactId>boofcv-all</artifactId>
             <version>${boofcv.version}</version>
         </dependency>
 
-        <!-- Media -->
+        <!-- Capture: OpenCv path. JavaCV API only, natives limited to OpenCV+OpenBLAS for the
+             three supported desktop platforms. javacv-platform would drag ~1 GB of natives for
+             every preset (ffmpeg, tesseract, ...) on every platform. -->
         <dependency>
             <groupId>org.bytedeco</groupId>
-            <artifactId>javacv-platform</artifactId>
-            <version>1.5.10</version>
+            <artifactId>javacv</artifactId>
+            <version>${javacv.version}</version>
+            <exclusions>
+                <!-- Unused preset APIs; opencv (with javacpp/openblas) is re-declared below -->
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.sarxos</groupId>
-            <artifactId>v4l4j</artifactId>
-            <version>0.9.1-r507</version>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>opencv</artifactId>
+            <version>${opencv.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>opencv</artifactId>
+            <version>${opencv.version}</version>
+            <classifier>macosx-arm64</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>opencv</artifactId>
+            <version>${opencv.version}</version>
+            <classifier>macosx-x86_64</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>opencv</artifactId>
+            <version>${opencv.version}</version>
+            <classifier>windows-x86_64</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>opencv</artifactId>
+            <version>${opencv.version}</version>
+            <classifier>linux-x86_64</classifier>
+        </dependency>
+        <!-- The OpenCV natives link against the OpenBLAS ones -->
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>openblas</artifactId>
+            <version>${openblas.version}</version>
+            <classifier>macosx-arm64</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>openblas</artifactId>
+            <version>${openblas.version}</version>
+            <classifier>macosx-x86_64</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>openblas</artifactId>
+            <version>${openblas.version}</version>
+            <classifier>windows-x86_64</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>openblas</artifactId>
+            <version>${openblas.version}</version>
+            <classifier>linux-x86_64</classifier>
+        </dependency>
+
+        <!-- Capture: BoofCv path. Sarxos webcam API plus the JNA-based native driver
+             (AVFoundation/MediaFoundation/V4L2) that BoofCvVideo installs at class load,
+             replacing the dead BridJ-based default (no Apple Silicon natives). -->
         <dependency>
             <groupId>com.github.sarxos</groupId>
             <artifactId>webcam-capture</artifactId>
             <version>0.3.12</version>
+            <exclusions>
+                <!-- Only the never-instantiated default driver needs BridJ -->
+                <exclusion>
+                    <groupId>com.nativelibs4java</groupId>
+                    <artifactId>bridj</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.github.eduramiba</groupId>
             <artifactId>webcam-capture-driver-native</artifactId>
             <version>1.3.1</version>
         </dependency>
+
+        <!-- Capture: V4L4J path (Linux only; its natives are system-provided at launch) -->
         <dependency>
-            <groupId>com.nativelibs4java</groupId>
-            <artifactId>bridj</artifactId>
-            <version>0.7.0</version>
+            <groupId>com.github.sarxos</groupId>
+            <artifactId>v4l4j</artifactId>
+            <version>0.9.1-r507</version>
         </dependency>
+
+        <!-- Imaging -->
         <dependency>
             <groupId>org.imgscalr</groupId>
             <artifactId>imgscalr-lib</artifactId>
             <version>4.2</version>
         </dependency>
 
-        <!-- Utilities -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-            <scope>provided</scope>
-        </dependency>
         <!-- Settings persistence (versions managed by the Quarkus BOM) -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -117,26 +186,36 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
+
+        <!-- Utilities -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.javatuples</groupId>
             <artifactId>javatuples</artifactId>
             <version>1.2</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-collections4</artifactId>
-            <version>4.5.0-M1</version>
-        </dependency>
-        <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
         </dependency>
 
-        <!-- Memory analysis -->
+        <!-- Diagnostics (buffer memory sizing) -->
         <dependency>
             <groupId>org.openjdk.jol</groupId>
             <artifactId>jol-core</artifactId>
             <version>0.17</version>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit5</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

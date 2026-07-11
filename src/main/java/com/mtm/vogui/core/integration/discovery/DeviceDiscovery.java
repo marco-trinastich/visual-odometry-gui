@@ -61,6 +61,7 @@ public interface DeviceDiscovery {
     static DeviceDiscovery forType(@NotNull DeviceType type) {
         return switch (type) {
             case BoofCv -> BoofCvDeviceDiscovery.instance();
+            case OpenCv -> OpenCvDeviceDiscovery.instance();
             case V4L4J -> V4l4jDeviceDiscovery.instance();
         };
     }

@@ -50,8 +50,12 @@ runtime only — there is no web endpoint; the "app" is the Swing UI itself.
 
 ## Platform constraints (macOS ARM)
 
-- Webcam works only via the eduramiba native driver (sarxos drop-in). BridJ/stock sarxos/
-  BoofCV webcam APIs have no ARM64 natives and their upstream repos are dead.
+- DeviceType: BoofCv (default) > OpenCv > V4L4J (deprecation candidate). BoofCv capture works
+  only via the eduramiba native driver (sarxos drop-in; BridJ/stock sarxos are dead, no ARM64).
+- OpenCv path: per-platform opencv/openblas classifier natives, never javacv-platform (~1 GB).
+  OpenCV has no device/resolution enumeration by design (ids are bare capture indices, granted
+  size read back from the first frame) — deliberately NOT mapped onto the other drivers'
+  enumeration: order mismatch would open the wrong camera silently. Keep the stacks decoupled.
 - V4L4J is Linux-only (`/dev/video*`); on macOS its code paths must fail soft. The app does
   NOT load its natives: the v4l4j jar calls `System.loadLibrary("v4l4j")` itself, so on Linux
   `libv4l4j.so`/`libvideo.so` must be in a system lib dir or in `-Djava.library.path` at launch.

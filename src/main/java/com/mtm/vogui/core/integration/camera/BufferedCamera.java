@@ -27,7 +27,8 @@ import java.util.function.Consumer;
 /**
  * BufferedCamera
  * <p>
- * Abstract class that implements a generic contract for a buffering-based video device.
+ * Abstract class that implements a generic contract for a buffering-based video
+ * device.
  */
 public abstract class BufferedCamera {
 
@@ -40,15 +41,18 @@ public abstract class BufferedCamera {
     private ScheduledExecutorService bufferMonitor;
     private long maxBufferItems;
 
-
     // State
     protected final Awaitable<Boolean> stopRequested;
     protected final Awaitable<Boolean> running;
 
-    // Warmup gate: a device reopened while still warm can deliver a burst of black frames
-    // before the sensor actually streams (observed: ~290 frames in ~300ms on macOS AVFoundation).
-    // Feeding them to the vo engine wedges it into a failed state, so they are kept out of the
-    // buffer until real content shows up — with a time budget so a legitimately dark scene
+    // Warmup gate: a device reopened while still warm can deliver a burst of black
+    // frames
+    // before the sensor actually streams (observed: ~290 frames in ~300ms on macOS
+    // AVFoundation).
+    // Feeding them to the vo engine wedges it into a failed state, so they are kept
+    // out of the
+    // buffer until real content shows up — with a time budget so a legitimately
+    // dark scene
     // (fail-open) is let through anyway.
     private static final double WARMUP_LUMINANCE_THRESHOLD = 5.0;
     private static final long WARMUP_TIMEOUT_MS = 2000;
@@ -57,8 +61,8 @@ public abstract class BufferedCamera {
     private long warmupDiscarded;
 
     protected BufferedCamera(@NotNull AppContext context,
-                             Consumer<BufferedImage> guiRenderer,
-                             Consumer<BufferStatus> bufferRenderer) {
+            Consumer<BufferedImage> guiRenderer,
+            Consumer<BufferStatus> bufferRenderer) {
         this.context = context;
         this.guiRenderer = guiRenderer;
         this.bufferRenderer = bufferRenderer;
@@ -70,9 +74,11 @@ public abstract class BufferedCamera {
     /**
      * Starts the device and synchronously waits for it to boot up.
      * <p>
-     * Note: before device startup the buffer should be cleared with {@code clearBuffer}, and immediately afterward
+     * Note: before device startup the buffer should be cleared with
+     * {@code clearBuffer}, and immediately afterward
      * the {@code running} state should be set to true.
-     * Implementations can {@code startBufferMonitor} to monitor the state of the buffer.
+     * Implementations can {@code startBufferMonitor} to monitor the state of the
+     * buffer.
      *
      * @return {@code this} device instance
      */
@@ -81,31 +87,29 @@ public abstract class BufferedCamera {
     /**
      * Stops the device and synchronously waits for it to stop.
      * <p>
-     * Note: implementations should wait for the device stop and immediately thereafter the {@code running} state
+     * Note: implementations should wait for the device stop and immediately
+     * thereafter the {@code running} state
      * should be reset to stopped with {@code resetState}.
-     * In addition, all processes waiting for the buffer must be notified ({@code awakeBufferWaiters}) that a stop has
+     * In addition, all processes waiting for the buffer must be notified
+     * ({@code awakeBufferWaiters}) that a stop has
      * occurred.
      */
     public abstract void stop() throws CameraException;
 
     /**
-     * Gets the next image in the buffer to be consumed
+     * Identifier of the device actually opened (discovery may have resolved the
+     * requested path to another available device).
      *
-     * @return next image provided by the device
+     * @return device identifier, {@code null} before a successful start
      */
-    public BufferedImage nextImage() {
-        return this.buffer.poll();
-    }
+    public abstract String getDevicePath();
 
     /**
-     * Determines whether there is a next image in the buffer to be consumed or whether this may come in the future.
+     * Gets the current frame size of the device.
      *
-     * @return {@code true} as long as the capture is in progress or the buffer is not empty
+     * @return frame size
      */
-    public boolean hasNext() {
-        // Until capture is running or buffer isn't empty, there is a next image to consume
-        return this.running.get() || !this.buffer.isEmpty();
-    }
+    public abstract Dimension getFrameSize();
 
     /**
      * Gets the instantaneous FPS rate of the device.
@@ -121,25 +125,43 @@ public abstract class BufferedCamera {
      */
     public abstract double getAverageFPS();
 
+    // Buffer (shared by all implementations)
+
     /**
-     * Gets the current frame size of the device.
+     * Gets the next image in the buffer to be consumed
      *
-     * @return frame size
+     * @return next image provided by the device
      */
-    public abstract Dimension getFrameSize();
+    public BufferedImage nextImage() {
+        return this.buffer.poll();
+    }
+
+    /**
+     * Determines whether there is a next image in the buffer to be consumed or
+     * whether this may come in the future.
+     *
+     * @return {@code true} as long as the capture is in progress or the buffer is
+     *         not empty
+     */
+    public boolean hasNext() {
+        // Until capture is running or buffer isn't empty, there is a next image to
+        // consume
+        return this.running.get() || !this.buffer.isEmpty();
+    }
 
     /**
      * Synchronously waits for the buffer to fill.
      *
-     * @return {@code true} if interrupted, {@code false} otherwise (buffer filled or timeout)
+     * @return {@code true} if interrupted, {@code false} otherwise (buffer filled
+     *         or timeout)
      * @throws BufferTimeoutException timeout exception
      */
     public boolean waitBuffer() throws BufferTimeoutException {
-        // Suspend thread until buffer is filled, times out or the camera/vo thread are not running
+        // Suspend thread until buffer is filled, times out or the camera/vo thread are
+        // not running
         var processingState = this.context.state().processing();
-        return this.buffer.waitUntilFilledOrCondition(() ->
-                !this.running.get() || processingState.not(ProcessingState.Running)
-        );
+        return this.buffer
+                .waitUntilFilledOrCondition(() -> !this.running.get() || processingState.not(ProcessingState.Running));
     }
 
     /**
@@ -182,7 +204,8 @@ public abstract class BufferedCamera {
     }
 
     /**
-     * Adds {@code capturedImage} to device buffer and displays it if {@code guiRenderer} has been provided.
+     * Adds {@code capturedImage} to device buffer and displays it if
+     * {@code guiRenderer} has been provided.
      *
      * @param capturedImage last image received from the device
      */
@@ -227,7 +250,8 @@ public abstract class BufferedCamera {
             return true;
         }
 
-        // First real frame (or budget exhausted): gate stays open, luminance is never sampled again
+        // First real frame (or budget exhausted): gate stays open, luminance is never
+        // sampled again
         this.warmupDone = true;
         if (this.warmupDiscarded > 0) {
             Log.infof(Messages.DEVICE_WARMUP_LOG, this.warmupDiscarded, elapsed);
@@ -236,15 +260,12 @@ public abstract class BufferedCamera {
     }
 
     protected void monitorBufferStatus(BufferStatus bufferStatus) {
-        this.maxBufferItems = bufferStatus != null ?
-                bufferStatus.maxBufferItems() :
-                AwaitableBuffer.INFINITE_BUFFER;
+        this.maxBufferItems = bufferStatus != null ? bufferStatus.maxBufferItems() : AwaitableBuffer.INFINITE_BUFFER;
 
         if (this.bufferRenderer != null) {
             this.bufferRenderer.accept(bufferStatus);
         }
     }
-
 
     protected void stripBufferBottom(long limit) {
         long excess = this.buffer.size() - limit;

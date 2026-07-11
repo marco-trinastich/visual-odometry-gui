@@ -7,6 +7,9 @@ package com.mtm.vogui.core;
 
 import boofcv.abst.sfm.d3.VisualOdometry;
 import boofcv.io.calibration.CalibrationIO;
+import com.mtm.vogui.core.integration.camera.BoofCvCamera;
+import com.mtm.vogui.core.integration.camera.OpenCvCamera;
+import com.mtm.vogui.core.integration.camera.V4l4jCamera;
 import com.mtm.vogui.factory.TrackerFactory;
 import com.mtm.vogui.factory.VisualOdometryFactory;
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
@@ -20,6 +23,7 @@ import com.mtm.vogui.models.context.settings.visualodometry.monoplaneinfinity.Mo
 import com.mtm.vogui.models.constants.Messages;
 import com.mtm.vogui.utilities.CoreUtils;
 import com.mtm.vogui.utilities.LogUtils;
+import com.mtm.vogui.utilities.OSUtils;
 import georegression.struct.se.Se3_F64;
 import org.jetbrains.annotations.NotNull;
 
@@ -90,11 +94,15 @@ public class CoreSetup {
 
         try {
             switch (deviceType) {
-                case V4L4J -> {
-                    return CoreUtils.openDeviceV4L4J(context, params);
-                }
                 case BoofCv -> {
-                    return CoreUtils.openDeviceBoofCv(context, params);
+                    return CoreUtils.openDevice(context, params, BoofCvCamera::from);
+                }
+                case OpenCv -> {
+                    return CoreUtils.openDevice(context, params, OpenCvCamera::from);
+                }
+                case V4L4J -> {
+                    // V4L4J is Linux-only: don't even try elsewhere
+                    return OSUtils.isUnix() && CoreUtils.openDevice(context, params, V4l4jCamera::from);
                 }
                 default -> {
                     return false;

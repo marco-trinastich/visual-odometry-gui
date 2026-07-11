@@ -6,6 +6,7 @@
 package com.mtm.vogui.models.context.settings.input.device;
 
 import com.mtm.vogui.models.context.settings.input.device.boofcv.BoofCvCameraSettings;
+import com.mtm.vogui.models.context.settings.input.device.opencv.OpenCvCameraSettings;
 import com.mtm.vogui.models.context.settings.input.device.v4l4j.V4l4jCameraSettings;
 import com.mtm.vogui.models.enums.settings.*;
 import com.mtm.vogui.models.enums.settings.resolution.DeviceResolution;
@@ -30,11 +31,13 @@ public class DeviceSettings implements WithDefault<DeviceSettings> {
     private int targetWidth;
     private int targetHeight;
     private BoofCvCameraSettings boofCv;
+    private OpenCvCameraSettings openCv;
     private V4l4jCameraSettings v4l4j;
 
     public DeviceSettings() {
         // Also the Jackson deserialization entry point
         this.boofCv = new BoofCvCameraSettings();
+        this.openCv = new OpenCvCameraSettings();
         this.v4l4j = new V4l4jCameraSettings();
 
         this.loadDefaults();
@@ -45,6 +48,7 @@ public class DeviceSettings implements WithDefault<DeviceSettings> {
         this.targetWidth = device.targetWidth >= 0 ? device.targetWidth : defaultDeviceResolution().width();
         this.targetHeight = device.targetHeight >= 0 ? device.targetHeight : defaultDeviceResolution().height();
         this.boofCv = new BoofCvCameraSettings(device.boofCv);
+        this.openCv = new OpenCvCameraSettings(device.openCv);
         this.v4l4j = new V4l4jCameraSettings(device.v4l4j);
     }
 
@@ -64,6 +68,7 @@ public class DeviceSettings implements WithDefault<DeviceSettings> {
     public DevicePath path() {
         return CommonUtils.getDevicePathDescriptor(switch (this.type) {
             case BoofCv -> this.boofCv.path();
+            case OpenCv -> this.openCv.path();
             case V4L4J -> this.v4l4j.path();
         });
     }
@@ -71,6 +76,7 @@ public class DeviceSettings implements WithDefault<DeviceSettings> {
     public void path(@NotNull DevicePath path) {
         switch (this.type) {
             case BoofCv -> this.boofCv.path(path.id());
+            case OpenCv -> this.openCv.path(path.id());
             case V4L4J -> this.v4l4j.path(path.id());
         }
     }
@@ -79,6 +85,7 @@ public class DeviceSettings implements WithDefault<DeviceSettings> {
         this.type = defaultDeviceType();
         this.resolution(defaultDeviceResolution());
         this.boofCv.loadDefaults();
+        this.openCv.loadDefaults();
         this.v4l4j.loadDefaults();
     }
 
