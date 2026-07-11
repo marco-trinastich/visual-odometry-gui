@@ -24,6 +24,7 @@ runtime only — there is no web endpoint; the "app" is the Swing UI itself.
   and references gui/core types by design.
 - No absolute machine-local paths in committed files; no hardcoded default asset paths —
   video/calibration lists start empty and users add paths via GUI.
+- Commits: conventional one-liner + short bullets (max 130 chars each), no trailers/footers.
 
 ## Settings persistence (why it's shaped this way)
 
