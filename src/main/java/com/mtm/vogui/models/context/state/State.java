@@ -6,7 +6,7 @@
 package com.mtm.vogui.models.context.state;
 
 import com.mtm.vogui.core.integration.camera.BufferedCamera;
-import com.mtm.vogui.gui.GuiController;
+import com.mtm.vogui.gui.swing.GuiController;
 import com.mtm.vogui.models.core.concurrency.Awaitable;
 import com.mtm.vogui.models.core.processing.tracking.TrackedPoint;
 import com.mtm.vogui.models.enums.core.ProcessingState;

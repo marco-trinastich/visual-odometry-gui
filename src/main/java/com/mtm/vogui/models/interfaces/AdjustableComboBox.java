@@ -5,7 +5,7 @@
 
 package com.mtm.vogui.models.interfaces;
 
-import com.mtm.vogui.gui.renderers.ValueComboBoxRenderer;
+import com.mtm.vogui.gui.swing.renderers.ValueComboBoxRenderer;
 
 import javax.swing.*;
 
