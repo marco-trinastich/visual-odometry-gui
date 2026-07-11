@@ -10,11 +10,12 @@ import com.github.sarxos.webcam.Webcam;
 import com.mtm.vogui.core.integration.discovery.BoofCvDeviceDiscovery;
 import com.mtm.vogui.models.constants.AppConstants;
 import com.mtm.vogui.models.constants.Messages;
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.concurrency.NamedThreadFactory;
 import com.mtm.vogui.models.core.integration.BufferStatus;
 import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.CameraStartException;
-import com.mtm.vogui.models.settings.Settings;
+
 import io.quarkus.logging.Log;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,9 +29,9 @@ public class BoofCvCamera extends BufferedCamera {
     private Webcam webcam;
     private Exception captureException;
 
-    private BoofCvCamera(Settings settings, Consumer<BufferedImage> guiRenderer,
+    private BoofCvCamera(AppContext context, Consumer<BufferedImage> guiRenderer,
                          Consumer<BufferStatus> bufferRenderer) {
-        super(settings, guiRenderer, bufferRenderer);
+        super(context, guiRenderer, bufferRenderer);
         this.captureException = null;
     }
 
@@ -43,7 +44,7 @@ public class BoofCvCamera extends BufferedCamera {
             this.clearBuffer();
 
             // Start device
-            var input = this.settings.core().input();
+            var input = this.context.settings().input();
             this.webcam = BoofCvDeviceDiscovery.instance().webcam(input.device().boofCv().path());
             if (this.webcam == null) {
                 throw new CameraStartException();
@@ -151,8 +152,8 @@ public class BoofCvCamera extends BufferedCamera {
         this.captureStopped();
     }
 
-    public static @NotNull BoofCvCamera from(Settings settings, Consumer<BufferedImage> guiRenderer,
+    public static @NotNull BoofCvCamera from(AppContext context, Consumer<BufferedImage> guiRenderer,
                                              Consumer<BufferStatus> bufferRenderer) {
-        return new BoofCvCamera(settings, guiRenderer, bufferRenderer);
+        return new BoofCvCamera(context, guiRenderer, bufferRenderer);
     }
 }

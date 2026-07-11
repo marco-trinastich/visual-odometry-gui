@@ -14,9 +14,9 @@ import com.mtm.vogui.models.core.processing.tracking.TrackedPoint;
 import com.mtm.vogui.models.core.processing.tracking.TrackingStatus;
 import com.mtm.vogui.models.enums.gui.AppStatus;
 import com.mtm.vogui.models.enums.settings.SourceType;
-import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.gui.GuiController;
 import com.mtm.vogui.models.constants.GuiConstants;
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.utilities.CommonUtils;
 import com.mtm.vogui.utilities.GuiUtils;
 import georegression.struct.point.Vector3D_F64;
@@ -42,9 +42,9 @@ public class InfoScrollPane extends JScrollPane {
 
     private final static int INFINITE_PROGRESS_VALUE = 10000;
 
-    public InfoScrollPane(Settings settings, GuiController controller, String title) {
+    public InfoScrollPane(AppContext context, GuiController controller, String title) {
         // Build components
-        this.components = new InfoScrollComponents(settings, controller);
+        this.components = new InfoScrollComponents(context, controller);
 
         this.initContainer(title);
     }

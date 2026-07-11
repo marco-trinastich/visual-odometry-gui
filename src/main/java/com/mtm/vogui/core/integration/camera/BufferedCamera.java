@@ -7,6 +7,7 @@ package com.mtm.vogui.core.integration.camera;
 
 import com.mtm.vogui.core.integration.shared.BufferMonitor;
 import com.mtm.vogui.models.constants.Messages;
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.concurrency.Awaitable;
 import com.mtm.vogui.models.core.concurrency.AwaitableBuffer;
 import com.mtm.vogui.models.core.integration.BufferStatus;
@@ -14,7 +15,6 @@ import com.mtm.vogui.models.enums.core.ProcessingState;
 import com.mtm.vogui.models.core.exceptions.BufferTimeoutException;
 import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.CameraStartException;
-import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.utilities.ImageUtils;
 import io.quarkus.logging.Log;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  */
 public abstract class BufferedCamera {
 
-    protected final Settings settings;
+    protected final AppContext context;
     private final Consumer<BufferedImage> guiRenderer;
     private final Consumer<BufferStatus> bufferRenderer;
 
@@ -56,10 +56,10 @@ public abstract class BufferedCamera {
     private long warmupStartMs;
     private long warmupDiscarded;
 
-    protected BufferedCamera(@NotNull Settings settings,
+    protected BufferedCamera(@NotNull AppContext context,
                              Consumer<BufferedImage> guiRenderer,
                              Consumer<BufferStatus> bufferRenderer) {
-        this.settings = settings;
+        this.context = context;
         this.guiRenderer = guiRenderer;
         this.bufferRenderer = bufferRenderer;
         this.buffer = new AwaitableBuffer<>();
@@ -136,7 +136,7 @@ public abstract class BufferedCamera {
      */
     public boolean waitBuffer() throws BufferTimeoutException {
         // Suspend thread until buffer is filled, times out or the camera/vo thread are not running
-        var processingState = this.settings.state().processing();
+        var processingState = this.context.state().processing();
         return this.buffer.waitUntilFilledOrCondition(() ->
                 !this.running.get() || processingState.not(ProcessingState.Running)
         );

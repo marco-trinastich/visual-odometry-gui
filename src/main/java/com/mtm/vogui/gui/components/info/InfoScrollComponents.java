@@ -7,12 +7,12 @@ package com.mtm.vogui.gui.components.info;
 
 import com.mtm.vogui.models.core.processing.tracking.TrackedPoint;
 import com.mtm.vogui.models.enums.gui.PanelBorder;
-import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.gui.GuiController;
 import com.mtm.vogui.gui.components.common.panel.DirectionPanel;
 import com.mtm.vogui.gui.components.common.label.JBoldLabel;
 import com.mtm.vogui.gui.components.common.label.JHintLabel;
 import com.mtm.vogui.models.constants.GuiConstants;
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.gui.listeners.common.RunnableOnListDataChangeListener;
 import com.mtm.vogui.gui.listeners.trackedpoints.TrackedPointsCopyAllOnDblClick;
 import com.mtm.vogui.gui.listeners.trackedpoints.TrackedPointsCopyOnSelection;
@@ -85,11 +85,11 @@ public class InfoScrollComponents {
     private SpringLayout infoPanelLayout;
 
     // Dependencies
-    private final Settings settings;
+    private final AppContext context;
     private final GuiController controller;
 
-    public InfoScrollComponents(Settings settings, GuiController controller) {
-        this.settings = settings;
+    public InfoScrollComponents(AppContext context, GuiController controller) {
+        this.context = context;
         this.controller = controller;
         this.init();
     }
@@ -215,12 +215,12 @@ public class InfoScrollComponents {
 
         // Tracked points list
         this.lblTrackedPoints = new JBoldLabel(GuiConstants.LBL_TRACKED_POINTS);
-        this.lstTrackedPointsModel = settings.state().trackedPoints();
+        this.lstTrackedPointsModel = context.state().trackedPoints();
         this.lstTrackedPointsModel.addListDataListener(new RunnableOnListDataChangeListener(this::scrollListToEnd));
         this.lstTrackedPoints = new JList<>(lstTrackedPointsModel);
         this.lstTrackedPoints.setCellRenderer(new TrackedPointsListCellRenderer());
         this.lstTrackedPoints.addListSelectionListener(new TrackedPointsCopyOnSelection());
-        this.lstTrackedPoints.addListSelectionListener(new TrackedPointsMoveChartOnSelection(settings, controller));
+        this.lstTrackedPoints.addListSelectionListener(new TrackedPointsMoveChartOnSelection(context, controller));
         this.lstTrackedPoints.addMouseListener(new TrackedPointsCopyAllOnDblClick(lstTrackedPointsModel));
         this.lstTrackedPointsScroll = new JScrollPane(lstTrackedPoints);
 

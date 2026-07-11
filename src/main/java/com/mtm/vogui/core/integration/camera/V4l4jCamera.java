@@ -9,11 +9,11 @@ import com.mtm.vogui.core.integration.discovery.V4l4jDeviceDiscovery;
 import com.mtm.vogui.core.integration.shared.VideoController;
 import com.mtm.vogui.core.integration.bridge.V4l4jVideo;
 import com.mtm.vogui.models.constants.AppConstants;
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.concurrency.NamedThreadFactory;
 import com.mtm.vogui.models.core.integration.BufferStatus;
 import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.CameraStartException;
-import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.utilities.ImageUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,8 +29,8 @@ public class V4l4jCamera extends BufferedCamera {
     private Exception captureException;
     private String devicePath;
 
-    private V4l4jCamera(Settings settings, Consumer<BufferedImage> guiRenderer, Consumer<BufferStatus> bufferRenderer) {
-        super(settings, guiRenderer, bufferRenderer);
+    private V4l4jCamera(AppContext context, Consumer<BufferedImage> guiRenderer, Consumer<BufferStatus> bufferRenderer) {
+        super(context, guiRenderer, bufferRenderer);
         // Create new V4L4J device
         this.device = new V4l4jVideo();
         this.controller = VideoController.from(this::fillBufferAndRender);
@@ -45,8 +45,8 @@ public class V4l4jCamera extends BufferedCamera {
             this.clearBuffer();
 
             // Settings
-            var input = this.settings.core().input();
-            var image = this.settings.core().image();
+            var input = this.context.settings().input();
+            var image = this.context.settings().image();
 
             // Activate specific V4L4J parameters (device controls)
             this.device.setControlsActive(
@@ -145,8 +145,8 @@ public class V4l4jCamera extends BufferedCamera {
         this.captureStopped();
     }
 
-    public static @NotNull V4l4jCamera from(Settings settings, Consumer<BufferedImage> guiRenderer,
+    public static @NotNull V4l4jCamera from(AppContext context, Consumer<BufferedImage> guiRenderer,
                                             Consumer<BufferStatus> bufferRenderer) {
-        return new V4l4jCamera(settings, guiRenderer, bufferRenderer);
+        return new V4l4jCamera(context, guiRenderer, bufferRenderer);
     }
 }

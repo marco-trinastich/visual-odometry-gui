@@ -15,8 +15,8 @@ import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.InvalidImageFormatException;
 import com.mtm.vogui.models.enums.core.CalibrationLoadResult;
 import com.mtm.vogui.models.enums.settings.TrackerType;
-import com.mtm.vogui.models.settings.Settings;
-import com.mtm.vogui.models.settings.core.visualodometry.monoplaneinfinity.MonoPlaneInfinitySettings;
+import com.mtm.vogui.models.context.AppContext;
+import com.mtm.vogui.models.context.settings.visualodometry.monoplaneinfinity.MonoPlaneInfinitySettings;
 import com.mtm.vogui.utilities.CoreUtils;
 import georegression.struct.se.Se3_F64;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ public class CoreSetup {
      * Tries to open a mono, stereo or depth calibration
      */
     static CalibrationLoadResult openCalibration(@NotNull ProcessingParameters params) {
-        String calibrationPath = params.frozenSettings().core().input().calibration().path();
+        String calibrationPath = params.frozenContext().settings().input().calibration().path();
 
         // Read the whole calibration file (containing camera description)
         String content;
@@ -71,8 +71,8 @@ public class CoreSetup {
      * Tries to open a video file
      */
     static boolean openVideo(@NotNull ProcessingParameters params) {
-        var videoPath = params.frozenSettings().core().input().video().path();
-        var descriptor = params.frozenSettings().core().image().descriptor();
+        var videoPath = params.frozenContext().settings().input().video().path();
+        var descriptor = params.frozenContext().settings().image().descriptor();
 
         // Get video
         return CoreUtils.openVideo(videoPath, descriptor, params);
@@ -83,16 +83,16 @@ public class CoreSetup {
      * </p>
      * Tries to open a video stream from a video input device
      */
-    static boolean openDevice(@NotNull Settings settings, @NotNull ProcessingParameters params) {
-        var deviceType = params.frozenSettings().core().input().device().type();
+    static boolean openDevice(@NotNull AppContext context, @NotNull ProcessingParameters params) {
+        var deviceType = params.frozenContext().settings().input().device().type();
 
         try {
             switch (deviceType) {
                 case V4L4J -> {
-                    return CoreUtils.openDeviceV4L4J(settings, params);
+                    return CoreUtils.openDeviceV4L4J(context, params);
                 }
                 case BoofCv -> {
-                    return CoreUtils.openDeviceBoofCv(settings, params);
+                    return CoreUtils.openDeviceBoofCv(context, params);
                 }
                 default -> {
                     return false;
@@ -109,11 +109,11 @@ public class CoreSetup {
      * </p>
      * Tries to create and set up a tracker
      */
-    static boolean setupTracker(@NotNull Settings settings, @NotNull ProcessingParameters params) {
-        JFrame mainFrame = (JFrame) settings.state().guiComponents().get("mainFrame");
+    static boolean setupTracker(@NotNull AppContext context, @NotNull ProcessingParameters params) {
+        JFrame mainFrame = (JFrame) context.state().guiComponents().get("mainFrame");
 
-        var imageType = params.frozenSettings().core().image().descriptor();
-        var trackerType = params.frozenSettings().core().tracker().type();
+        var imageType = params.frozenContext().settings().image().descriptor();
+        var trackerType = params.frozenContext().settings().tracker().type();
         TrackerFactory trackerFactory;
         try {
             trackerFactory = TrackerFactory.from(imageType);
@@ -126,11 +126,11 @@ public class CoreSetup {
             case Klt:
             case Klt2:
                 // Klt
-                var kltTrackerTemplateRadius = params.frozenSettings().core().tracker().klt().templateRadius();
-                var kltTrackerPyramidLevels = params.frozenSettings().core().tracker().klt().pyramidLevels();
-                var kltTrackerMaxFeatures = params.frozenSettings().core().tracker().klt().maxFeatures();
-                var kltTrackerRadius = params.frozenSettings().core().tracker().klt().radius();
-                var kltTrackerThreshold = params.frozenSettings().core().tracker().klt().threshold();
+                var kltTrackerTemplateRadius = params.frozenContext().settings().tracker().klt().templateRadius();
+                var kltTrackerPyramidLevels = params.frozenContext().settings().tracker().klt().pyramidLevels();
+                var kltTrackerMaxFeatures = params.frozenContext().settings().tracker().klt().maxFeatures();
+                var kltTrackerRadius = params.frozenContext().settings().tracker().klt().radius();
+                var kltTrackerThreshold = params.frozenContext().settings().tracker().klt().threshold();
 
                 //If the extracted pyramid levels is 0
                 if (kltTrackerPyramidLevels == 0) {
@@ -148,15 +148,15 @@ public class CoreSetup {
                         case JOptionPane.OK_OPTION:
                             //If accepted
                             //Reset KLT Tracker pyramidLevels TextField content to default value
-                            ((JTextField) params.frozenSettings().state().guiComponents().get("txtKltTracker_pyramidLevels"))
+                            ((JTextField) params.frozenContext().state().guiComponents().get("txtKltTracker_pyramidLevels"))
                                     .setText("4");
                             //Changes original Parameters (to persist the modification)
-                            settings.core().tracker().klt().pyramidLevels(4);
+                            context.settings().tracker().klt().pyramidLevels(4);
                             //Changes stored Parameter (to continue current elaboration)
-                            params.frozenSettings().core().tracker().klt().pyramidLevels(4);
+                            params.frozenContext().settings().tracker().klt().pyramidLevels(4);
 
                             //Sets the local pyramidScaling value to default value
-                            kltTrackerPyramidLevels = params.frozenSettings().core().tracker().klt().pyramidLevels();
+                            kltTrackerPyramidLevels = params.frozenContext().settings().tracker().klt().pyramidLevels();
                             break;
                         case JOptionPane.CANCEL_OPTION:
                         default:
@@ -186,10 +186,10 @@ public class CoreSetup {
                 break;
             case Surf:
                 // Surf
-                var surfTrackerMaxFeaturesPerScale = params.frozenSettings().core().tracker()
+                var surfTrackerMaxFeaturesPerScale = params.frozenContext().settings().tracker()
                         .surf().maxFeaturesPerScale();
-                var surfTrackerExtractRadius = params.frozenSettings().core().tracker().surf().extractRadius();
-                var surfTrackerInitialSampleSize = params.frozenSettings().core().tracker().surf().initialSampleSize();
+                var surfTrackerExtractRadius = params.frozenContext().settings().tracker().surf().extractRadius();
+                var surfTrackerInitialSampleSize = params.frozenContext().settings().tracker().surf().initialSampleSize();
 
                 //If the SURF Tracker has been selected:
                 try {
@@ -241,9 +241,9 @@ public class CoreSetup {
      * Attempts creation and setup of a new Visual Odometry
      */
     static boolean setupVisualOdometry(@NotNull ProcessingParameters params) {
-        var voSettings = params.frozenSettings().core().visualOdometry();
-        var voType = params.frozenSettings().core().visualOdometry().type();
-        var imageType = params.frozenSettings().core().image().descriptor();
+        var voSettings = params.frozenContext().settings().visualOdometry();
+        var voType = params.frozenContext().settings().visualOdometry().type();
+        var imageType = params.frozenContext().settings().image().descriptor();
 
         Tracker tracker = params.tracker();
         Object calibration = params.calibration();

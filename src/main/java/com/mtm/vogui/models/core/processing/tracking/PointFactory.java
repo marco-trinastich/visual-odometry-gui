@@ -5,10 +5,10 @@
 
 package com.mtm.vogui.models.core.processing.tracking;
 
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.core.processing.ProcessingStatus;
 import com.mtm.vogui.models.enums.settings.ChartType;
-import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.utilities.CommonUtils;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
@@ -86,9 +86,9 @@ public class PointFactory {
                 .build();
     }
 
-    public static PointFactory from(@NotNull Settings settings, @NotNull ProcessingParameters params) {
-        var chartType = params.frozenSettings().core().chart().type();
-        var chartXZPanel = settings.state().guiController().chartXZPanel();
+    public static PointFactory from(@NotNull AppContext context, @NotNull ProcessingParameters params) {
+        var chartType = params.frozenContext().settings().chart().type();
+        var chartXZPanel = context.state().guiController().chartXZPanel();
 
         return PointFactory.from(chartXZPanel.getChartsCount(), chartType);
     }

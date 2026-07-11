@@ -5,44 +5,45 @@
 
 package com.mtm.vogui.core;
 
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.enums.settings.ChartType;
-import com.mtm.vogui.models.settings.Settings;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public class CoreValidation {
 
-    static boolean validateSettings(@NotNull Settings settings, @NotNull ProcessingParameters params) {
+    static boolean validateSettings(@NotNull AppContext context, @NotNull ProcessingParameters params) {
         // Input settings
-        var calibrationPath = params.frozenSettings().core().input().calibration().path();
-        var sourceType = params.frozenSettings().core().input().source();
-        var videoPath = params.frozenSettings().core().input().video().path();
-        var devicePath = params.frozenSettings().core().input().device().path().id();
-        var deviceWidth = params.frozenSettings().core().input().device().targetWidth();
-        int deviceHeight = params.frozenSettings().core().input().device().targetHeight();
+        var calibrationPath = params.frozenContext().settings().input().calibration().path();
+        var sourceType = params.frozenContext().settings().input().source();
+        var videoPath = params.frozenContext().settings().input().video().path();
+        var devicePath = params.frozenContext().settings().input().device().path().id();
+        var deviceWidth = params.frozenContext().settings().input().device().targetWidth();
+        int deviceHeight = params.frozenContext().settings().input().device().targetHeight();
 
         // Image settings
-        var imageDescriptor = params.frozenSettings().core().image().descriptor();
-        var imageResizeWidth = params.frozenSettings().core().image().resizeWidth();
-        var imageResizeHeight = params.frozenSettings().core().image().resizeHeight();
+        var imageDescriptor = params.frozenContext().settings().image().descriptor();
+        var imageResizeWidth = params.frozenContext().settings().image().resizeWidth();
+        var imageResizeHeight = params.frozenContext().settings().image().resizeHeight();
 
         // Tracker settings
-        var trackerType = params.frozenSettings().core().tracker().type();
-        var kltTrackerPyramidLevels = params.frozenSettings().core().tracker().klt().pyramidLevels();
+        var trackerType = params.frozenContext().settings().tracker().type();
+        var kltTrackerPyramidLevels = params.frozenContext().settings().tracker().klt().pyramidLevels();
 
         // Visual odometry settings
-        var visualOdometryType = params.frozenSettings().core().visualOdometry().type();
+        var visualOdometryType = params.frozenContext().settings().visualOdometry().type();
 
         // Chart settings
-        var chartType = params.frozenSettings().core().chart().type();
-        var chartXZScale = params.frozenSettings().core().chart().scaleXZ();
-        var chartYScale = params.frozenSettings().core().chart().scaleY();
+        var chartType = params.frozenContext().settings().chart().type();
+        var chartXZScale = params.frozenContext().settings().chart().scaleXZ();
+        var chartYScale = params.frozenContext().settings().chart().scaleY();
 
 
         //Extracts mainFrame from GuiComponents (needed as JOptionPane Parent window):
-        JFrame mainFrame = (JFrame) settings.state().guiComponents().get("mainFrame");
+        JFrame mainFrame = (JFrame) context.state().guiComponents().get("mainFrame");
 
 
         //Calibration Path Check
@@ -126,12 +127,12 @@ public class CoreValidation {
             );
             switch (choice) {
                 case JOptionPane.OK_OPTION:
-                    ((JTextField) settings.state().guiComponents().get("txtKltTracker_pyramidLevels"))
+                    ((JTextField) context.state().guiComponents().get("txtKltTracker_pyramidLevels"))
                             .setText("4");
                     //Changes original parameter (to persist the modification)
-                    settings.core().tracker().klt().pyramidLevels(4);
+                    context.settings().tracker().klt().pyramidLevels(4);
                     //Changes stored parameter (to continue current elaboration)
-                    params.frozenSettings().core().tracker().klt().pyramidLevels(4);
+                    params.frozenContext().settings().tracker().klt().pyramidLevels(4);
                     break;
                 case JOptionPane.CANCEL_OPTION:
                     return false;

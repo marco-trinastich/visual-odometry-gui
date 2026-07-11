@@ -10,13 +10,13 @@ import boofcv.abst.sfm.d3.MonocularPlaneVisualOdometry;
 import boofcv.abst.sfm.d3.StereoVisualOdometry;
 import boofcv.struct.image.*;
 import com.mtm.vogui.models.constants.Messages;
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.processing.*;
 import com.mtm.vogui.models.core.processing.fps.FpsCounter;
 import com.mtm.vogui.models.core.processing.frames.ProcessedFrame;
 import com.mtm.vogui.models.enums.core.ProcessingState;
 import com.mtm.vogui.models.core.exceptions.BufferTimeoutException;
 import com.mtm.vogui.models.core.exceptions.VoProcessingException;
-import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.models.core.processing.tracking.PointFactory;
 import com.mtm.vogui.models.enums.gui.AppStatus;
 import com.mtm.vogui.gui.components.info.InfoScrollPane;
@@ -38,12 +38,12 @@ import org.jetbrains.annotations.NotNull;
 @ApplicationScoped
 public class Core {
 
-    private final Settings settings;
+    private final AppContext context;
     private final ProcessingParameters params;
 
     @Inject
-    public Core(Settings settings, ProcessingParameters params) {
-        this.settings = settings;
+    public Core(AppContext context, ProcessingParameters params) {
+        this.context = context;
         this.params = params;
     }
 
@@ -59,7 +59,7 @@ public class Core {
         ProcessingState result;
         Throwable exception = null;
         try {
-            if (this.setup() && this.process(this.settings, this.params)) {
+            if (this.setup() && this.process(this.context, this.params)) {
                 // Successful processing
                 result = ProcessingState.StandBy;
             } else {
@@ -84,18 +84,18 @@ public class Core {
     private boolean setup() {
         this.params.reset();
 
-        // Settings deep copy
+        // AppContext deep copy
         // - frozen settings -> not impacted by GUI interactions (used for validation and processing)
         // - original settings -> impacted by GUI interactions (used for preview, frame skip and buffer)
-        this.params.frozenSettings(settings.deepClone());
+        this.params.frozenContext(context.deepClone());
 
         // GUI components
-        InfoScrollPane infoPanel = settings.state().guiController().infoPanel();
+        InfoScrollPane infoPanel = context.state().guiController().infoPanel();
         infoPanel.setAppStatus(AppStatus.Init);
-        JFrame mainFrame = (JFrame) settings.state().guiComponents().get("mainFrame");
+        JFrame mainFrame = (JFrame) context.state().guiComponents().get("mainFrame");
 
         // Check settings
-        boolean valid = CoreValidation.validateSettings(this.settings, this.params);
+        boolean valid = CoreValidation.validateSettings(this.context, this.params);
         if (!valid) {
             infoPanel.setAppStatus(AppStatus.InvalidSettings);
             return false;
@@ -116,11 +116,11 @@ public class Core {
         }
         infoPanel.setAppStatus(AppStatus.ValidCalibration);
         // Successful open commits the used path to the recent-paths history
-        CoreRendering.renderRecentPath(this.settings, this.settings.core().input().calibration(),
-                this.params.frozenSettings().core().input().calibration().path(), "txtCalibration");
+        CoreRendering.renderRecentPath(this.context, this.context.settings().input().calibration(),
+                this.params.frozenContext().settings().input().calibration().path(), "txtCalibration");
 
         // Open input source
-        switch (this.params.frozenSettings().core().input().source()) {
+        switch (this.params.frozenContext().settings().input().source()) {
             case Video:
                 if (!CoreSetup.openVideo(this.params)) {
                     // Open video file
@@ -130,13 +130,13 @@ public class Core {
                 }
                 infoPanel.setAppStatus(AppStatus.ValidVideo);
                 // Successful open commits the used path to the recent-paths history
-                CoreRendering.renderRecentPath(this.settings, this.settings.core().input().video(),
-                        this.params.frozenSettings().core().input().video().path(), "txtVideoSource");
+                CoreRendering.renderRecentPath(this.context, this.context.settings().input().video(),
+                        this.params.frozenContext().settings().input().video().path(), "txtVideoSource");
                 break;
             case Device:
                 // Open input device
-                if (!CoreSetup.openDevice(this.settings, this.params)) {
-                    if (!OSUtils.isUnix() && this.params.frozenSettings().core().input().device().path().id().indexOf("V4L4J") >= 0) {
+                if (!CoreSetup.openDevice(this.context, this.params)) {
+                    if (!OSUtils.isUnix() && this.params.frozenContext().settings().input().device().path().id().indexOf("V4L4J") >= 0) {
                         JOptionPane.showConfirmDialog(
                                 mainFrame,
                                 "V4L4J Device Driver runs only under Linux!\nYour current os is: "
@@ -162,7 +162,7 @@ public class Core {
         }
 
         // Setup tracker
-        if (!CoreSetup.setupTracker(this.settings, this.params)) {
+        if (!CoreSetup.setupTracker(this.context, this.params)) {
             JOptionPane.showConfirmDialog(mainFrame, "Error setting up the Tracker!\nCheck out Tracker settings", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
             infoPanel.setAppStatus(AppStatus.InvalidTracker);
             return false;
@@ -185,21 +185,21 @@ public class Core {
      * </p>
      * Start vo processing based on the selected vo type
      */
-    private boolean process(@NotNull Settings settings, @NotNull ProcessingParameters params) {
+    private boolean process(@NotNull AppContext context, @NotNull ProcessingParameters params) {
         var voEngine = params.visualOdometry();
-        var voType = params.frozenSettings().core().visualOdometry().type();
+        var voType = params.frozenContext().settings().visualOdometry().type();
 
         var result = false;
         if (voType.isMono()) {
-            result = processMonoVO((MonocularPlaneVisualOdometry<?>) voEngine, settings, params);
+            result = processMonoVO((MonocularPlaneVisualOdometry<?>) voEngine, context, params);
         } else if (voType.isStereo()) {
-            result = processStereoVO((StereoVisualOdometry<?>) voEngine, settings, params);
+            result = processStereoVO((StereoVisualOdometry<?>) voEngine, context, params);
         } else if (voType.isDepth()) {
-            result = processDepthVO((DepthVisualOdometry<?, ?>) voEngine, settings, params);
+            result = processDepthVO((DepthVisualOdometry<?, ?>) voEngine, context, params);
         }
 
         if (!result) {
-            JFrame mainFrame = (JFrame) this.settings.state().guiComponents().get("mainFrame");
+            JFrame mainFrame = (JFrame) this.context.state().guiComponents().get("mainFrame");
             JOptionPane.showConfirmDialog(mainFrame, "An error has occurred during the Visual Odometry elaboration!\nCheck out your Visual Odometry/Tracker Settings.\nOtherwise your input video may be invalid or not estimable, or has an inadequate calibration.", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
         }
 
@@ -208,18 +208,18 @@ public class Core {
 
     private void finalize(@NotNull ProcessingResult result) {
         // It is absolutely necessary to always unlock any pending thread before exiting (vo processing/gui locks)
-        CoreUtils.setProcessingStateSafe(settings, result.state());
+        CoreUtils.setProcessingStateSafe(context, result.state());
 
         if (result.exception() != null) {
             // Show exception message
-            CoreRendering.renderAppStatus(settings, result.exception());
+            CoreRendering.renderAppStatus(context, result.exception());
         }
 
         if (result.state().is(ProcessingState.Error)) {
             // Ensure resources cleanup
             // (any exception is swallowed: cleanup must never propagate and kill the vo task)
             try {
-                CoreProcessing.closeSource(this.settings, this.params);
+                CoreProcessing.closeSource(this.context, this.params);
             } catch (Exception ignored) {
             }
         }
@@ -233,34 +233,34 @@ public class Core {
      */
     @SneakyThrows
     private static boolean processMonoVO(MonocularPlaneVisualOdometry<? extends ImageBase<?>> monoVo,
-                                         @NotNull Settings settings,
+                                         @NotNull AppContext context,
                                          @NotNull ProcessingParameters params) {
         Exception processingException = null;
 
         ProcessingStatus status = ProcessingStatus.build();
-        params.pointFactory(PointFactory.from(settings, params));
+        params.pointFactory(PointFactory.from(context, params));
 
-        CoreRendering.renderStartPoint(settings, params);
-        CoreRendering.resizeAndRepositionVideoFrames(settings, params);
+        CoreRendering.renderStartPoint(context, params);
+        CoreRendering.resizeAndRepositionVideoFrames(context, params);
 
         // Start fps counter thread
-        try (FpsCounter counter = FpsCounter.with(fpsStatus -> CoreRendering.renderCurrentFps(settings, fpsStatus,
+        try (FpsCounter counter = FpsCounter.with(fpsStatus -> CoreRendering.renderCurrentFps(context, fpsStatus,
                 status, params)).start()) {
 
             // Set running state
-            CoreUtils.setProcessingStateSafe(settings, ProcessingState.Running);
+            CoreUtils.setProcessingStateSafe(context, ProcessingState.Running);
 
             // Start core vo processing cycle
-            while (CoreProcessing.shouldContinue(settings, counter) &&
-                    !CoreProcessing.isProcessCompleted(settings, params)) {
-                CoreRendering.renderAppStatus(settings);
-                ProcessedFrame frame = CoreProcessing.getProcessedFrame(settings, params, counter);
+            while (CoreProcessing.shouldContinue(context, counter) &&
+                    !CoreProcessing.isProcessCompleted(context, params)) {
+                CoreRendering.renderAppStatus(context);
+                ProcessedFrame frame = CoreProcessing.getProcessedFrame(context, params, counter);
                 if (frame != null) {
                     // Frame not skipped
                     status.frame(frame);
-                    CoreProcessing.handleResetVO(settings, monoVo);
-                    var voResult = CoreProcessing.processVO(monoVo, settings, params, status, counter);
-                    CoreRendering.renderVO(settings, status, params, voResult);
+                    CoreProcessing.handleResetVO(context, monoVo);
+                    var voResult = CoreProcessing.processVO(monoVo, context, params, status, counter);
+                    CoreRendering.renderVO(context, status, params, voResult);
                 }
             }
         } catch (BufferTimeoutException | VoProcessingException ex) {
@@ -268,13 +268,13 @@ public class Core {
         }
 
         // End processing
-        if (settings.state().processing().is(ProcessingState.Cleared)) {
-            CoreRendering.renderClearAllPoints(settings);
+        if (context.state().processing().is(ProcessingState.Cleared)) {
+            CoreRendering.renderClearAllPoints(context);
         } else {
-            CoreRendering.renderEndPoint(settings, params);
+            CoreRendering.renderEndPoint(context, params);
         }
-        CoreProcessing.closeSource(settings, params);
-        CoreRendering.renderAppStatus(settings, processingException);
+        CoreProcessing.closeSource(context, params);
+        CoreRendering.renderAppStatus(context, processingException);
 
         return true;
     }
@@ -284,7 +284,7 @@ public class Core {
      * Not implemented
      */
     private static boolean processStereoVO(StereoVisualOdometry<? extends ImageBase<?>> stereoVo,
-                                           @NotNull Settings settings,
+                                           @NotNull AppContext context,
                                            @NotNull ProcessingParameters params) {
         return false;
     }
@@ -294,7 +294,7 @@ public class Core {
      * Not implemented
      */
     private static boolean processDepthVO(DepthVisualOdometry<? extends ImageBase<?>, ? extends ImageGray<?>> depthVo,
-                                          @NotNull Settings settings,
+                                          @NotNull AppContext context,
                                           @NotNull ProcessingParameters params) {
         return false;
     }

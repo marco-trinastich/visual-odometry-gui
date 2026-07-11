@@ -6,7 +6,8 @@
 package com.mtm.vogui;
 
 import com.mtm.vogui.gui.GuiApplication;
-import com.mtm.vogui.models.settings.Settings;
+import com.mtm.vogui.models.context.AppContext;
+
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.ShutdownEvent;
@@ -30,7 +31,7 @@ public class VisualOdometryGui {
         GuiApplication application;
 
         @Inject
-        Settings settings;
+        AppContext context;
 
         @Override
         public int run(String... args) throws Exception {
@@ -44,8 +45,8 @@ public class VisualOdometryGui {
         void onShutdown(@Observes ShutdownEvent event) {
             // Autosave on shutdown, whatever the exit path (any frame close, Ctrl+C,
             // dev-mode stop or live reload), in the currently active format
-            if (this.settings.core().autosave()) {
-                this.settings.saveToCurrentFormat();
+            if (this.context.settings().autosave()) {
+                this.context.saveToCurrentFormat();
             }
         }
     }

@@ -20,7 +20,7 @@ runtime only — there is no web endpoint; the "app" is the Swing UI itself.
 - Layering: `models` must not import `core` or `gui`. Settings are pure persisted data;
   anything asked to the hardware (device lists, resolutions) goes through the
   `core.integration.discovery.DeviceDiscovery` singletons — never back into settings.
-  Deliberate exception: `settings.state.State` is the app's shared runtime blackboard
+  Deliberate exception: `context.state.State` is the app's shared runtime blackboard
   and references gui/core types by design.
 - No absolute machine-local paths in committed files; no hardcoded default asset paths —
   video/calibration lists start empty and users add paths via GUI.

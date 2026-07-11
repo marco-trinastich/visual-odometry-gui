@@ -13,6 +13,7 @@ import boofcv.abst.tracker.PointTrack;
 import boofcv.abst.tracker.PointTracker;
 import boofcv.struct.image.ImageBase;
 import com.mtm.vogui.models.constants.Messages;
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.core.processing.ProcessingStatus;
 import com.mtm.vogui.models.core.processing.fps.FpsCounter;
@@ -25,7 +26,6 @@ import com.mtm.vogui.models.core.exceptions.BufferTimeoutException;
 import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.UnknownSourceException;
 import com.mtm.vogui.models.core.exceptions.VoProcessingException;
-import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.utilities.CommonUtils;
 import com.mtm.vogui.utilities.CoreUtils;
 import com.mtm.vogui.utilities.ImageUtils;
@@ -45,10 +45,10 @@ public class CoreProcessing {
 
     // State check
 
-    public static boolean shouldContinue(@NotNull Settings settings, FpsCounter counter) {
+    public static boolean shouldContinue(@NotNull AppContext context, FpsCounter counter) {
         boolean shouldContinue = true;
-        switch (settings.state().processing().get()) {
-            case Paused -> handlePauseVO(settings, counter);
+        switch (context.state().processing().get()) {
+            case Paused -> handlePauseVO(context, counter);
             case Stopped, Cleared -> shouldContinue = false;
             default -> { /* Running, StandBy, Completed, Error: keep processing */ }
         }
@@ -56,28 +56,28 @@ public class CoreProcessing {
         return shouldContinue;
     }
 
-    private static void handlePauseVO(@NotNull Settings settings, @NotNull FpsCounter counter) {
+    private static void handlePauseVO(@NotNull AppContext context, @NotNull FpsCounter counter) {
         // Suspend processing thread until user action
-        CoreRendering.renderAppStatus(settings);
+        CoreRendering.renderAppStatus(context);
         counter.pause();
-        settings.state().processing().waitUntilNot(ProcessingState.Paused);
+        context.state().processing().waitUntilNot(ProcessingState.Paused);
         counter.resume();
     }
 
-    public static void handleResetVO(@NotNull Settings settings, @NotNull VisualOdometry<Se3_F64> vo) {
-        if (CoreUtils.isResetRequested(settings)) {
+    public static void handleResetVO(@NotNull AppContext context, @NotNull VisualOdometry<Se3_F64> vo) {
+        if (CoreUtils.isResetRequested(context)) {
             // Reset vo context
             vo.reset();
-            CoreUtils.setResetRequested(settings, false);
-            CoreUtils.setFailedEvent(settings, false);
-            CoreRendering.renderAppStatus(settings, AppStatus.VoReset);
+            CoreUtils.setResetRequested(context, false);
+            CoreUtils.setFailedEvent(context, false);
+            CoreRendering.renderAppStatus(context, AppStatus.VoReset);
         }
     }
 
-    public static void closeSource(@NotNull Settings settings, @NotNull ProcessingParameters params)
+    public static void closeSource(@NotNull AppContext context, @NotNull ProcessingParameters params)
             throws CameraException {
         // Close source (may be missing or partially initialized if setup failed early)
-        var sourceType = params.frozenSettings().core().input().source();
+        var sourceType = params.frozenContext().settings().input().source();
         if (sourceType == null) {
             return;
         }
@@ -88,9 +88,9 @@ public class CoreProcessing {
                 }
             }
             case Device -> {
-                if (settings.state().device() != null) {
-                    settings.state().device().stop();
-                    settings.state().device().clearBuffer();
+                if (context.state().device() != null) {
+                    context.state().device().stop();
+                    context.state().device().clearBuffer();
                 }
             }
         }
@@ -99,19 +99,19 @@ public class CoreProcessing {
 
     // Completion check
 
-    public static boolean isProcessCompleted(@NotNull Settings settings, @NotNull ProcessingParameters params)
+    public static boolean isProcessCompleted(@NotNull AppContext context, @NotNull ProcessingParameters params)
             throws UnknownSourceException {
-        var sourceType = params.frozenSettings().core().input().source();
+        var sourceType = params.frozenContext().settings().input().source();
 
         var isProcessCompleted = false;
         switch (sourceType) {
             case Video -> isProcessCompleted = isVideoEnded(params);
-            case Device -> isProcessCompleted = isDeviceStopped(settings);
+            case Device -> isProcessCompleted = isDeviceStopped(context);
             default -> throw new UnknownSourceException(sourceType.value());
         }
 
         if (isProcessCompleted) {
-            CoreUtils.setProcessingStateSafe(settings, ProcessingState.Completed);
+            CoreUtils.setProcessingStateSafe(context, ProcessingState.Completed);
         }
 
         return isProcessCompleted;
@@ -122,22 +122,22 @@ public class CoreProcessing {
         return !params.video().hasNext();
     }
 
-    private static boolean isDeviceStopped(@NotNull Settings settings) {
+    private static boolean isDeviceStopped(@NotNull AppContext context) {
         // capture stopped and empty buffer
-        return !settings.state().device().hasNext();
+        return !context.state().device().hasNext();
     }
 
     // Image acquisition
 
-    public static @Nullable ProcessedFrame getProcessedFrame(Settings settings,
+    public static @Nullable ProcessedFrame getProcessedFrame(AppContext context,
                                                              ProcessingParameters params,
                                                              FpsCounter counter) throws BufferTimeoutException {
-        var inputFrames = getInputFrames(settings, params, counter);
+        var inputFrames = getInputFrames(context, params, counter);
         // Frame skip
         if (inputFrames == null)
             return null;
 
-        var voFrames = getVoFrames(settings, params, inputFrames);
+        var voFrames = getVoFrames(context, params, inputFrames);
 
         return ProcessedFrame.builder()
                 .input(InnerFrame.from(inputFrames))
@@ -145,23 +145,23 @@ public class CoreProcessing {
                 .build();
     }
 
-    private static @Nullable Pair<BufferedImage, ImageBase<?>> getInputFrames(@NotNull Settings settings,
+    private static @Nullable Pair<BufferedImage, ImageBase<?>> getInputFrames(@NotNull AppContext context,
                                                                               @NotNull ProcessingParameters params,
                                                                               @NotNull FpsCounter counter)
             throws BufferTimeoutException {
         // Input settings
-        var sourceType = params.frozenSettings().core().input().source();
-        var device = settings.state().device();
+        var sourceType = params.frozenContext().settings().input().source();
+        var device = context.state().device();
 
         // Image settings
-        var imageType = params.frozenSettings().core().image().descriptor().type();
+        var imageType = params.frozenContext().settings().image().descriptor().type();
 
         // Count currently received frame
         counter.addFrame();
 
         // Frame skip settings
-        var frameSkipEnabled = settings.core().image().frameSkipEnabled();
-        int frameSkipValue = settings.core().image().frameSkipValue();
+        var frameSkipEnabled = context.settings().image().frameSkipEnabled();
+        int frameSkipValue = context.settings().image().frameSkipValue();
         var isFrameSkip = (frameSkipEnabled && frameSkipValue > 0) &&
                 (counter.totalFrames() % frameSkipValue) != 0;
 
@@ -186,7 +186,7 @@ public class CoreProcessing {
                 if (inputImage == null) {
                     // A concurrent stop/clear can legitimately drain the buffer between waitBuffer
                     // and nextImage; in any other case an empty poll is a bug worth surfacing
-                    if (settings.state().processing().is(ProcessingState.Running)) {
+                    if (context.state().processing().is(ProcessingState.Running)) {
                         Log.warn(Messages.BUFFER_EMPTY_POLL);
                     }
                     return null;
@@ -200,16 +200,16 @@ public class CoreProcessing {
         return Pair.with(inputImage, inputLeftImage);
     }
 
-    private static @NotNull Pair<BufferedImage, ImageBase<?>> getVoFrames(@NotNull Settings settings,
+    private static @NotNull Pair<BufferedImage, ImageBase<?>> getVoFrames(@NotNull AppContext context,
                                                                           @NotNull ProcessingParameters params,
                                                                           @NotNull Pair<BufferedImage, ImageBase<?>> inputFrames) {
         // Image settings
-        var imageType = params.frozenSettings().core().image().descriptor().type();
-        var isResize = params.frozenSettings().core().image().resize();
-        var isInternalImagePreview = settings.core().image().internalImagePreview();
-        var isInputPreview = settings.core().input().inputPreview();
-        int resizeWidth = params.frozenSettings().core().image().resizeWidth();
-        int resizeHeight = params.frozenSettings().core().image().resizeHeight();
+        var imageType = params.frozenContext().settings().image().descriptor().type();
+        var isResize = params.frozenContext().settings().image().resize();
+        var isInternalImagePreview = context.settings().image().internalImagePreview();
+        var isInputPreview = context.settings().input().inputPreview();
+        int resizeWidth = params.frozenContext().settings().image().resizeWidth();
+        int resizeHeight = params.frozenContext().settings().image().resizeHeight();
 
         BufferedImage inputImage = inputFrames.getValue0();
         ImageBase<?> inputLeftImage = inputFrames.getValue1();
@@ -249,10 +249,10 @@ public class CoreProcessing {
 
 // Processing
 
-    public static boolean processVO(MonocularPlaneVisualOdometry<? extends ImageBase<?>> monoVo, @NotNull Settings settings,
+    public static boolean processVO(MonocularPlaneVisualOdometry<? extends ImageBase<?>> monoVo, @NotNull AppContext context,
                                     ProcessingParameters params, ProcessingStatus status, FpsCounter counter)
             throws VoProcessingException {
-        var infoPanel = settings.state().guiController().infoPanel();
+        var infoPanel = context.state().guiController().infoPanel();
 
         // Execute vo processing
         boolean result;
@@ -268,9 +268,9 @@ public class CoreProcessing {
         if (!result) {
             // Failed estimating ego motion
             infoPanel.setAppStatus(AppStatus.VoFailed);
-            if (!settings.state().failedEvent().get()) {
+            if (!context.state().failedEvent().get()) {
                 Log.warn(Messages.VO_FAILED);
-                CoreUtils.setFailedEvent(settings, true);
+                CoreUtils.setFailedEvent(context, true);
             }
 
             // Update fps/time status

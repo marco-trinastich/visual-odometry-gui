@@ -48,15 +48,16 @@ import com.mtm.vogui.models.enums.gui.ChartAxis;
 import com.mtm.vogui.models.interfaces.Resolution;
 import com.mtm.vogui.models.constants.AppConstants;
 import com.mtm.vogui.models.constants.GuiConstants;
-import com.mtm.vogui.models.settings.Settings;
-import com.mtm.vogui.models.settings.core.chart.ChartSettings;
-import com.mtm.vogui.models.settings.core.common.PathSettings;
+import com.mtm.vogui.models.context.AppContext;
+import com.mtm.vogui.models.context.settings.chart.ChartSettings;
+import com.mtm.vogui.models.context.settings.common.PathSettings;
+import com.mtm.vogui.models.context.settings.image.ImageSettings;
+import com.mtm.vogui.models.context.settings.input.InputSettings;
+import com.mtm.vogui.models.context.settings.tracker.TrackerSettings;
+import com.mtm.vogui.models.context.settings.visualodometry.VisualOdometrySettings;
 
 import javax.swing.plaf.basic.ComboPopup;
-import com.mtm.vogui.models.settings.core.image.ImageSettings;
-import com.mtm.vogui.models.settings.core.input.InputSettings;
-import com.mtm.vogui.models.settings.core.tracker.TrackerSettings;
-import com.mtm.vogui.models.settings.core.visualodometry.VisualOdometrySettings;
+
 import com.mtm.vogui.utilities.*;
 
 import boofcv.BoofVersion;
@@ -73,7 +74,7 @@ import org.jetbrains.annotations.NotNull;
 @ApplicationScoped
 public class GuiApplication {
 
-    private final Settings settings;
+    private final AppContext context;
     private final Core core;
     private final GuiController controller;
 
@@ -87,8 +88,8 @@ public class GuiApplication {
     private boolean isSystemLookAndFeelEnabled;
 
     @Inject
-    public GuiApplication(Settings settings, Core core, GuiController controller) {
-        this.settings = settings;
+    public GuiApplication(AppContext context, Core core, GuiController controller) {
+        this.context = context;
         this.core = core;
         this.controller = controller;
         this.voExecutor = Executors.newSingleThreadExecutor(NamedThreadFactory.from(AppConstants.VO_EXECUTOR_THREAD));
@@ -210,7 +211,7 @@ public class GuiApplication {
 
         // Info panel
         InfoScrollPane chartInfoPanel =
-                new InfoScrollPane(this.settings, this.controller, GuiConstants.INFO_PANEL_TITLE);
+                new InfoScrollPane(this.context, this.controller, GuiConstants.INFO_PANEL_TITLE);
         chartInfoPanel.setInfoPanelVisible(false);
         chartInfoPanel.setBufferInfoVisible(false);
         chartInfoPanel.setAppStatus(AppStatus.Ready);
@@ -303,13 +304,13 @@ public class GuiApplication {
         mainFrame.setVisible(true);
 
         // Bind to controller
-        this.settings.state().guiComponents().put("btnStartVO", toolbarPanel.btnStartVO());
-        this.settings.state().guiComponents().put("btnPauseVO", toolbarPanel.btnPauseVO());
-        this.settings.state().guiComponents().put("btnResetVO", toolbarPanel.btnResetVO());
-        this.settings.state().guiComponents().put("btnStopVO", toolbarPanel.btnStopVO());
-        this.settings.state().guiComponents().put("btnClearVO", toolbarPanel.btnClearVO());
-        this.settings.state().guiComponents().put("btnTimedProcessingVO", toolbarPanel.btnTimedProcessingVO());
-        this.settings.state().guiComponents().put("mainFrame", mainFrame);
+        this.context.state().guiComponents().put("btnStartVO", toolbarPanel.btnStartVO());
+        this.context.state().guiComponents().put("btnPauseVO", toolbarPanel.btnPauseVO());
+        this.context.state().guiComponents().put("btnResetVO", toolbarPanel.btnResetVO());
+        this.context.state().guiComponents().put("btnStopVO", toolbarPanel.btnStopVO());
+        this.context.state().guiComponents().put("btnClearVO", toolbarPanel.btnClearVO());
+        this.context.state().guiComponents().put("btnTimedProcessingVO", toolbarPanel.btnTimedProcessingVO());
+        this.context.state().guiComponents().put("mainFrame", mainFrame);
     }
 
     private JFrame createMainFrame(JScrollPane mainScrollPane, ToolbarPanel toolbarPanel) {
@@ -447,8 +448,8 @@ public class GuiApplication {
 
     private @NotNull JPanel createInputSettingsPanel() {
         /* Parameters Managed from Input Settings Panel */
-        InputSettings inputSettings = settings.core().input();
-        HashMap<String, Component> guiComponents = settings.state().guiComponents();
+        InputSettings inputSettings = context.settings().input();
+        HashMap<String, Component> guiComponents = context.state().guiComponents();
 
 
         SpringLayout panelLayout = null;    //Layout Object needed for
@@ -516,7 +517,7 @@ public class GuiApplication {
         optVideoSource.setSelected(isVideo); //Startup selection based on default/loaded value
         /*Listener (for click on Video Source OptionButton)*/
         optVideoSource.addActionListener(
-                new InputSourceOptionListener(SourceType.Video, this.settings));
+                new InputSourceOptionListener(SourceType.Video, this.context));
 
         // Video source path ComboBox
         var txtVideoSource = new StringValueEditableComboBox(
@@ -547,17 +548,17 @@ public class GuiApplication {
         final JRadioButton optDeviceSource = new JRadioButton(isDevice ? "<html><b>Device</b></html>" : "<html>Device</html>");
         optDeviceSource.setSelected(isDevice); //Startup selection based on default/loaded value
         /*Listener (for click on Device Source OptionButton)*/
-        optDeviceSource.addActionListener(new InputSourceOptionListener(SourceType.Device, this.settings));
+        optDeviceSource.addActionListener(new InputSourceOptionListener(SourceType.Device, this.context));
 
         // Device path ComboBox
-        healDevicePath(this.settings);
+        healDevicePath(this.context);
         var txtDevicePath = new DisplayValueEditableComboBox<>(
-                devicePaths(this.settings),
-                path -> settings.core().input().device().path(path),
+                devicePaths(this.context),
+                path -> context.settings().input().device().path(path),
                 DevicePath::from,
-                selection -> refreshDeviceResolutions(this.settings));
+                selection -> refreshDeviceResolutions(this.context));
         txtDevicePath.setEnabled(isDevice);
-        txtDevicePath.setSelectedItem(settings.core().input().device().path());
+        txtDevicePath.setSelectedItem(context.settings().input().device().path());
 
         // Device type ComboBox
         var txtDeviceType = new DisplayValueComboBox<>(
@@ -568,12 +569,12 @@ public class GuiApplication {
                     // Reload device paths if needed
                     if (!selection.previous().value().is(selection.current().value())) {
                         DeviceDiscovery.forType(inputSettings.device().type()).reload();
-                        healDevicePath(this.settings);
-                        txtDevicePath.setModel(new DefaultComboBoxModel<>(devicePaths(this.settings)));
+                        healDevicePath(this.context);
+                        txtDevicePath.setModel(new DefaultComboBoxModel<>(devicePaths(this.context)));
                         // Selecting the item commits it to settings through the combo listener
                         txtDevicePath.setSelectedItem(inputSettings.device().path());
                         // The new driver may advertise a different resolution set
-                        refreshDeviceResolutions(this.settings);
+                        refreshDeviceResolutions(this.context);
                     }
                 }
         );
@@ -601,7 +602,7 @@ public class GuiApplication {
         // Device Resolution combo box
         var txtDeviceResolution = new DisplayValueEditableComboBox<>(
                 DeviceResolution.values(),
-                resolution -> settings.core().input().device().resolution(resolution),
+                resolution -> context.settings().input().device().resolution(resolution),
                 CustomResolution::from);
         txtDeviceResolution.setEnabled(isDevice);
         txtDeviceResolution.setHorizontalAlignment(SwingConstants.CENTER);
@@ -622,7 +623,7 @@ public class GuiApplication {
         chkDeviceSustainFramerate.setEnabled(isDevice);    //If default/saved Input Source is DEVICE_INPUT("device") is enabled
         /*Listener (for Device Sustain Framerate CheckBox clicks)*/
         chkDeviceSustainFramerate.addActionListener(
-                new ParameterCheckBoxListener("deviceSustainFramerate", chkDeviceSustainFramerate, this.settings));
+                new ParameterCheckBoxListener("deviceSustainFramerate", chkDeviceSustainFramerate, this.context));
 
         /*Device Timeout Image I/O*/
         final JCheckBox chkDeviceTimeoutImageIO = new JCheckBox(isDeviceTimeoutImageIOEnabled ? "<html><b>Timeout Image I/O</b></html>" : "<html>Timeout Image I/O</html>");
@@ -630,7 +631,7 @@ public class GuiApplication {
         chkDeviceTimeoutImageIO.setEnabled(isDevice); //If default/saved Input Source is DEVICE_INPUT("device") is enabled
         /*Listener (for Device Timeout Image I/O CheckBox clicks)*/
         chkDeviceTimeoutImageIO.addActionListener(
-                new ParameterCheckBoxListener("deviceTimeoutImageIO", chkDeviceTimeoutImageIO, this.settings));
+                new ParameterCheckBoxListener("deviceTimeoutImageIO", chkDeviceTimeoutImageIO, this.context));
 
         /*Device Keep Format*/
         final JCheckBox chkDeviceKeepFormat = new JCheckBox(isDeviceKeepFormatEnabled ? "<html><b>Keep Format</b></html>" : "<html>Keep Format</html>");
@@ -638,7 +639,7 @@ public class GuiApplication {
         chkDeviceKeepFormat.setEnabled(isDevice); //If default/saved Input Source is DEVICE_INPUT("device") is enabled
         /*Listener (for Device Keep Format CheckBox clicks)*/
         chkDeviceKeepFormat.addActionListener(
-                new ParameterCheckBoxListener("deviceKeepFormat", chkDeviceKeepFormat, this.settings));
+                new ParameterCheckBoxListener("deviceKeepFormat", chkDeviceKeepFormat, this.context));
 
 
         /** DEVICE ADJUSTMENTS PANEL - CREATION **/
@@ -710,14 +711,14 @@ public class GuiApplication {
         chkFullResolutionPreview.setSelected(inputSettings.fullResolutionPreview()); //Sets the CheckBox to the default/saved value on Startup
         /*Listener (for clicks on Full-Resolution Preview CheckBox)*/
         chkFullResolutionPreview.addActionListener(
-                new ParameterCheckBoxListener("fullResolutionPreview", chkFullResolutionPreview, this.settings));
+                new ParameterCheckBoxListener("fullResolutionPreview", chkFullResolutionPreview, this.context));
 
         /*Input Preview Enabled CheckBox [Enable Input (Video file/Camera) Preview]*/
         final JCheckBox chkInputPreviewEnabled = new JCheckBox(inputSettings.inputPreview() ? "<html><b>Enable Input Preview (Slower)</b></html>" : "<html>Enable Input Preview (Slower)</html>");
         chkInputPreviewEnabled.setSelected(inputSettings.inputPreview()); //Sets the CheckBox to default/saved value on Startup
         /*Listener (for clicks on Input Preview Enabled CheckBox)*/
         chkInputPreviewEnabled.addActionListener(
-                new ParameterCheckBoxListener("inputPreviewEnabled", chkInputPreviewEnabled, this.settings));
+                new ParameterCheckBoxListener("inputPreviewEnabled", chkInputPreviewEnabled, this.context));
 
 
         /**
@@ -737,7 +738,7 @@ public class GuiApplication {
         guiComponents.put("lblDeviceResolution", lblDeviceResolution);
         guiComponents.put("txtDeviceResolution", txtDeviceResolution);
         // Now that the ComboBox is reachable, swap the static model for the device-advertised sizes
-        refreshDeviceResolutions(this.settings);
+        refreshDeviceResolutions(this.context);
         guiComponents.put("chkDeviceSustainFramerate", chkDeviceSustainFramerate);
         guiComponents.put("chkDeviceTimeoutImageIO", chkDeviceTimeoutImageIO);
         guiComponents.put("chkDeviceKeepFormat", chkDeviceKeepFormat);
@@ -851,9 +852,9 @@ public class GuiApplication {
 
     private @NotNull JPanel createInternalImageSettingsPanel() {
         /* Parameters Managed from Internal Image Settings Panel */
-        ImageSettings imageSettings = this.settings.core().image();
+        ImageSettings imageSettings = this.context.settings().image();
         ImageSettings defaultImageSettings = imageSettings.getDefault();
-        HashMap<String, Component> guiComponents = this.settings.state().guiComponents();
+        HashMap<String, Component> guiComponents = this.context.state().guiComponents();
 
         SpringLayout panelLayout = null; //Layout Object needed for components disposition
 
@@ -894,7 +895,7 @@ public class GuiApplication {
                 imageSettings.resize() ? "<html><b>Resize</b></html>" : "<html>Resize</html>");
         chkImageResize.setSelected(imageSettings.resize());
         chkImageResize.addActionListener(
-                new ParameterCheckBoxListener("imageResize", chkImageResize, this.settings));
+                new ParameterCheckBoxListener("imageResize", chkImageResize, this.context));
 
         // Image Resize ComboBox
         var txtImageResize = new DisplayValueEditableComboBox<>(
@@ -911,7 +912,7 @@ public class GuiApplication {
                 imageSettings.internalImagePreview() ? "<html><b>Preview Internal Image (Slower)</b></html>" : "<html>Preview Internal Image (Slower)</html>");
         chkInternalImagePreview.setSelected(imageSettings.internalImagePreview());
         chkInternalImagePreview.addActionListener(
-                new ParameterCheckBoxListener("internalImagePreview", chkInternalImagePreview, this.settings));
+                new ParameterCheckBoxListener("internalImagePreview", chkInternalImagePreview, this.context));
 
         /**
          *  3. BOTTOM PART (Frame skip)
@@ -925,7 +926,7 @@ public class GuiApplication {
         chkFrameSkipEnabled.setSelected(imageSettings.frameSkipEnabled());
         /*Listener*/
         chkFrameSkipEnabled.addActionListener(
-                new ParameterCheckBoxListener("frameSkipEnabled", chkFrameSkipEnabled, this.settings));
+                new ParameterCheckBoxListener("frameSkipEnabled", chkFrameSkipEnabled, this.context));
 
         // Frame skip value TextField
         var txtFrameSkipValue = new IntegerTextField(
@@ -1027,10 +1028,10 @@ public class GuiApplication {
     }
 
     private @NotNull JPanel createTrackerSettingsPanel() {
-        TrackerSettings trackerSettings = this.settings.core().tracker();
+        TrackerSettings trackerSettings = this.context.settings().tracker();
         TrackerSettings defaultTrackerSettings = trackerSettings.getDefault();
 
-        HashMap<String, Component> guiComponents = this.settings.state().guiComponents();
+        HashMap<String, Component> guiComponents = this.context.state().guiComponents();
 
         SpringLayout panelLayout;
 
@@ -1206,7 +1207,7 @@ public class GuiApplication {
         chkTrackerShowActiveTracks.setSelected(trackerSettings.showActiveTracks());
         /*Listener*/
         chkTrackerShowActiveTracks.addActionListener(
-                new ParameterCheckBoxListener("trackerShowActiveTracks", chkTrackerShowActiveTracks, this.settings));
+                new ParameterCheckBoxListener("trackerShowActiveTracks", chkTrackerShowActiveTracks, this.context));
 
         // Show new tracks
         var chkTrackerShowNewTracks =
@@ -1214,7 +1215,7 @@ public class GuiApplication {
         chkTrackerShowNewTracks.setSelected(trackerSettings.showNewTracks());
         /*Listener*/
         chkTrackerShowNewTracks.addActionListener(
-                new ParameterCheckBoxListener("trackerShowNewTracks", chkTrackerShowNewTracks, this.settings));
+                new ParameterCheckBoxListener("trackerShowNewTracks", chkTrackerShowNewTracks, this.context));
 
         // Tracker type
         var lblTrackerType = new JLabel("<html><b>Tracker Type:</b></html>");
@@ -1305,8 +1306,8 @@ public class GuiApplication {
     }
 
     private @NotNull JPanel createVisualOdometrySettingsPanel() {
-        VisualOdometrySettings voSettings = this.settings.core().visualOdometry();
-        HashMap<String, Component> guiComponents = this.settings.state().guiComponents();
+        VisualOdometrySettings voSettings = this.context.settings().visualOdometry();
+        HashMap<String, Component> guiComponents = this.context.state().guiComponents();
 
         // Visual odometry components
         var monoPlaneInfinityPanel = new MonoPlaneInfinityPanel(voSettings);
@@ -1407,9 +1408,9 @@ public class GuiApplication {
 
     private @NotNull JPanel createChartSettingsPanel() {
         /* Parameters Managed from Chart Settings Panel */
-        ChartSettings chartSettings = this.settings.core().chart();
+        ChartSettings chartSettings = this.context.settings().chart();
         ChartSettings defaultChartSettings = chartSettings.getDefault();
-        HashMap<String, Component> guiComponents = this.settings.state().guiComponents();
+        HashMap<String, Component> guiComponents = this.context.state().guiComponents();
 
         SpringLayout panelLayout = null; //Layout Object needed for components disposition
 
@@ -1461,7 +1462,7 @@ public class GuiApplication {
         );
 
         // Applying loaded Chart X/Z Scale
-        ChartScrollPane chartXZPanel = this.settings.state().guiController().chartXZPanel();
+        ChartScrollPane chartXZPanel = this.context.state().guiController().chartXZPanel();
         if (chartXZPanel != null) {
             chartXZPanel.settings().chartScale(chartSettings.scaleXZ());
             chartXZPanel.resetSize();
@@ -1469,19 +1470,19 @@ public class GuiApplication {
 
         // Chart XZ apply scale button
         var btnChartXZApplyScale = new JButton("Apply");
-        btnChartXZApplyScale.addActionListener(new ChartButtonListener("chartXZApplyScale", this.settings));
+        btnChartXZApplyScale.addActionListener(new ChartButtonListener("chartXZApplyScale", this.context));
 
         // Chart XZ move to origin button
         var btnChartXZMoveToOrigin = new JButton("Origin");
-        btnChartXZMoveToOrigin.addActionListener(new ChartButtonListener("chartXZMoveToOrigin", this.settings));
+        btnChartXZMoveToOrigin.addActionListener(new ChartButtonListener("chartXZMoveToOrigin", this.context));
 
         // Chart XZ move to last point button
         var btnChartXZMoveToLastPoint = new JButton("Last");
-        btnChartXZMoveToLastPoint.addActionListener(new ChartButtonListener("chartXZMoveToLastPoint", this.settings));
+        btnChartXZMoveToLastPoint.addActionListener(new ChartButtonListener("chartXZMoveToLastPoint", this.context));
 
         // Chart XZ 3D points CheckBox
         var chkChartXZ3DPoints = new JCheckBox("<html>3D points</html>");
-        chkChartXZ3DPoints.addActionListener(new ChartButtonListener("chartXZ3DPoints", this.settings));
+        chkChartXZ3DPoints.addActionListener(new ChartButtonListener("chartXZ3DPoints", this.context));
 
         // Chart Y
         var lblChartY = new JLabel("<html><b>Chart Y</b></html>");
@@ -1498,7 +1499,7 @@ public class GuiApplication {
         );
 
         // Applying loaded Chart Y Scale
-        ChartScrollPane chartYPanel = this.settings.state().guiController().chartYPanel();
+        ChartScrollPane chartYPanel = this.context.state().guiController().chartYPanel();
         if (chartYPanel != null) {
             chartYPanel.settings().chartScale(chartSettings.scaleY());
             chartYPanel.resetSize();
@@ -1506,15 +1507,15 @@ public class GuiApplication {
 
         // Chart Y apply scale button
         var btnChartYApplyScale = new JButton("Apply");
-        btnChartYApplyScale.addActionListener(new ChartButtonListener("chartYApplyScale", this.settings));
+        btnChartYApplyScale.addActionListener(new ChartButtonListener("chartYApplyScale", this.context));
 
         // Chart Y move to origin button
         var btnChartYMoveToOrigin = new JButton("Origin");
-        btnChartYMoveToOrigin.addActionListener(new ChartButtonListener("chartYMoveToOrigin", this.settings));
+        btnChartYMoveToOrigin.addActionListener(new ChartButtonListener("chartYMoveToOrigin", this.context));
 
         // Chart Y move to last point button
         var btnChartYMoveToLastPoint = new JButton("Last");
-        btnChartYMoveToLastPoint.addActionListener(new ChartButtonListener("chartYMoveToLastPoint", this.settings));
+        btnChartYMoveToLastPoint.addActionListener(new ChartButtonListener("chartYMoveToLastPoint", this.context));
 
 
         /**
@@ -1636,22 +1637,22 @@ public class GuiApplication {
 
         // Settings popup menu
         JMenuItem mnuLoadSettings = new JMenuItem(GuiConstants.MNU_LOAD_SETTINGS_TEXT);
-        mnuLoadSettings.addActionListener(new MainButtonListener("loadSettings", this.settings, this.core));
+        mnuLoadSettings.addActionListener(new MainButtonListener("loadSettings", this.context, this.core));
         JMenuItem mnuSaveSettings = new JMenuItem(GuiConstants.MNU_SAVE_SETTINGS_TEXT);
-        mnuSaveSettings.addActionListener(new MainButtonListener("saveSettings", this.settings, this.core));
+        mnuSaveSettings.addActionListener(new MainButtonListener("saveSettings", this.context, this.core));
         JMenuItem mnuResetSettings = new JMenuItem(GuiConstants.MNU_RESET_SETTINGS_TEXT);
-        mnuResetSettings.addActionListener(new MainButtonListener("resetSettings", this.settings, this.core));
+        mnuResetSettings.addActionListener(new MainButtonListener("resetSettings", this.context, this.core));
         JMenuItem mnuSwitchSettings = new JMenuItem(GuiConstants.MNU_SWITCH_SETTINGS_TEXT);
-        mnuSwitchSettings.addActionListener(new MainButtonListener("switchSettings", this.settings, this.core));
+        mnuSwitchSettings.addActionListener(new MainButtonListener("switchSettings", this.context, this.core));
         JCheckBoxMenuItem mnuAutosave = new JCheckBoxMenuItem(GuiConstants.MNU_AUTOSAVE_TEXT);
-        mnuAutosave.setSelected(this.settings.core().autosave());
+        mnuAutosave.setSelected(this.context.settings().autosave());
         mnuAutosave.addActionListener(evt -> {
-            this.settings.core().autosave(mnuAutosave.isSelected());
+            this.context.settings().autosave(mnuAutosave.isSelected());
             // Persisted immediately: an OFF choice could never survive the exit otherwise
             // (autosave-on-exit is skipped exactly when it has just been turned off)
-            this.settings.saveToCurrentFormat();
+            this.context.saveToCurrentFormat();
         });
-        this.settings.state().guiComponents().put("mnuAutosave", mnuAutosave);
+        this.context.state().guiComponents().put("mnuAutosave", mnuAutosave);
 
         JPopupMenu popupSettings = new JPopupMenu();
         popupSettings.add(mnuLoadSettings);
@@ -1683,7 +1684,7 @@ public class GuiApplication {
         ImageButton btnStartVO =
                 new BufferedImageButton(GuiConstants.BTN_START, GuiConstants.BTN_START_DISABLED);
         btnStartVO.setToolTipText(GuiConstants.BTN_START_TOOLTIP);
-        btnStartVO.addActionListener(new MainButtonListener("startVisualOdometry", this.settings, this.core));
+        btnStartVO.addActionListener(new MainButtonListener("startVisualOdometry", this.context, this.core));
 
         // Pause visual odometry button (enabled on process start)
         ImageButton btnPauseVO =
@@ -1691,26 +1692,26 @@ public class GuiApplication {
                         GuiConstants.BTN_PAUSE_DISABLED);
         btnPauseVO.setToolTipText(GuiConstants.BTN_PAUSE_TOOLTIP);
         btnPauseVO.setEnabled(false);
-        btnPauseVO.addActionListener(new MainButtonListener("pauseVisualOdometry", this.settings, this.core));
+        btnPauseVO.addActionListener(new MainButtonListener("pauseVisualOdometry", this.context, this.core));
 
         // Stop visual odometry button (enabled on process start)
         ImageButton btnStopVO =
                 new BufferedImageButton(GuiConstants.BTN_STOP, GuiConstants.BTN_STOP_DISABLED);
         btnStopVO.setToolTipText(GuiConstants.BTN_STOP_TOOLTIP);
         btnStopVO.setEnabled(false);
-        btnStopVO.addActionListener(new MainButtonListener("stopVisualOdometry", this.settings, this.core));
+        btnStopVO.addActionListener(new MainButtonListener("stopVisualOdometry", this.context, this.core));
 
         // Reset visual odometry button (enabled on process start)
         ImageButton btnResetVO = new BufferedImageButton(GuiConstants.BTN_RESET);
         btnResetVO.setToolTipText(GuiConstants.BTN_RESET_TOOLTIP);
         btnResetVO.setEnabled(false);
-        btnResetVO.addActionListener(new MainButtonListener("resetVisualOdometry", this.settings, this.core));
+        btnResetVO.addActionListener(new MainButtonListener("resetVisualOdometry", this.context, this.core));
 
         // Clear visual odometry button (enabled on process start)
         ImageButton btnClearVO = new BufferedImageButton(GuiConstants.BTN_CLEAR);
         btnClearVO.setToolTipText(GuiConstants.BTN_CLEAR_TOOLTIP);
         btnClearVO.setEnabled(false);
-        btnClearVO.addActionListener(new MainButtonListener("clearVisualOdometry", this.settings, this.core));
+        btnClearVO.addActionListener(new MainButtonListener("clearVisualOdometry", this.context, this.core));
 
         // Timed processing button (device only)
         ImageButton btnTimedProcessingVO = new BufferedImageButton(
@@ -1721,7 +1722,7 @@ public class GuiApplication {
         btnTimedProcessingVO.setToolTipText(GuiConstants.BTN_TIMED_PROCESSING_VO_TOOLTIP);
         btnTimedProcessingVO.setEnabled(false);
         btnTimedProcessingVO.addActionListener(
-                new MainButtonListener("timedStopVisualOdometry", this.settings, this.core));
+                new MainButtonListener("timedStopVisualOdometry", this.context, this.core));
 
         return ToolbarPanel.builder()
                 .btnSettings(btnSettings)
@@ -2060,8 +2061,8 @@ public class GuiApplication {
     /**
      * Available device identifiers for the currently selected driver, as ComboBox descriptors
      */
-    private static DevicePath @NotNull [] devicePaths(@NotNull Settings settings) {
-        var device = settings.core().input().device();
+    private static DevicePath @NotNull [] devicePaths(@NotNull AppContext context) {
+        var device = context.settings().input().device();
         return CommonUtils.getDevicePathDescriptors(DeviceDiscovery.forType(device.type()).listDevices());
     }
 
@@ -2071,8 +2072,8 @@ public class GuiApplication {
      * {@link DeviceDiscovery#resolveDevice}, the same call the cameras make at capture
      * time: startup and play can never disagree on which device a path means.
      */
-    private static void healDevicePath(@NotNull Settings settings) {
-        var device = settings.core().input().device();
+    private static void healDevicePath(@NotNull AppContext context) {
+        var device = context.settings().input().device();
         var discovery = DeviceDiscovery.forType(device.type());
 
         String saved = device.path().id().trim();
@@ -2087,8 +2088,8 @@ public class GuiApplication {
      * standard names when they match a {@link DeviceResolution}. Empty when the
      * device cannot be queried, so callers can fall back to the static list.
      */
-    private static Resolution @NotNull [] availableDeviceResolutions(@NotNull Settings settings) {
-        var device = settings.core().input().device();
+    private static Resolution @NotNull [] availableDeviceResolutions(@NotNull AppContext context) {
+        var device = context.settings().input().device();
         java.util.List<Dimension> sizes =
                 DeviceDiscovery.forType(device.type()).listViewSizes(device.path().id().trim());
         return sizes.stream()
@@ -2109,15 +2110,15 @@ public class GuiApplication {
      * safety net for values the device refuses).
      */
     @SuppressWarnings("unchecked")
-    private static void refreshDeviceResolutions(@NotNull Settings settings) {
+    private static void refreshDeviceResolutions(@NotNull AppContext context) {
         var txtDeviceResolution = (DisplayValueEditableComboBox<Resolution>)
-                settings.state().guiComponents().get("txtDeviceResolution");
+                context.state().guiComponents().get("txtDeviceResolution");
         if (txtDeviceResolution == null) {
             return; // the GUI is still being built
         }
 
-        var device = settings.core().input().device();
-        Resolution[] available = availableDeviceResolutions(settings);
+        var device = context.settings().input().device();
+        Resolution[] available = availableDeviceResolutions(context);
         if (available.length == 0) {
             txtDeviceResolution.setModel(new DefaultComboBoxModel<Resolution>(DeviceResolution.values()));
             txtDeviceResolution.setSelectedItem(device.resolution());
@@ -2139,7 +2140,7 @@ public class GuiApplication {
 
     // Unchecked: every typed retrieval from the Object-valued guiComponents map is an unchecked cast
     @SuppressWarnings("unchecked")
-    public static Boolean refreshGuiFromParameters(Settings settings) {
+    public static Boolean refreshGuiFromParameters(AppContext context) {
 
         try {
             /* Extracts all components from guiComponents and resets them to the new parameters values */
@@ -2147,17 +2148,17 @@ public class GuiApplication {
             /**Input Settings Panel Reloading**/
 
             //Autosave menu CheckBox
-            JCheckBoxMenuItem mnuAutosave = (JCheckBoxMenuItem) settings.state().guiComponents().get("mnuAutosave");
-            mnuAutosave.setSelected(settings.core().autosave());
+            JCheckBoxMenuItem mnuAutosave = (JCheckBoxMenuItem) context.state().guiComponents().get("mnuAutosave");
+            mnuAutosave.setSelected(context.settings().autosave());
 
             //Calibration ComboBox
-            JComboBox<String> txtCalibration = (JComboBox<String>) settings.state().guiComponents().get("txtCalibration");
-            txtCalibration.setModel(new DefaultComboBoxModel<>(settings.core().input().calibration().paths()));
-            txtCalibration.setSelectedItem(settings.core().input().calibration().path());
+            JComboBox<String> txtCalibration = (JComboBox<String>) context.state().guiComponents().get("txtCalibration");
+            txtCalibration.setModel(new DefaultComboBoxModel<>(context.settings().input().calibration().paths()));
+            txtCalibration.setSelectedItem(context.settings().input().calibration().path());
 
             //Video Source RadioButton
-            JRadioButton optVideoSource = (JRadioButton) settings.state().guiComponents().get("optVideoSource");
-            optVideoSource.setSelected(SourceType.Video.is(settings.core().input().source()));
+            JRadioButton optVideoSource = (JRadioButton) context.state().guiComponents().get("optVideoSource");
+            optVideoSource.setSelected(SourceType.Video.is(context.settings().input().source()));
             if (optVideoSource.isSelected()) { //Trigger Listener
                 for (ActionListener actionListener : optVideoSource.getActionListeners()) {
                     actionListener.actionPerformed(new ActionEvent(optVideoSource, ActionEvent.ACTION_PERFORMED, null));
@@ -2165,13 +2166,13 @@ public class GuiApplication {
             }
 
             //Video Source ComboBox
-            JComboBox<String> txtVideoSource = (JComboBox<String>) settings.state().guiComponents().get("txtVideoSource");
-            txtVideoSource.setModel(new DefaultComboBoxModel<>(settings.core().input().video().paths()));
-            txtVideoSource.setSelectedItem(settings.core().input().video().path());
+            JComboBox<String> txtVideoSource = (JComboBox<String>) context.state().guiComponents().get("txtVideoSource");
+            txtVideoSource.setModel(new DefaultComboBoxModel<>(context.settings().input().video().paths()));
+            txtVideoSource.setSelectedItem(context.settings().input().video().path());
 
             //Device Source RadioButton
-            JRadioButton optDeviceSource = (JRadioButton) settings.state().guiComponents().get("optDeviceSource");
-            optDeviceSource.setSelected(SourceType.Device.is(settings.core().input().source()));
+            JRadioButton optDeviceSource = (JRadioButton) context.state().guiComponents().get("optDeviceSource");
+            optDeviceSource.setSelected(SourceType.Device.is(context.settings().input().source()));
             if (optDeviceSource.isSelected()) { //Trigger Listener
                 for (ActionListener actionListener : optDeviceSource.getActionListeners()) {
                     actionListener.actionPerformed(new ActionEvent(optDeviceSource, ActionEvent.ACTION_PERFORMED, null));
@@ -2180,50 +2181,50 @@ public class GuiApplication {
 
             // Device Type ComboBox
             var txtDeviceType = (DisplayValueComboBox<DeviceType>)
-                    settings.state().guiComponents().get("txtDeviceType");
-            txtDeviceType.setSelectedItem(settings.core().input().device().type());
+                    context.state().guiComponents().get("txtDeviceType");
+            txtDeviceType.setSelectedItem(context.settings().input().device().type());
 
             //Device Path ComboBox
-            healDevicePath(settings);
-            JComboBox<DevicePath> txtDevicePath = (JComboBox<DevicePath>) settings.state().guiComponents().get("txtDevicePath");
-            txtDevicePath.setModel(new DefaultComboBoxModel<>(devicePaths(settings)));
-            txtDevicePath.setSelectedItem(settings.core().input().device().path());
+            healDevicePath(context);
+            JComboBox<DevicePath> txtDevicePath = (JComboBox<DevicePath>) context.state().guiComponents().get("txtDevicePath");
+            txtDevicePath.setModel(new DefaultComboBoxModel<>(devicePaths(context)));
+            txtDevicePath.setSelectedItem(context.settings().input().device().path());
 
             //Device Resolution combo box (repopulated from the device-advertised sizes)
-            refreshDeviceResolutions(settings);
+            refreshDeviceResolutions(context);
 
 
             //Device Sustain Framerate CheckBox
-            JCheckBox chkDeviceSustainFramerate = (JCheckBox) settings.state().guiComponents().get("chkDeviceSustainFramerate");
-            chkDeviceSustainFramerate.setSelected(settings.core().input().device().v4l4j().sustainFramerate());
+            JCheckBox chkDeviceSustainFramerate = (JCheckBox) context.state().guiComponents().get("chkDeviceSustainFramerate");
+            chkDeviceSustainFramerate.setSelected(context.settings().input().device().v4l4j().sustainFramerate());
             for (ActionListener actionListener : chkDeviceSustainFramerate.getActionListeners()) { //Trigger Listener
                 actionListener.actionPerformed(new ActionEvent(chkDeviceSustainFramerate, ActionEvent.ACTION_PERFORMED, null));
             }
 
             //Device Timeout Image IO CheckBox
-            JCheckBox chkDeviceTimeoutImageIO = (JCheckBox) settings.state().guiComponents().get("chkDeviceTimeoutImageIO");
-            chkDeviceTimeoutImageIO.setSelected(settings.core().input().device().v4l4j().timeoutImageIO());
+            JCheckBox chkDeviceTimeoutImageIO = (JCheckBox) context.state().guiComponents().get("chkDeviceTimeoutImageIO");
+            chkDeviceTimeoutImageIO.setSelected(context.settings().input().device().v4l4j().timeoutImageIO());
             for (ActionListener actionListener : chkDeviceTimeoutImageIO.getActionListeners()) { //Trigger Listener
                 actionListener.actionPerformed(new ActionEvent(chkDeviceTimeoutImageIO, ActionEvent.ACTION_PERFORMED, null));
             }
 
             //Device Keep Format CheckBox
-            JCheckBox chkDeviceKeepFormat = (JCheckBox) settings.state().guiComponents().get("chkDeviceKeepFormat");
-            chkDeviceKeepFormat.setSelected(settings.core().input().device().v4l4j().keepFormat());
+            JCheckBox chkDeviceKeepFormat = (JCheckBox) context.state().guiComponents().get("chkDeviceKeepFormat");
+            chkDeviceKeepFormat.setSelected(context.settings().input().device().v4l4j().keepFormat());
             for (ActionListener actionListener : chkDeviceKeepFormat.getActionListeners()) { //Trigger Listener
                 actionListener.actionPerformed(new ActionEvent(chkDeviceKeepFormat, ActionEvent.ACTION_PERFORMED, null));
             }
 
             //Device Full Resolution Preview CheckBox
-            JCheckBox chkFullResolutionPreview = (JCheckBox) settings.state().guiComponents().get("chkFullResolutionPreview");
-            chkFullResolutionPreview.setSelected(settings.core().input().fullResolutionPreview());
+            JCheckBox chkFullResolutionPreview = (JCheckBox) context.state().guiComponents().get("chkFullResolutionPreview");
+            chkFullResolutionPreview.setSelected(context.settings().input().fullResolutionPreview());
             for (ActionListener actionListener : chkFullResolutionPreview.getActionListeners()) { //Trigger Listener
                 actionListener.actionPerformed(new ActionEvent(chkFullResolutionPreview, ActionEvent.ACTION_PERFORMED, null));
             }
 
             //Device Input Preview Enabled CheckBox
-            JCheckBox chkInputPreviewEnabled = (JCheckBox) settings.state().guiComponents().get("chkInputPreviewEnabled");
-            chkInputPreviewEnabled.setSelected(settings.core().input().inputPreview());
+            JCheckBox chkInputPreviewEnabled = (JCheckBox) context.state().guiComponents().get("chkInputPreviewEnabled");
+            chkInputPreviewEnabled.setSelected(context.settings().input().inputPreview());
             for (ActionListener actionListener : chkInputPreviewEnabled.getActionListeners()) { //Trigger Listener
                 actionListener.actionPerformed(new ActionEvent(chkInputPreviewEnabled, ActionEvent.ACTION_PERFORMED, null));
             }
@@ -2233,103 +2234,103 @@ public class GuiApplication {
 
 
             //Image Type ComboBox
-            var txtImageType = (DisplayValueComboBox<ImageTypeDescriptor>) settings.state().guiComponents().get("txtImageType");
-            txtImageType.setSelectedItem(settings.core().image().descriptor());
+            var txtImageType = (DisplayValueComboBox<ImageTypeDescriptor>) context.state().guiComponents().get("txtImageType");
+            txtImageType.setSelectedItem(context.settings().image().descriptor());
 
             // Image resize CheckBox
-            JCheckBox chkImageResize = (JCheckBox) settings.state().guiComponents().get("chkImageResize");
-            chkImageResize.setSelected(settings.core().image().resize());
+            JCheckBox chkImageResize = (JCheckBox) context.state().guiComponents().get("chkImageResize");
+            chkImageResize.setSelected(context.settings().image().resize());
             for (ActionListener actionListener : chkImageResize.getActionListeners()) {
                 actionListener.actionPerformed(new ActionEvent(chkImageResize, ActionEvent.ACTION_PERFORMED, null));
             }
 
             //Image Resize Width TextField
-            JComboBox<Resolution> txtImageResize = (JComboBox<Resolution>) settings.state().guiComponents().get("txtImageResize");
-            txtImageResize.setSelectedItem(settings.core().image().resolution());
+            JComboBox<Resolution> txtImageResize = (JComboBox<Resolution>) context.state().guiComponents().get("txtImageResize");
+            txtImageResize.setSelectedItem(context.settings().image().resolution());
 
             // Internal image preview CheckBox
-            JCheckBox chkInternalImagePreview = (JCheckBox) settings.state().guiComponents().get("chkInternalImagePreview");
-            chkInternalImagePreview.setSelected(settings.core().image().internalImagePreview());
+            JCheckBox chkInternalImagePreview = (JCheckBox) context.state().guiComponents().get("chkInternalImagePreview");
+            chkInternalImagePreview.setSelected(context.settings().image().internalImagePreview());
             for (ActionListener actionListener : chkInternalImagePreview.getActionListeners()) { //Trigger Listener
                 actionListener.actionPerformed(new ActionEvent(chkInternalImagePreview, ActionEvent.ACTION_PERFORMED, null));
             }
 
             // Frame skip enabled CheckBox
-            JCheckBox chkFrameSkipEnabled = (JCheckBox) settings.state().guiComponents().get("chkFrameSkipEnabled");
-            chkFrameSkipEnabled.setSelected(settings.core().image().frameSkipEnabled());
+            JCheckBox chkFrameSkipEnabled = (JCheckBox) context.state().guiComponents().get("chkFrameSkipEnabled");
+            chkFrameSkipEnabled.setSelected(context.settings().image().frameSkipEnabled());
             for (ActionListener actionListener : chkFrameSkipEnabled.getActionListeners()) { //Trigger Listener
                 actionListener.actionPerformed(new ActionEvent(chkFrameSkipEnabled, ActionEvent.ACTION_PERFORMED, null));
             }
 
             // Frame skip value
-            var txtFrameSkipValue = (IntegerTextField) settings.state().guiComponents().get("txtFrameSkipValue");
-            txtFrameSkipValue.updateModel(settings.core().image().frameSkipValue());
+            var txtFrameSkipValue = (IntegerTextField) context.state().guiComponents().get("txtFrameSkipValue");
+            txtFrameSkipValue.updateModel(context.settings().image().frameSkipValue());
 
             // Tracker settings
 
             // Tracker type ComboBox
-            var txtTrackerType = (DisplayValueComboBox<TrackerType>) settings.state().guiComponents()
+            var txtTrackerType = (DisplayValueComboBox<TrackerType>) context.state().guiComponents()
                     .get("txtTrackerType");
-            txtTrackerType.setSelectedItem(settings.core().tracker().type());
+            txtTrackerType.setSelectedItem(context.settings().tracker().type());
 
             //KLT Tracker
 
             // templateRadius
-            var txtKltTrackerTemplateRadius = (IntegerTextField) settings.state().guiComponents()
+            var txtKltTrackerTemplateRadius = (IntegerTextField) context.state().guiComponents()
                     .get("txtKltTracker_templateRadius");
             txtKltTrackerTemplateRadius
-                    .updateModel(settings.core().tracker().klt().templateRadius());
+                    .updateModel(context.settings().tracker().klt().templateRadius());
 
             // pyramidLevels
-            var txtKltTrackerPyramidLevels = (IntegerTextField) settings.state().guiComponents()
+            var txtKltTrackerPyramidLevels = (IntegerTextField) context.state().guiComponents()
                     .get("txtKltTracker_pyramidLevels");
-            txtKltTrackerPyramidLevels.updateModel(settings.core().tracker().klt().pyramidLevels());
+            txtKltTrackerPyramidLevels.updateModel(context.settings().tracker().klt().pyramidLevels());
 
             // maxFeatures
-            var txtKltTrackerMaxFeatures = (IntegerTextField) settings.state().guiComponents()
+            var txtKltTrackerMaxFeatures = (IntegerTextField) context.state().guiComponents()
                     .get("txtKltTracker_maxFeatures");
-            txtKltTrackerMaxFeatures.updateModel(settings.core().tracker().klt().maxFeatures());
+            txtKltTrackerMaxFeatures.updateModel(context.settings().tracker().klt().maxFeatures());
 
             // radius
-            var txtKltTrackerRadius = (IntegerTextField) settings.state().guiComponents()
+            var txtKltTrackerRadius = (IntegerTextField) context.state().guiComponents()
                     .get("txtKltTracker_radius");
-            txtKltTrackerRadius.updateModel(settings.core().tracker().klt().radius());
+            txtKltTrackerRadius.updateModel(context.settings().tracker().klt().radius());
 
             // threshold
-            var txtKltTrackerThreshold = (FloatTextField) settings.state().guiComponents()
+            var txtKltTrackerThreshold = (FloatTextField) context.state().guiComponents()
                     .get("txtKltTracker_threshold");
-            txtKltTrackerThreshold.updateModel(settings.core().tracker().klt().threshold());
+            txtKltTrackerThreshold.updateModel(context.settings().tracker().klt().threshold());
 
             // SURF Tracker
 
             // maxFeaturesPerScale
-            var txtSurfTrackerMaxFeaturesPerScale = (IntegerTextField) settings.state().guiComponents()
+            var txtSurfTrackerMaxFeaturesPerScale = (IntegerTextField) context.state().guiComponents()
                     .get("txtSurfTracker_maxFeaturesPerScale");
             txtSurfTrackerMaxFeaturesPerScale
-                    .updateModel(settings.core().tracker().surf().maxFeaturesPerScale());
+                    .updateModel(context.settings().tracker().surf().maxFeaturesPerScale());
 
             // extractRadius
-            var txtSurfTrackerExtractRadius = (IntegerTextField) settings.state().guiComponents()
+            var txtSurfTrackerExtractRadius = (IntegerTextField) context.state().guiComponents()
                     .get("txtSurfTracker_extractRadius");
-            txtSurfTrackerExtractRadius.updateModel(settings.core().tracker().surf().extractRadius());
+            txtSurfTrackerExtractRadius.updateModel(context.settings().tracker().surf().extractRadius());
 
             // initialSampleSize
-            var txtSurfTrackerInitialSampleSize = (IntegerTextField) settings.state().guiComponents()
+            var txtSurfTrackerInitialSampleSize = (IntegerTextField) context.state().guiComponents()
                     .get("txtSurfTracker_initialSampleSize");
-            txtSurfTrackerInitialSampleSize.updateModel(settings.core().tracker().surf().initialSampleSize());
+            txtSurfTrackerInitialSampleSize.updateModel(context.settings().tracker().surf().initialSampleSize());
 
             // Tracker options
 
             // Show active tracks CheckBox
-            var chkTrackerShowActiveTracks = (JCheckBox) settings.state().guiComponents().get("chkTrackerShowActiveTracks");
-            chkTrackerShowActiveTracks.setSelected(settings.core().tracker().showActiveTracks());
+            var chkTrackerShowActiveTracks = (JCheckBox) context.state().guiComponents().get("chkTrackerShowActiveTracks");
+            chkTrackerShowActiveTracks.setSelected(context.settings().tracker().showActiveTracks());
             for (ActionListener actionListener : chkTrackerShowActiveTracks.getActionListeners()) { //Trigger Listener
                 actionListener.actionPerformed(new ActionEvent(chkTrackerShowActiveTracks, ActionEvent.ACTION_PERFORMED, null));
             }
 
             // Show new tracks CheckBox
-            var chkTrackerShowNewTracks = (JCheckBox) settings.state().guiComponents().get("chkTrackerShowNewTracks");
-            chkTrackerShowNewTracks.setSelected(settings.core().tracker().showNewTracks());
+            var chkTrackerShowNewTracks = (JCheckBox) context.state().guiComponents().get("chkTrackerShowNewTracks");
+            chkTrackerShowNewTracks.setSelected(context.settings().tracker().showNewTracks());
             for (ActionListener actionListener : chkTrackerShowNewTracks.getActionListeners()) { //Trigger Listener
                 actionListener.actionPerformed(new ActionEvent(chkTrackerShowNewTracks, ActionEvent.ACTION_PERFORMED, null));
             }
@@ -2338,115 +2339,115 @@ public class GuiApplication {
             // Visual odometry settings
 
             // Visual odometry type ComboBox
-            var txtVisualOdometryType = (DisplayValueComboBox<VisualOdometryType>) settings.state().guiComponents()
+            var txtVisualOdometryType = (DisplayValueComboBox<VisualOdometryType>) context.state().guiComponents()
                     .get("txtVisualOdometryType");
-            txtVisualOdometryType.setSelectedItem(settings.core().visualOdometry().type());
+            txtVisualOdometryType.setSelectedItem(context.settings().visualOdometry().type());
 
             // MonoPlaneInfinity
 
             // thresholdAdd
-            var txtMonoPlaneInfinityThresholdAdd = (IntegerTextField) settings.state().guiComponents()
+            var txtMonoPlaneInfinityThresholdAdd = (IntegerTextField) context.state().guiComponents()
                     .get("txtMonoPlaneInfinity_thresholdAdd");
             txtMonoPlaneInfinityThresholdAdd
-                    .updateModel(settings.core().visualOdometry().monoPlaneInfinity().thresholdAdd());
+                    .updateModel(context.settings().visualOdometry().monoPlaneInfinity().thresholdAdd());
 
             // thresholdRetire
-            var txtMonoPlaneInfinityThresholdRetire = (IntegerTextField) settings.state()
+            var txtMonoPlaneInfinityThresholdRetire = (IntegerTextField) context.state()
                     .guiComponents().get("txtMonoPlaneInfinity_thresholdRetire");
             txtMonoPlaneInfinityThresholdRetire
-                    .updateModel(settings.core().visualOdometry().monoPlaneInfinity().thresholdRetire());
+                    .updateModel(context.settings().visualOdometry().monoPlaneInfinity().thresholdRetire());
 
             // inlierPixelTol
-            var txtMonoPlaneInfinityInlierPixelTol = (DoubleTextField) settings.state().guiComponents()
+            var txtMonoPlaneInfinityInlierPixelTol = (DoubleTextField) context.state().guiComponents()
                     .get("txtMonoPlaneInfinity_inlierPixelTol");
             txtMonoPlaneInfinityInlierPixelTol
-                    .updateModel(settings.core().visualOdometry().monoPlaneInfinity().inlierPixelTol());
+                    .updateModel(context.settings().visualOdometry().monoPlaneInfinity().inlierPixelTol());
 
             // ransacIterations
-            var txtMonoPlaneInfinityRansacIterations = (IntegerTextField) settings.state().guiComponents()
+            var txtMonoPlaneInfinityRansacIterations = (IntegerTextField) context.state().guiComponents()
                     .get("txtMonoPlaneInfinity_ransacIterations");
             txtMonoPlaneInfinityRansacIterations
-                    .updateModel(settings.core().visualOdometry().monoPlaneInfinity().ransacIterations());
+                    .updateModel(context.settings().visualOdometry().monoPlaneInfinity().ransacIterations());
 
 
             // MonoPlaneOverhead
 
             // cellSize
-            var txtMonoPlaneOverheadCellSize = (DoubleTextField) settings.state().guiComponents()
+            var txtMonoPlaneOverheadCellSize = (DoubleTextField) context.state().guiComponents()
                     .get("txtMonoPlaneOverhead_cellSize");
             txtMonoPlaneOverheadCellSize
-                    .updateModel(settings.core().visualOdometry().monoPlaneOverhead().cellSize());
+                    .updateModel(context.settings().visualOdometry().monoPlaneOverhead().cellSize());
 
             // maxCellsPerPixel
-            var txtMonoPlaneOverheadMaxCellsPerPixel = (DoubleTextField) settings.state().guiComponents()
+            var txtMonoPlaneOverheadMaxCellsPerPixel = (DoubleTextField) context.state().guiComponents()
                     .get("txtMonoPlaneOverhead_maxCellsPerPixel");
             txtMonoPlaneOverheadMaxCellsPerPixel
-                    .updateModel(settings.core().visualOdometry().monoPlaneOverhead().maxCellsPerPixel());
+                    .updateModel(context.settings().visualOdometry().monoPlaneOverhead().maxCellsPerPixel());
 
             // mapHeightFraction
-            var txtMonoPlaneOverheadMapHeightFraction = (DoubleTextField) settings.state().guiComponents()
+            var txtMonoPlaneOverheadMapHeightFraction = (DoubleTextField) context.state().guiComponents()
                     .get("txtMonoPlaneOverhead_mapHeightFraction");
             txtMonoPlaneOverheadMapHeightFraction
-                    .updateModel(settings.core().visualOdometry().monoPlaneOverhead().mapHeightFraction());
+                    .updateModel(context.settings().visualOdometry().monoPlaneOverhead().mapHeightFraction());
 
             // inlierGroundTol
-            var txtMonoPlaneOverheadInlierGroundTol = (DoubleTextField) settings.state().guiComponents()
+            var txtMonoPlaneOverheadInlierGroundTol = (DoubleTextField) context.state().guiComponents()
                     .get("txtMonoPlaneOverhead_inlierGroundTol");
             txtMonoPlaneOverheadInlierGroundTol
-                    .updateModel(settings.core().visualOdometry().monoPlaneOverhead().inlierGroundTol());
+                    .updateModel(context.settings().visualOdometry().monoPlaneOverhead().inlierGroundTol());
 
             // ransacIteration
-            var txtMonoPlaneOverheadRansacIteration = (IntegerTextField) settings.state().guiComponents()
+            var txtMonoPlaneOverheadRansacIteration = (IntegerTextField) context.state().guiComponents()
                     .get("txtMonoPlaneOverhead_ransacIteration");
             txtMonoPlaneOverheadRansacIteration
-                    .updateModel(settings.core().visualOdometry().monoPlaneOverhead().ransacIterations());
+                    .updateModel(context.settings().visualOdometry().monoPlaneOverhead().ransacIterations());
 
             // thresholdRetire
-            var txtMonoPlaneOverheadThresholdRetire = (IntegerTextField) settings.state().guiComponents()
+            var txtMonoPlaneOverheadThresholdRetire = (IntegerTextField) context.state().guiComponents()
                     .get("txtMonoPlaneOverhead_thresholdRetire");
             txtMonoPlaneOverheadThresholdRetire
-                    .updateModel(settings.core().visualOdometry().monoPlaneOverhead().thresholdRetire());
+                    .updateModel(context.settings().visualOdometry().monoPlaneOverhead().thresholdRetire());
 
             // absoluteMinimumTracks
-            var txtMonoPlaneOverheadAbsoluteMinimumTracks = (IntegerTextField) settings.state().guiComponents()
+            var txtMonoPlaneOverheadAbsoluteMinimumTracks = (IntegerTextField) context.state().guiComponents()
                     .get("txtMonoPlaneOverhead_absoluteMinimumTracks");
             txtMonoPlaneOverheadAbsoluteMinimumTracks
-                    .updateModel(settings.core().visualOdometry().monoPlaneOverhead().absoluteMinimumTracks());
+                    .updateModel(context.settings().visualOdometry().monoPlaneOverhead().absoluteMinimumTracks());
 
             // respawnTrackFraction
-            var txtMonoPlaneOverheadRespawnTrackFraction = (DoubleTextField) settings.state().guiComponents()
+            var txtMonoPlaneOverheadRespawnTrackFraction = (DoubleTextField) context.state().guiComponents()
                     .get("txtMonoPlaneOverhead_respawnTrackFraction");
             txtMonoPlaneOverheadRespawnTrackFraction
-                    .updateModel(settings.core().visualOdometry().monoPlaneOverhead().respawnTrackFraction());
+                    .updateModel(context.settings().visualOdometry().monoPlaneOverhead().respawnTrackFraction());
 
             // respawnCoverageFraction
-            var txtMonoPlaneOverheadRespawnCoverageFraction = (DoubleTextField) settings.state().guiComponents()
+            var txtMonoPlaneOverheadRespawnCoverageFraction = (DoubleTextField) context.state().guiComponents()
                     .get("txtMonoPlaneOverhead_respawnCoverageFraction");
             txtMonoPlaneOverheadRespawnCoverageFraction
-                    .updateModel(settings.core().visualOdometry().monoPlaneOverhead().respawnCoverageFraction());
+                    .updateModel(context.settings().visualOdometry().monoPlaneOverhead().respawnCoverageFraction());
 
 
             /**Chart Settings Panel Reloading**/
 
 
             // Chart type ComboBox
-            var txtChartType = (DisplayValueComboBox<ChartType>) settings.state().guiComponents().get("txtChartType");
-            txtChartType.setSelectedItem(settings.core().chart().type());
+            var txtChartType = (DisplayValueComboBox<ChartType>) context.state().guiComponents().get("txtChartType");
+            txtChartType.setSelectedItem(context.settings().chart().type());
 
             // Chart XZ scale TextField
-            var txtChartXZScale = (DoubleTextField) settings.state().guiComponents().get("txtChartXZScale");
-            txtChartXZScale.updateModel(settings.core().chart().scaleXZ());
+            var txtChartXZScale = (DoubleTextField) context.state().guiComponents().get("txtChartXZScale");
+            txtChartXZScale.updateModel(context.settings().chart().scaleXZ());
             // Applying loaded Chart XZ Scale
-            ChartScrollPane chartXZPanel = settings.state().guiController().chartXZPanel();
-            chartXZPanel.settings().chartScale(settings.core().chart().scaleXZ());
+            ChartScrollPane chartXZPanel = context.state().guiController().chartXZPanel();
+            chartXZPanel.settings().chartScale(context.settings().chart().scaleXZ());
             chartXZPanel.resetSize();
 
             // Chart Y Scale TextField
-            var txtChartYScale = (DoubleTextField) settings.state().guiComponents().get("txtChartYScale");
-            txtChartYScale.updateModel(settings.core().chart().scaleY());
+            var txtChartYScale = (DoubleTextField) context.state().guiComponents().get("txtChartYScale");
+            txtChartYScale.updateModel(context.settings().chart().scaleY());
             // Applying loaded Chart Y Scale
-            ChartScrollPane chartYPanel = settings.state().guiController().chartYPanel();
-            chartYPanel.settings().chartScale(settings.core().chart().scaleY());
+            ChartScrollPane chartYPanel = context.state().guiController().chartYPanel();
+            chartYPanel.settings().chartScale(context.settings().chart().scaleY());
             chartYPanel.resetSize();
 
             return true;
@@ -2459,7 +2460,7 @@ public class GuiApplication {
     private final class MainButtonListener extends MouseAdapter implements ActionListener {
         //Basic Parameters
         private final String function;
-        private final Settings settings;
+        private final AppContext context;
         private final Core core;
 
         //Parameters for MouseListener mode only (single/double click management)
@@ -2469,48 +2470,48 @@ public class GuiApplication {
 
         //Parameters for Load/Save Buttons only
 
-        public MainButtonListener(String function, Settings settings, Core core) {
+        public MainButtonListener(String function, AppContext context, Core core) {
             this.function = function;
-            this.settings = settings;
+            this.context = context;
             this.core = core;
         }
 
         //Components needed by the click functions, resolved on use
         //(the listener is created before all guiComponents are registered)
         private ImageButton btnStartVO() {
-            return (ImageButton) this.settings.state().guiComponents().get("btnStartVO");
+            return (ImageButton) this.context.state().guiComponents().get("btnStartVO");
         }
 
         private ImageButton btnPauseVO() {
-            return (ImageButton) this.settings.state().guiComponents().get("btnPauseVO");
+            return (ImageButton) this.context.state().guiComponents().get("btnPauseVO");
         }
 
         private ImageButton btnResetVO() {
-            return (ImageButton) this.settings.state().guiComponents().get("btnResetVO");
+            return (ImageButton) this.context.state().guiComponents().get("btnResetVO");
         }
 
         private ImageButton btnStopVO() {
-            return (ImageButton) this.settings.state().guiComponents().get("btnStopVO");
+            return (ImageButton) this.context.state().guiComponents().get("btnStopVO");
         }
 
         private ImageButton btnClearVO() {
-            return (ImageButton) this.settings.state().guiComponents().get("btnClearVO");
+            return (ImageButton) this.context.state().guiComponents().get("btnClearVO");
         }
 
         private ImageButton btnTimedVO() {
-            return (ImageButton) this.settings.state().guiComponents().get("btnTimedProcessingVO");
+            return (ImageButton) this.context.state().guiComponents().get("btnTimedProcessingVO");
         }
 
         private JFrame mainFrame() {
-            return (JFrame) this.settings.state().guiComponents().get("mainFrame");
+            return (JFrame) this.context.state().guiComponents().get("mainFrame");
         }
 
         private ChartScrollPane chartXZPanel() {
-            return this.settings.state().guiController().chartXZPanel();
+            return this.context.state().guiController().chartXZPanel();
         }
 
         private InfoScrollPane infoPanel() {
-            return this.settings.state().guiController().infoPanel();
+            return this.context.state().guiController().infoPanel();
         }
 
 
@@ -2553,13 +2554,13 @@ public class GuiApplication {
 
             switch (function) {    //Depending on function value associated to the button acts differently:
                 case "loadSettings": //On click on Load Settings
-                    switch (this.settings.currentFormat()) {
+                    switch (this.context.currentFormat()) {
                         case JSON:
                             //Update Parameters reference into the passed Core to the new Parameters
                             //and updates Status Label content
-                            if (this.settings.loadFromJson() && refreshGuiFromParameters(this.settings)) {
+                            if (this.context.loadFromJson() && refreshGuiFromParameters(this.context)) {
                                 infoPanel().setAppStatus(AppStatus.JSONSettingsLoaded);
-                            } else if (!Files.exists(this.settings.jsonPath())) {
+                            } else if (!Files.exists(this.context.jsonPath())) {
                                 infoPanel().setAppStatus(AppStatus.JSONSettingsNotFound);
                             } else {
                                 infoPanel().setAppStatus(AppStatus.JSONSettingsLoadError);
@@ -2568,9 +2569,9 @@ public class GuiApplication {
                         case YAML:
                             //Update Parameters reference into the passed Core to the new Parameters
                             //and updates Status Label content
-                            if (this.settings.loadFromYaml() && refreshGuiFromParameters(this.settings)) {
+                            if (this.context.loadFromYaml() && refreshGuiFromParameters(this.context)) {
                                 infoPanel().setAppStatus(AppStatus.YAMLSettingsLoaded);
-                            } else if (!Files.exists(this.settings.yamlPath())) {
+                            } else if (!Files.exists(this.context.yamlPath())) {
                                 infoPanel().setAppStatus(AppStatus.YAMLSettingsNotFound);
                             } else {
                                 infoPanel().setAppStatus(AppStatus.YAMLSettingsLoadError);
@@ -2581,16 +2582,16 @@ public class GuiApplication {
                     }
                     break;
                 case "saveSettings": //On single-click on Save Settings
-                    switch (this.settings.currentFormat()) {
+                    switch (this.context.currentFormat()) {
                         case JSON:
                             //Updates Status Label content
-                            infoPanel().setAppStatus(this.settings.saveToJson()
+                            infoPanel().setAppStatus(this.context.saveToJson()
                                     ? AppStatus.JSONSettingsSaved
                                     : AppStatus.JSONSettingsSaveError);
                             break;
                         case YAML:
                             //Updates Status Label content
-                            infoPanel().setAppStatus(this.settings.saveToYaml()
+                            infoPanel().setAppStatus(this.context.saveToYaml()
                                     ? AppStatus.YAMLSettingsSaved
                                     : AppStatus.YAMLSettingsSaveError);
                             break;
@@ -2600,8 +2601,8 @@ public class GuiApplication {
                     break;
                 case "resetSettings": //On click on Reset Settings
                     //Resets parameters to Default
-                    this.settings.loadDefaults();
-                    boolean resetSuccess = refreshGuiFromParameters(settings);
+                    this.context.loadDefaults();
+                    boolean resetSuccess = refreshGuiFromParameters(context);
                     //Updates Status Label content
                     if (resetSuccess) {
                         infoPanel().setAppStatus(AppStatus.SettingsReset);
@@ -2610,7 +2611,7 @@ public class GuiApplication {
                     }
                     break;
                 case "switchSettings":
-                    SettingsType currentFormat = this.settings.currentFormat();
+                    SettingsType currentFormat = this.context.currentFormat();
                     int choice = JOptionPane.showOptionDialog(this.mainFrame(),
                             "Do you want to change Save Format? (Actual save format: " + currentFormat + ")",
                             "Change Save Format",
@@ -2630,14 +2631,14 @@ public class GuiApplication {
                     // Save in the new format, then drop the old file: the chosen format
                     // survives reboots implicitly, as the only settings file that exists
                     boolean switched = chosenFormat == SettingsType.JSON
-                            ? this.settings.saveToJson()
-                            : this.settings.saveToYaml();
+                            ? this.context.saveToJson()
+                            : this.context.saveToYaml();
                     if (switched) {
-                        this.settings.state().settingsFormat(chosenFormat);
+                        this.context.state().settingsFormat(chosenFormat);
                         try {
                             Files.deleteIfExists(chosenFormat == SettingsType.JSON
-                                    ? this.settings.yamlPath()
-                                    : this.settings.jsonPath());
+                                    ? this.context.yamlPath()
+                                    : this.context.jsonPath());
                         } catch (IOException ex) {
                             Log.warnf("Could not remove the previous settings file: %s", ex.toString());
                         }
@@ -2689,18 +2690,18 @@ public class GuiApplication {
 
         private @NotNull Future<?> startVisualOdometry(boolean isTimed) {
             // Signal setup phase and lock the whole toolbar until the setup outcome is known
-            CoreUtils.setProcessingStateSafe(this.settings, ProcessingState.Init);
+            CoreUtils.setProcessingStateSafe(this.context, ProcessingState.Init);
             this.setToolbarStatus(false, false, false, false,
                     false, false);
 
             // Enable the processing controls only once setup succeeds and processing actually starts
             var toolbarWatcher = Executors.newSingleThreadExecutor(NamedThreadFactory.from(AppConstants.VO_TOOLBAR_THREAD));
             toolbarWatcher.submit(() -> {
-                this.settings.state().processing().waitUntilNot(ProcessingState.Init);
+                this.context.state().processing().waitUntilNot(ProcessingState.Init);
                 SwingUtilities.invokeLater(() -> {
                     // No-op if processing already ended (toolbar restored by the vo task itself)
-                    if (this.settings.state().processing().is(ProcessingState.Running) ||
-                            this.settings.state().processing().is(ProcessingState.Paused)) {
+                    if (this.context.state().processing().is(ProcessingState.Running) ||
+                            this.context.state().processing().is(ProcessingState.Paused)) {
                         this.setRunningToolbar(isTimed);
                     }
                 });
@@ -2719,12 +2720,12 @@ public class GuiApplication {
         }
 
         private void pauseVisualOdometry() {
-            if (this.settings.state().processing().not(ProcessingState.Paused)) {
+            if (this.context.state().processing().not(ProcessingState.Paused)) {
                 // Notify pause to vo thread
-                CoreUtils.setProcessingStateSafe(this.settings, ProcessingState.Paused);
+                CoreUtils.setProcessingStateSafe(this.context, ProcessingState.Paused);
             } else {
                 // Notify resume to vo thread
-                CoreUtils.setProcessingStateSafe(this.settings, ProcessingState.Running);
+                CoreUtils.setProcessingStateSafe(this.context, ProcessingState.Running);
             }
             // Switch pause/resume icon
             this.btnPauseVO().switchIconSet();
@@ -2732,22 +2733,22 @@ public class GuiApplication {
 
         private void resetVisualOdometry() {
             // Notify reset to vo thread
-            CoreUtils.setResetRequested(this.settings, true);
+            CoreUtils.setResetRequested(this.context, true);
         }
 
         private void stopVisualOdometry() {
             // Notify stop to vo thread; the vo task itself restores the toolbar on exit
-            CoreUtils.setProcessingStateSafe(this.settings, ProcessingState.Stopped);
+            CoreUtils.setProcessingStateSafe(this.context, ProcessingState.Stopped);
         }
 
         private void clearVisualOdometry() {
-            if (this.settings.state().processing().is(ProcessingState.Running) ||
-                    this.settings.state().processing().is(ProcessingState.Paused)) {
+            if (this.context.state().processing().is(ProcessingState.Running) ||
+                    this.context.state().processing().is(ProcessingState.Paused)) {
                 // Notify clear to vo thread; the vo task itself restores the toolbar on exit
-                CoreUtils.setProcessingStateSafe(this.settings, ProcessingState.Cleared);
+                CoreUtils.setProcessingStateSafe(this.context, ProcessingState.Cleared);
             } else {
-                CoreRendering.renderClearAllPoints(this.settings);
-                CoreRendering.renderAppStatus(this.settings, AppStatus.Cleared);
+                CoreRendering.renderClearAllPoints(this.context);
+                CoreRendering.renderAppStatus(this.context, AppStatus.Cleared);
                 this.setReadyToolbar(false);
             }
         }
@@ -2775,11 +2776,11 @@ public class GuiApplication {
             Executors.newSingleThreadExecutor(NamedThreadFactory.from(AppConstants.VO_TIMED_STOP_THREAD)).submit(() -> {
                 // Suspend thread until vo process is running (or error)
                 this.btnDisableAndRepaint(this.btnTimedVO());
-                this.settings.state().processing().waitUntil(
+                this.context.state().processing().waitUntil(
                         ProcessingState.Running,
                         ProcessingState.Error
                 );
-                if (this.settings.state().processing().is(ProcessingState.Error))
+                if (this.context.state().processing().is(ProcessingState.Error))
                     return;
                 this.btnSwitchAndSetText(this.btnTimedVO(), totalSeconds);
 
@@ -2787,21 +2788,21 @@ public class GuiApplication {
                 AtomicInteger seconds = new AtomicInteger(0);
                 ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor(
                         NamedThreadFactory.from(AppConstants.VO_TIMED_STOP_COUNTDOWN_THREAD));
-                service.scheduleAtFixedRate(() -> timedStop(settings, service, seconds, totalSeconds),
+                service.scheduleAtFixedRate(() -> timedStop(context, service, seconds, totalSeconds),
                         1, 1, TimeUnit.SECONDS);
             });
         }
 
-        private void timedStop(@NotNull Settings settings, ScheduledExecutorService service, AtomicInteger seconds,
+        private void timedStop(@NotNull AppContext context, ScheduledExecutorService service, AtomicInteger seconds,
                                int totalSeconds) {
             {
-                if (settings.state().processing().is(ProcessingState.Paused)) {
+                if (context.state().processing().is(ProcessingState.Paused)) {
                     // Wait until resume
                     service.shutdown();
-                    settings.state().processing().waitUntilNot(ProcessingState.Paused);
-                    service.scheduleAtFixedRate(() -> timedStop(settings, service, seconds, totalSeconds),
+                    context.state().processing().waitUntilNot(ProcessingState.Paused);
+                    service.scheduleAtFixedRate(() -> timedStop(context, service, seconds, totalSeconds),
                             0, 1, TimeUnit.SECONDS);
-                } else if (settings.state().processing().not(ProcessingState.Running)) {
+                } else if (context.state().processing().not(ProcessingState.Running)) {
                     // Stop if vo thread isn't running
                     service.shutdown();
                     return;
@@ -2814,10 +2815,10 @@ public class GuiApplication {
                 // If countdown ended
                 if (currSeconds == totalSeconds) {
                     // Stop capture and processing
-                    if (settings.state().processing().is(ProcessingState.Running) ||
-                            settings.state().device().isRunning()) {
+                    if (context.state().processing().is(ProcessingState.Running) ||
+                            context.state().device().isRunning()) {
                         try {
-                            settings.state().device().stop();
+                            context.state().device().stop();
                         } catch (CameraException ignored) {
                             // any camera exception will be managed by vo thread itself on cleanup phase
                         }
@@ -2835,7 +2836,7 @@ public class GuiApplication {
 
         private void setReadyToolbar(Boolean clearEnabled) {
             clearEnabled = clearEnabled != null ? clearEnabled : this.chartXZPanel().hasPoints();
-            boolean timedEnabled = SourceType.Device.is(settings.core().input().source());
+            boolean timedEnabled = SourceType.Device.is(context.settings().input().source());
 
             this.setToolbarStatus(true, false, false, false,
                     clearEnabled, timedEnabled);
@@ -2990,7 +2991,7 @@ public class GuiApplication {
 
     private final class InputSourceOptionListener implements ActionListener {
         private final SourceType inputSource;
-        private final Settings settings;
+        private final AppContext context;
 
         //Extracts from guiComponents all the components needed (Video/Device components)
         private JRadioButton optVideoSource;
@@ -3004,23 +3005,23 @@ public class GuiApplication {
 
         private ImageButton btnTimedProcessingVO;
 
-        private InputSourceOptionListener(SourceType inputSource, Settings settings) {
+        private InputSourceOptionListener(SourceType inputSource, AppContext context) {
             this.inputSource = inputSource;
-            this.settings = settings;
+            this.context = context;
         }
 
         @SuppressWarnings("unchecked") // component-registry lookups: JComboBox<String> casts are safe by construction
         private void getComponents() {
-            this.optVideoSource = (JRadioButton) this.settings.state().guiComponents().get("optVideoSource");
-            this.txtVideoSource = (JComboBox<String>) this.settings.state().guiComponents().get("txtVideoSource");
-            this.btnVideoSourceBrowsing = (JButton) this.settings.state().guiComponents().get("btnVideoSourceBrowsing");
+            this.optVideoSource = (JRadioButton) this.context.state().guiComponents().get("optVideoSource");
+            this.txtVideoSource = (JComboBox<String>) this.context.state().guiComponents().get("txtVideoSource");
+            this.btnVideoSourceBrowsing = (JButton) this.context.state().guiComponents().get("btnVideoSourceBrowsing");
 
-            this.optDeviceSource = (JRadioButton) this.settings.state().guiComponents().get("optDeviceSource");
-            this.txtDeviceType = (JComboBox<String>) this.settings.state().guiComponents().get("txtDeviceType");
-            this.txtDevicePath = (JComboBox<String>) this.settings.state().guiComponents().get("txtDevicePath");
-            this.deviceAdjustmentsPanel = (JPanel) this.settings.state().guiComponents().get("deviceAdjustmentsPanel");
+            this.optDeviceSource = (JRadioButton) this.context.state().guiComponents().get("optDeviceSource");
+            this.txtDeviceType = (JComboBox<String>) this.context.state().guiComponents().get("txtDeviceType");
+            this.txtDevicePath = (JComboBox<String>) this.context.state().guiComponents().get("txtDevicePath");
+            this.deviceAdjustmentsPanel = (JPanel) this.context.state().guiComponents().get("deviceAdjustmentsPanel");
 
-            this.btnTimedProcessingVO = (ImageButton) this.settings.state().guiComponents().get("btnTimedProcessingVO");
+            this.btnTimedProcessingVO = (ImageButton) this.context.state().guiComponents().get("btnTimedProcessingVO");
         }
 
         @Override
@@ -3031,7 +3032,7 @@ public class GuiApplication {
             //(could be Video or Device)
 
             //Input Source parameter is set to inputSource (VIDEO_INPUT("video") or DEVICE_INPUT("device"))
-            this.settings.core().input().source(inputSource);
+            this.context.settings().input().source(inputSource);
 
             boolean isVideo = SourceType.Video.is(inputSource);
             boolean isDevice = SourceType.Device.is(inputSource);
@@ -3068,13 +3069,13 @@ public class GuiApplication {
 
         private final String controlledParameter;
         private final JCheckBox controllerCheckBox;
-        private final Settings settings;
+        private final AppContext context;
 
-        private ParameterCheckBoxListener(String controlledParameter, JCheckBox controllerCheckBox, Settings settings) {
+        private ParameterCheckBoxListener(String controlledParameter, JCheckBox controllerCheckBox, AppContext context) {
 
             this.controlledParameter = controlledParameter;
             this.controllerCheckBox = controllerCheckBox;
-            this.settings = settings;
+            this.context = context;
 
         }
 
@@ -3085,52 +3086,52 @@ public class GuiApplication {
 														  else it restores to normal*/
             switch (controlledParameter) {
                 case "deviceSustainFramerate":
-                    this.settings.core().input().device().v4l4j().sustainFramerate(controllerCheckBox.isSelected());
+                    this.context.settings().input().device().v4l4j().sustainFramerate(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(
                             controllerCheckBox.isSelected() ? "<html><b>Sustain Framerate</b></html>" : "<html>Sustain Framerate</html>");
                     break;
                 case "deviceTimeoutImageIO":
-                    this.settings.core().input().device().v4l4j().timeoutImageIO(controllerCheckBox.isSelected());
+                    this.context.settings().input().device().v4l4j().timeoutImageIO(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(
                             controllerCheckBox.isSelected() ? "<html><b>Timeout Image I/O</b></html>" : "<html>Timeout Image I/O</html>");
                     break;
                 case "deviceKeepFormat":
-                    this.settings.core().input().device().v4l4j().keepFormat(controllerCheckBox.isSelected());
+                    this.context.settings().input().device().v4l4j().keepFormat(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(
                             controllerCheckBox.isSelected() ? "<html><b>Keep Format</b></html>" : "<html>Keep Format</html>");
                     break;
                 case "fullResolutionPreview":
-                    this.settings.core().input().fullResolutionPreview(controllerCheckBox.isSelected());
+                    this.context.settings().input().fullResolutionPreview(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(
                             controllerCheckBox.isSelected() ? "<html><b>Full-Resolution Preview</b></html>" : "<html>Full-Resolution Preview</html>");
                     break;
                 case "inputPreviewEnabled":
-                    this.settings.core().input().inputPreview(controllerCheckBox.isSelected());
+                    this.context.settings().input().inputPreview(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(
                             controllerCheckBox.isSelected() ? "<html><b>Enable Input Preview (Slower)</b></html>" : "<html>Enable Input Preview (Slower)</html>");
                     break;
                 case "imageResize":
-                    this.settings.core().image().resize(controllerCheckBox.isSelected());
+                    this.context.settings().image().resize(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(controllerCheckBox.isSelected() ? "<html><b>Resize</b></html>" : "<html>Resize</html>");
-                    this.settings.state().guiComponents().get("txtImageResize").setEnabled(controllerCheckBox.isSelected());
+                    this.context.state().guiComponents().get("txtImageResize").setEnabled(controllerCheckBox.isSelected());
                     break;
                 case "internalImagePreview":
-                    this.settings.core().image().internalImagePreview(controllerCheckBox.isSelected());
+                    this.context.settings().image().internalImagePreview(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(
                             controllerCheckBox.isSelected() ? "<html><b>Preview Internal Image (Slower)</b></html>" : "<html>Preview Internal Image (Slower)</html>");
                     break;
                 case "frameSkipEnabled":
-                    this.settings.core().image().frameSkipEnabled(controllerCheckBox.isSelected());
+                    this.context.settings().image().frameSkipEnabled(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(
                             controllerCheckBox.isSelected() ? "<html><b>Frame skip</b></html>" : "<html>Frame skip</html>");
                     break;
                 case "trackerShowActiveTracks":
-                    this.settings.core().tracker().showActiveTracks(controllerCheckBox.isSelected());
+                    this.context.settings().tracker().showActiveTracks(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(
                             controllerCheckBox.isSelected() ? "<html><b>Show Active Tracks</b></html>" : "<html>Show Active Tracks</html>");
                     break;
                 case "trackerShowNewTracks":
-                    this.settings.core().tracker().showNewTracks(controllerCheckBox.isSelected());
+                    this.context.settings().tracker().showNewTracks(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(
                             controllerCheckBox.isSelected() ? "<html><b>Show New Tracks</b></html>" : "<html>Show New Tracks</html>");
                     break;
@@ -3141,22 +3142,22 @@ public class GuiApplication {
     private final class ChartButtonListener implements ActionListener {
 
         private final String function;
-        private final Settings settings;
+        private final AppContext context;
 
-        public ChartButtonListener(String function, Settings settings) {
+        public ChartButtonListener(String function, AppContext context) {
 
             this.function = function;
-            this.settings = settings;
+            this.context = context;
         }
 
         @Override
         public void actionPerformed(ActionEvent evt) {
-            ChartScrollPane chartXZPanel = this.settings.state().guiController().chartXZPanel();
-            ChartScrollPane chartYPanel = this.settings.state().guiController().chartYPanel();
+            ChartScrollPane chartXZPanel = this.context.state().guiController().chartXZPanel();
+            ChartScrollPane chartYPanel = this.context.state().guiController().chartYPanel();
 
             switch (function) {
                 case "chartXZApplyScale": //Change XZ Chart scale
-                    chartXZPanel.settings().chartScale(this.settings.core().chart().scaleXZ());
+                    chartXZPanel.settings().chartScale(this.context.settings().chart().scaleXZ());
                     chartXZPanel.resetSize();
                     break;
                 case "chartXZMoveToOrigin"://Chart X/Z Move to Origin
@@ -3167,7 +3168,7 @@ public class GuiApplication {
                     break;
                 case "chartXZ3DPoints": //Chart X/Z 3D Points
 
-                    JCheckBox chkChartXZ_3DPoints = (JCheckBox) this.settings.state().guiComponents().get("chkChartXZ3DPoints");
+                    JCheckBox chkChartXZ_3DPoints = (JCheckBox) this.context.state().guiComponents().get("chkChartXZ3DPoints");
 
                     chkChartXZ_3DPoints.setText(
                             chkChartXZ_3DPoints.isSelected() ? "<html><b>3D Points</b></html>" : "<html>3D Points</html>");
@@ -3175,7 +3176,7 @@ public class GuiApplication {
                     chartXZPanel.repaint();
                     break;
                 case "chartYApplyScale": //Change Y Chart Scale
-                    chartYPanel.settings().chartScale(this.settings.core().chart().scaleY());
+                    chartYPanel.settings().chartScale(this.context.settings().chart().scaleY());
                     chartYPanel.resetSize();
                     break;
                 case "chartYMoveToOrigin"://Chart Y Move to Origin

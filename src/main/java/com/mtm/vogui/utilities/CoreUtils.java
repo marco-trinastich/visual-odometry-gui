@@ -18,11 +18,12 @@ import com.mtm.vogui.core.CoreRendering;
 import com.mtm.vogui.core.integration.camera.BoofCvCamera;
 import com.mtm.vogui.core.integration.camera.V4l4jCamera;
 import com.mtm.vogui.models.constants.Messages;
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.enums.core.ProcessingState;
 import com.mtm.vogui.models.enums.settings.ImageTypeDescriptor;
 import com.mtm.vogui.models.core.exceptions.CameraException;
-import com.mtm.vogui.models.settings.Settings;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -65,7 +66,7 @@ public class CoreUtils {
         return video != null;
     }
 
-    public static boolean openDeviceV4L4J(Settings settings, ProcessingParameters params) throws CameraException {
+    public static boolean openDeviceV4L4J(AppContext context, ProcessingParameters params) throws CameraException {
         if (!OSUtils.isUnix()) {
             // If not unix, exit
             return false;
@@ -74,52 +75,52 @@ public class CoreUtils {
         try {
             // Creates new V4L4J device
             var camera = V4l4jCamera.from(
-                    settings,
-                    image -> CoreRendering.renderInputVideo(settings, image),
-                    buffer -> CoreRendering.renderBufferStatus(settings, buffer)
+                    context,
+                    image -> CoreRendering.renderInputVideo(context, image),
+                    buffer -> CoreRendering.renderBufferStatus(context, buffer)
             ).start();
-            settings.state().device(camera);
+            context.state().device(camera);
             params.frameSize(camera.getFrameSize());
             // Reflect into GUI/settings the device actually opened and the resolution it granted
-            CoreRendering.renderDevicePath(settings, camera.getDevicePath());
-            CoreRendering.renderDeviceResolution(settings, camera.getFrameSize());
+            CoreRendering.renderDevicePath(context, camera.getDevicePath());
+            CoreRendering.renderDeviceResolution(context, camera.getFrameSize());
             return true;
         } catch (Throwable e) {
             // Throwable: missing V4L4J natives surface as LinkageError, not Exception
             LogUtils.errorf(e, Messages.OPEN_DEVICE_ERROR, e.getMessage());
 
             // Close device
-            if (settings.state().device() != null) {
-                settings.state().device().stop();
-                settings.state().device().clearBuffer();
+            if (context.state().device() != null) {
+                context.state().device().stop();
+                context.state().device().clearBuffer();
             }
 
             return false;
         }
     }
 
-    public static boolean openDeviceBoofCv(Settings settings, ProcessingParameters params) throws CameraException {
+    public static boolean openDeviceBoofCv(AppContext context, ProcessingParameters params) throws CameraException {
         try {
             // Start input device
             var camera = BoofCvCamera.from(
-                    settings,
-                    image -> CoreRendering.renderInputVideo(settings, image),
-                    buffer -> CoreRendering.renderBufferStatus(settings, buffer)
+                    context,
+                    image -> CoreRendering.renderInputVideo(context, image),
+                    buffer -> CoreRendering.renderBufferStatus(context, buffer)
             ).start();
-            settings.state().device(camera);
+            context.state().device(camera);
             params.frameSize(camera.getFrameSize());
             // Reflect into GUI/settings the device actually opened and the resolution it granted
-            CoreRendering.renderDevicePath(settings, camera.getDeviceName());
-            CoreRendering.renderDeviceResolution(settings, camera.getFrameSize());
+            CoreRendering.renderDevicePath(context, camera.getDeviceName());
+            CoreRendering.renderDeviceResolution(context, camera.getFrameSize());
             return true;
         } catch (Throwable e) {
             // Throwable: missing webcam natives surface as LinkageError, not Exception
             LogUtils.errorf(e, Messages.OPEN_DEVICE_ERROR, e.getMessage());
 
             // Close device
-            if (settings.state().device() != null) {
-                settings.state().device().stop();
-                settings.state().device().clearBuffer();
+            if (context.state().device() != null) {
+                context.state().device().stop();
+                context.state().device().clearBuffer();
             }
 
             return false;
@@ -155,25 +156,25 @@ public class CoreUtils {
 
     // Thread utils
 
-    public static void setProcessingStateSafe(@NotNull Settings settings, ProcessingState state) {
+    public static void setProcessingStateSafe(@NotNull AppContext context, ProcessingState state) {
         // Ensures that the processing thread is unlocked by releasing any existing lock
         // (possibly: pause state or buffer waiting).
-        settings.state().processing().set(state);
-        if (settings.state().device() != null) {
-            settings.state().device().awakeBufferWaiters();
+        context.state().processing().set(state);
+        if (context.state().device() != null) {
+            context.state().device().awakeBufferWaiters();
         }
     }
 
-    public static boolean isResetRequested(@NotNull Settings settings) {
-        return settings.state().resetRequest().get();
+    public static boolean isResetRequested(@NotNull AppContext context) {
+        return context.state().resetRequest().get();
     }
 
-    public static void setResetRequested(@NotNull Settings settings, boolean resetRequested) {
-        settings.state().resetRequest().set(resetRequested);
+    public static void setResetRequested(@NotNull AppContext context, boolean resetRequested) {
+        context.state().resetRequest().set(resetRequested);
     }
 
-    public static void setFailedEvent(@NotNull Settings settings, boolean failedEvent) {
-        settings.state().failedEvent().set(failedEvent);
+    public static void setFailedEvent(@NotNull AppContext context, boolean failedEvent) {
+        context.state().failedEvent().set(failedEvent);
     }
 
     /**

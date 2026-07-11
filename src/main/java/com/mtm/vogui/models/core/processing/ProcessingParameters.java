@@ -11,9 +11,11 @@ import java.io.Serializable;
 import boofcv.abst.sfm.d3.VisualOdometry;
 import boofcv.io.image.SimpleImageSequence;
 import boofcv.struct.image.ImageBase;
+
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.processing.tracking.PointFactory;
 import com.mtm.vogui.models.core.processing.tracking.Tracker;
-import com.mtm.vogui.models.settings.Settings;
+
 import georegression.struct.se.Se3_F64;
 import jakarta.inject.Singleton;
 import lombok.Data;
@@ -31,7 +33,7 @@ public class ProcessingParameters implements Serializable {
     private Tracker tracker;
     private VisualOdometry<Se3_F64> visualOdometry;
     private PointFactory pointFactory;
-    private Settings frozenSettings;
+    private AppContext frozenContext;
 
     public ProcessingParameters() {
         this.reset();
@@ -43,7 +45,7 @@ public class ProcessingParameters implements Serializable {
         this.frameSize = null;
         this.tracker = null;
         this.visualOdometry = null;
-        this.frozenSettings = null;
+        this.frozenContext = null;
         this.pointFactory = null;
     }
 }
