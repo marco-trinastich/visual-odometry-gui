@@ -9,13 +9,12 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 
 /**
  * SURF tracker settings
  */
 @Data
-public class SurfSettings implements Serializable, WithDefault<SurfSettings> {
+public class SurfSettings implements WithDefault<SurfSettings> {
 
     private int maxFeaturesPerScale;
     private int extractRadius;

@@ -52,7 +52,7 @@ public final class V4l4jDeviceDiscovery implements DeviceDiscovery {
                     .sorted(Comparator.comparingInt(V4l4jDeviceDiscovery::deviceNodeNumber))
                     .toArray(String[]::new);
             return discovered.length > 0 ? discovered : DEFAULT_DEVICE_NODES.clone();
-        } catch (IOException exc) {
+        } catch (IOException _) {
             return DEFAULT_DEVICE_NODES.clone();
         }
     }

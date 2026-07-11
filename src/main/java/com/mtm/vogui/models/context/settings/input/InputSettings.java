@@ -14,7 +14,6 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 
 /**
  * Input settings
@@ -23,7 +22,7 @@ import java.io.Serializable;
  */
 
 @Data
-public class InputSettings implements Serializable, WithDefault<InputSettings> {
+public class InputSettings implements WithDefault<InputSettings> {
 
     private CalibrationSettings calibration;
     private SourceType source;

@@ -13,7 +13,6 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 
 /**
  * Tracker settings
@@ -21,7 +20,7 @@ import java.io.Serializable;
  * Options related to tracker type and options, with per-algorithm sub-settings.
  */
 @Data
-public class TrackerSettings implements Serializable, WithDefault<TrackerSettings> {
+public class TrackerSettings implements WithDefault<TrackerSettings> {
 
     private TrackerType type;
     private KltSettings klt;

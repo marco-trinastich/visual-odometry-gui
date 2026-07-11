@@ -17,6 +17,7 @@ import javax.swing.*;
 import java.awt.*;
 
 @Getter
+@SuppressWarnings("serial")
 public class MonoPlaneInfinityPanel extends JPanel {
 
     private JLabel lblThresholdAdd;
@@ -32,7 +33,7 @@ public class MonoPlaneInfinityPanel extends JPanel {
         super();
 
         this.createInnerComponents(voSettings);
-        this.initPanel(voSettings);
+        this.initPanel();
         this.initLayout();
         this.setPreferredSize(new Dimension(this.getPreferredSize().width, 70));
     }
@@ -84,7 +85,7 @@ public class MonoPlaneInfinityPanel extends JPanel {
         );
     }
 
-    private void initPanel(@NotNull VisualOdometrySettings voSettings) {
+    private void initPanel() {
         // panel
         this.add(this.lblThresholdAdd);
         this.add(this.txtThresholdAdd);

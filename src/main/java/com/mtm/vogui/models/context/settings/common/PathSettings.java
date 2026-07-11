@@ -10,7 +10,6 @@ import com.mtm.vogui.utilities.CommonUtils;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -22,7 +21,7 @@ import java.util.Arrays;
  * (never on typing), newest first, capped at {@link #MAX_RECENT_PATHS}.
  */
 @Data
-public abstract class PathSettings implements Serializable {
+public abstract class PathSettings {
 
     public static final int MAX_RECENT_PATHS = 25;
 

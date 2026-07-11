@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@SuppressWarnings("serial")
 public abstract class NumberTextField<T extends Number> extends JTextField {
     private final NumberConstraints constraints;
     private final Consumer<T> setter;

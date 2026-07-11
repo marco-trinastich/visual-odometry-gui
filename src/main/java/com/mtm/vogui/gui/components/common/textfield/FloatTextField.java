@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@SuppressWarnings("serial")
 public class FloatTextField extends NumberTextField<Float> {
 
     public FloatTextField(@NotNull Consumer<Float> setter, @NotNull Supplier<Float> getter,

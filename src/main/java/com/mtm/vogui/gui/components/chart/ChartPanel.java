@@ -7,6 +7,7 @@ package com.mtm.vogui.gui.components.chart;
 
 
 import com.mtm.vogui.utilities.GuiUtils;
+import io.quarkus.logging.Log;
 import georegression.struct.point.Point2D_F64;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
+@SuppressWarnings("serial")
 public class ChartPanel extends JPanel {
 
     private final ChartState state;
@@ -217,7 +219,8 @@ public class ChartPanel extends JPanel {
                 top = 15;
                 g2.drawString(yAxisName, left, top);
             }
-        } catch (Exception e) {
+        } catch (Exception exc) {
+            Log.debugf("Chart axis rendering failed: %s", exc.toString());
         }
 
         if (moveToOriginFlag) {

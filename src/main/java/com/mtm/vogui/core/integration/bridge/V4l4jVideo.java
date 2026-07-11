@@ -247,7 +247,7 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
             if (device != null) {
                 try {
                     device.release();
-                } catch (Throwable ignored) {
+                } catch (Throwable _) {
                     // the device may already be in use by an active capture
                 }
             }
@@ -258,7 +258,7 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
         SwingUtilities.invokeLater(() -> {
             V4l4jVideo camera = new V4l4jVideo();
             camera.start("/dev/video0", 320, 240,
-                    new ImageType<GrayU8>(ImageType.Family.GRAY, ImageDataType.U8, 1),
+                    new ImageType<>(ImageType.Family.GRAY, ImageDataType.U8, 1),
                     new VideoCallBack() {
                         @Override
                         public void init(int width, int height, ImageType<? extends ImageBase<?>> imageType) {

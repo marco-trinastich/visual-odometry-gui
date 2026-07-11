@@ -31,7 +31,7 @@ public class TrackedPointsCopyOnSelection implements ListSelectionListener {
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             try {
                 clipboard.setContents(stringSelection, null);
-            } catch (Exception ignored) {
+            } catch (Exception _) {
             }
         }
     }

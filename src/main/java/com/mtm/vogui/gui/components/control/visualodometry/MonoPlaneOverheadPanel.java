@@ -17,6 +17,7 @@ import javax.swing.*;
 import java.awt.*;
 
 @Getter
+@SuppressWarnings("serial")
 public class MonoPlaneOverheadPanel extends JPanel {
 
     private JLabel lblCellSize;

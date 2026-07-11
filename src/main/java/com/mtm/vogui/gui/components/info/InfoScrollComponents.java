@@ -193,7 +193,7 @@ public class InfoScrollComponents {
         this.pnlAltitude.enableBorder(Color.black, GuiConstants.DIRECTION_PANEL_BORDER, PanelBorder.Circle);
         // 4-rows rotation data
         this.lblRotation = new JBoldLabel(GuiConstants.LBL_ROTATION);
-        this.lblRotationRow = IntStream.range(0, 4).mapToObj(i -> new JLabel()).toList();
+        this.lblRotationRow = IntStream.range(0, 4).mapToObj(_ -> new JLabel()).toList();
 
         // Tracking info
         this.lblTrackingInfo = new JBoldLabel(GuiConstants.LBL_TRACKING_INFO);

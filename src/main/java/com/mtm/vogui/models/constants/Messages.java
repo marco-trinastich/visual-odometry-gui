@@ -21,6 +21,7 @@ public class Messages {
     public final static String OPEN_VIDEO_ERROR = "Error opening video: %s";
     public final static String OPEN_DEVICE_ERROR = "Error opening camera device: %s";
     public final static String DEVICE_SETUP_ERROR = "Error setting up capture: %s";
+    public final static String TRACKER_SETUP_ERROR = "Error setting up tracker: %s";
     public final static String DEVICE_INIT_ERROR = "Error starting capture: %s";
     public final static String DEVICE_V4L4J_MISSING_CONTROLS = "Specified controls not found";
     public final static String DEVICE_V4L4J_ERROR = "Error during V4L4J capture: %s.\n Cause: %s";

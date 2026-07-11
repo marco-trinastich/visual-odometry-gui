@@ -15,6 +15,7 @@ import com.mtm.vogui.utilities.CommonUtils;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@SuppressWarnings("serial")
 public class DisplayValueEditableComboBox<T extends WithValue> extends AdjustableComboBox<T> {
 
     /**

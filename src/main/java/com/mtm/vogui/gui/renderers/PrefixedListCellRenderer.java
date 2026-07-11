@@ -16,6 +16,7 @@ import java.awt.*;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@SuppressWarnings("serial")
 public class PrefixedListCellRenderer<T> extends JLabel implements ListCellRenderer<T> {
     private final JComboBox<T> parentComboBox;
     private final ListCellRenderer<Object> defaultListCellRenderer;

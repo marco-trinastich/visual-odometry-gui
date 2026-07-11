@@ -18,6 +18,7 @@ import java.awt.*;
  * </p>
  * Component painting above and below chart panel (legend, permanent axis names, etc.)
  */
+@SuppressWarnings("serial")
 public class ChartViewPort extends JViewport {
     private final ChartState state;
     private final ChartSettings settings;

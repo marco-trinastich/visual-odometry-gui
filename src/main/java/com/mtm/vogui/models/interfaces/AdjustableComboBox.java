@@ -9,6 +9,7 @@ import com.mtm.vogui.gui.renderers.ValueComboBoxRenderer;
 
 import javax.swing.*;
 
+@SuppressWarnings("serial")
 public abstract class AdjustableComboBox<T> extends JComboBox<T> {
     public AdjustableComboBox(T[] model) {
         super(model);

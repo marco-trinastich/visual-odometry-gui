@@ -12,6 +12,7 @@ import com.mtm.vogui.utilities.CommonUtils;
 
 import java.util.function.Consumer;
 
+@SuppressWarnings("serial")
 public class StringValueEditableComboBox extends AdjustableComboBox<String> {
 
     /**

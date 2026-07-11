@@ -13,7 +13,6 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 
 /**
  * Visual Odometry settings
@@ -21,7 +20,7 @@ import java.io.Serializable;
  * Options related to visual odometry algorithm type and parameters.
  */
 @Data
-public class VisualOdometrySettings implements Serializable, WithDefault<VisualOdometrySettings> {
+public class VisualOdometrySettings implements WithDefault<VisualOdometrySettings> {
 
     private VisualOdometryType type;
     private MonoPlaneInfinitySettings monoPlaneInfinity;

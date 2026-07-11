@@ -143,7 +143,7 @@ public class CoreUtils {
             var algorithm = (VisOdomMonoPlaneInfinity<? extends ImageGray<?>>) field.get(voEngine);
 
             tracker = algorithm.getTracker();
-        } catch (NoSuchFieldException | IllegalAccessException ignored) {
+        } catch (NoSuchFieldException | IllegalAccessException _) {
         }
 
         return tracker;
@@ -192,7 +192,8 @@ public class CoreUtils {
     public static boolean awaitTermination(@NotNull ExecutorService service) {
         try {
             return service.awaitTermination(Long.MAX_VALUE, TimeUnit.HOURS);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
+            Thread.currentThread().interrupt();
             return false;
         }
     }

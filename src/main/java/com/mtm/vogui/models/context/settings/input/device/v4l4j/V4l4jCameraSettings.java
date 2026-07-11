@@ -9,7 +9,6 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 
 /**
  * V4l4j camera settings
@@ -19,7 +18,7 @@ import java.io.Serializable;
  * {@code core.integration.discovery} layer, never stored here.
  */
 @Data
-public class V4l4jCameraSettings implements Serializable, WithDefault<V4l4jCameraSettings> {
+public class V4l4jCameraSettings implements WithDefault<V4l4jCameraSettings> {
 
     private String path;
     private boolean sustainFramerate;

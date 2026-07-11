@@ -11,6 +11,7 @@ import com.mtm.vogui.utilities.ImageUtils;
 
 import java.awt.image.BufferedImage;
 
+@SuppressWarnings("serial")
 public class BufferedImageButton extends ImageButton {
     public BufferedImageButton(String defaultIcon) {
         this(defaultIcon, null);

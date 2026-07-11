@@ -111,7 +111,7 @@ public class CommonUtils {
                 int height = Integer.parseInt(parts[1]);
                 return Pair.with(width, height);
             }
-        } catch (Exception ignored) {
+        } catch (Exception _) {
         }
 
         return null;
@@ -289,7 +289,7 @@ public class CommonUtils {
         BigDecimal value = null;
         try {
             value = new BigDecimal(valueStr);
-        } catch (Exception ignored) {
+        } catch (Exception _) {
         }
         return value != null ? generator.apply(value) : null;
     }

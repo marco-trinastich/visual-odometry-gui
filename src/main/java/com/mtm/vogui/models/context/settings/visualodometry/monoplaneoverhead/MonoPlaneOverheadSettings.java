@@ -9,7 +9,6 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 
 /**
  * MonoPlaneOverhead settings
@@ -17,7 +16,7 @@ import java.io.Serializable;
  * Options related to MonoPlaneOverhead vo algorithm.
  */
 @Data
-public class MonoPlaneOverheadSettings implements Serializable, WithDefault<MonoPlaneOverheadSettings> {
+public class MonoPlaneOverheadSettings implements WithDefault<MonoPlaneOverheadSettings> {
     private double cellSize;
     private double maxCellsPerPixel;
     private double mapHeightFraction;

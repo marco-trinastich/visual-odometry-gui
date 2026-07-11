@@ -17,6 +17,7 @@ import javax.swing.border.AbstractBorder;
 import com.mtm.vogui.models.constants.GuiConstants;
 import com.mtm.vogui.utilities.ImageUtils;
 
+@SuppressWarnings("serial")
 public class RoundedCornerBorder extends AbstractBorder {
     protected int arch = 12;
     protected Color baseColor;

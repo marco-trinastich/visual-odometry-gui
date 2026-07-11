@@ -16,7 +16,6 @@ import com.mtm.vogui.utilities.CommonUtils;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 
 /**
  * Device settings
@@ -24,7 +23,7 @@ import java.io.Serializable;
  * Options related to input device.
  */
 @Data
-public class DeviceSettings implements Serializable, WithDefault<DeviceSettings> {
+public class DeviceSettings implements WithDefault<DeviceSettings> {
 
     // Device
     private DeviceType type;

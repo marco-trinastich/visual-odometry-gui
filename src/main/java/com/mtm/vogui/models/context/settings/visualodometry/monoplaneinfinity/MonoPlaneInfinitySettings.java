@@ -10,7 +10,6 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 
 /**
  * MonoPlaneInfinity settings
@@ -18,7 +17,7 @@ import java.io.Serializable;
  * Options related to MonoPlaneInfinity vo algorithm.
  */
 @Data
-public class MonoPlaneInfinitySettings implements Serializable, WithDefault<MonoPlaneInfinitySettings> {
+public class MonoPlaneInfinitySettings implements WithDefault<MonoPlaneInfinitySettings> {
     private int thresholdAdd;
     private int thresholdRetire;
     private double inlierPixelTol;

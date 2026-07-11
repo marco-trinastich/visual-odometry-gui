@@ -5,6 +5,7 @@
 
 package com.mtm.vogui.models.core.exceptions;
 
+@SuppressWarnings("serial")
 public class CameraException extends Exception {
     public CameraException() {
         super();

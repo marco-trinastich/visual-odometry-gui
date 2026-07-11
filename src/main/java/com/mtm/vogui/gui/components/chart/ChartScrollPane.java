@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * <p/>
  * This panel handles a generic scrollable point chart
  */
+@SuppressWarnings("serial")
 public class ChartScrollPane extends JScrollPane implements PropertyChangeListener {
 
     private final ChartState state;

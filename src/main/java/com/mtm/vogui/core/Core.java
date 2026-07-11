@@ -220,7 +220,7 @@ public class Core {
             // (any exception is swallowed: cleanup must never propagate and kill the vo task)
             try {
                 CoreProcessing.closeSource(this.context, this.params);
-            } catch (Exception ignored) {
+            } catch (Exception _) {
             }
         }
     }

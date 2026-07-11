@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@SuppressWarnings("serial")
 public class DoubleTextField extends NumberTextField<Double> {
 
     public DoubleTextField(@NotNull Consumer<Double> setter, @NotNull Supplier<Double> getter,

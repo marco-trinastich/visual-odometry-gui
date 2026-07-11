@@ -9,13 +9,12 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 
 /**
  * KLT tracker settings
  */
 @Data
-public class KltSettings implements Serializable, WithDefault<KltSettings> {
+public class KltSettings implements WithDefault<KltSettings> {
 
     private int templateRadius;
     private int pyramidLevels;

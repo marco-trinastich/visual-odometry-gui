@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
+@SuppressWarnings("serial")
 public class DirectionPanel extends JPanel {
     private double dirX, dirY;
     private boolean borderEnabled = false;

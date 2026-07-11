@@ -18,6 +18,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.atomic.AtomicReference;
 
+@SuppressWarnings("serial")
 public abstract class ImageButton extends JButton {
     private final ButtonImageSet baseImageSet;
     private ButtonImageSet alternativeImageSet;

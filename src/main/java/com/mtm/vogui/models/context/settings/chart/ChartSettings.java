@@ -10,7 +10,6 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 
 /**
  * Chart settings
@@ -18,7 +17,7 @@ import java.io.Serializable;
  * Options related to charts.
  */
 @Data
-public class ChartSettings implements Serializable, WithDefault<ChartSettings> {
+public class ChartSettings implements WithDefault<ChartSettings> {
 
     private ChartType type;
     private double scaleXZ;

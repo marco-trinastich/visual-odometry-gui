@@ -35,7 +35,7 @@ public class TrackedPointsCopyAllOnDblClick implements MouseListener {
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             try {
                 clipboard.setContents(stringSelection, null);
-            } catch (Exception ignored) {
+            } catch (Exception _) {
             }
         }
     }

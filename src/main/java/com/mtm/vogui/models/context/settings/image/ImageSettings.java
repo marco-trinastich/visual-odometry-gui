@@ -5,7 +5,6 @@
 
 package com.mtm.vogui.models.context.settings.image;
 
-import java.io.Serializable;
 
 import com.mtm.vogui.models.enums.settings.ImageTypeDescriptor;
 import com.mtm.vogui.models.enums.settings.resolution.CustomResolution;
@@ -21,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  * Options for the images provided to the algorithm.
  */
 @Data
-public class ImageSettings implements Serializable, WithDefault<ImageSettings> {
+public class ImageSettings implements WithDefault<ImageSettings> {
 
     private ImageTypeDescriptor descriptor;
     private boolean resize;

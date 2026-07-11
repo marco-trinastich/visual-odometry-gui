@@ -556,7 +556,7 @@ public class GuiApplication {
                 devicePaths(this.context),
                 path -> context.settings().input().device().path(path),
                 DevicePath::from,
-                selection -> refreshDeviceResolutions(this.context));
+                _ -> refreshDeviceResolutions(this.context));
         txtDevicePath.setEnabled(isDevice);
         txtDevicePath.setSelectedItem(context.settings().input().device().path());
 
@@ -1646,7 +1646,7 @@ public class GuiApplication {
         mnuSwitchSettings.addActionListener(new MainButtonListener("switchSettings", this.context, this.core));
         JCheckBoxMenuItem mnuAutosave = new JCheckBoxMenuItem(GuiConstants.MNU_AUTOSAVE_TEXT);
         mnuAutosave.setSelected(this.context.settings().autosave());
-        mnuAutosave.addActionListener(evt -> {
+        mnuAutosave.addActionListener(_ -> {
             this.context.settings().autosave(mnuAutosave.isSelected());
             // Persisted immediately: an OFF choice could never survive the exit otherwise
             // (autosave-on-exit is skipped exactly when it has just been turned off)
@@ -1889,7 +1889,7 @@ public class GuiApplication {
         // Set app about window
         if (Desktop.isDesktopSupported()) {
             JFrame aboutFrame = this.createAboutFrame();
-            Desktop.getDesktop().setAboutHandler(e -> {
+            Desktop.getDesktop().setAboutHandler(_ -> {
                 resetAboutFrame(aboutFrame, true);
             });
         }
@@ -1963,7 +1963,7 @@ public class GuiApplication {
             isSystemLookAndFeelEnabled = true;
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException |
-                 UnsupportedLookAndFeelException ex) {
+                 UnsupportedLookAndFeelException _) {
             isSystemLookAndFeelEnabled = false;
         }
 
@@ -2120,7 +2120,7 @@ public class GuiApplication {
         var device = context.settings().input().device();
         Resolution[] available = availableDeviceResolutions(context);
         if (available.length == 0) {
-            txtDeviceResolution.setModel(new DefaultComboBoxModel<Resolution>(DeviceResolution.values()));
+            txtDeviceResolution.setModel(new DefaultComboBoxModel<>(DeviceResolution.values()));
             txtDeviceResolution.setSelectedItem(device.resolution());
             return;
         }
@@ -2819,7 +2819,7 @@ public class GuiApplication {
                             context.state().device().isRunning()) {
                         try {
                             context.state().device().stop();
-                        } catch (CameraException ignored) {
+                        } catch (CameraException _) {
                             // any camera exception will be managed by vo thread itself on cleanup phase
                         }
                     }

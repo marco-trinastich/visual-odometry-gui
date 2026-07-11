@@ -9,6 +9,7 @@ import com.mtm.vogui.models.constants.GuiConstants;
 
 import javax.swing.*;
 
+@SuppressWarnings("serial")
 public class JBoldLabel extends JLabel {
     public JBoldLabel(String content) {
         super(content);

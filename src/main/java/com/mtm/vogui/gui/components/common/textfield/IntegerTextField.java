@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@SuppressWarnings("serial")
 public class IntegerTextField extends NumberTextField<Integer> {
 
     public IntegerTextField(@NotNull Consumer<Integer> setter, @NotNull Supplier<Integer> getter,

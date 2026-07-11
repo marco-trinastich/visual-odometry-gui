@@ -328,7 +328,7 @@ public class CoreProcessing {
         BigDecimal inliersPercent = BigDecimal.valueOf(0);
         try {
             inliersPercent = CommonUtils.roundBigDecimal(100.0d * trackInliers.size() / totalTracks, 2);
-        } catch (Exception ignored) {
+        } catch (Exception _) {
         }
 
         trackingStatus.trackInliers(trackInliers);

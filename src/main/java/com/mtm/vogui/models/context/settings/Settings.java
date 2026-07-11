@@ -15,10 +15,9 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 
 @Data
-public class Settings implements Serializable, WithDefault<Settings> {
+public class Settings implements WithDefault<Settings> {
     private boolean autosave;
     private InputSettings input;
     private ImageSettings image;

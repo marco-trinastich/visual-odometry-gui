@@ -6,7 +6,6 @@
 package com.mtm.vogui.models.core.processing;
 
 import java.awt.*;
-import java.io.Serializable;
 
 import boofcv.abst.sfm.d3.VisualOdometry;
 import boofcv.io.image.SimpleImageSequence;
@@ -25,7 +24,7 @@ import lombok.Data;
  */
 @Singleton
 @Data
-public class ProcessingParameters implements Serializable {
+public class ProcessingParameters {
 
     private Object calibration;
     private SimpleImageSequence<? extends ImageBase<?>> video;

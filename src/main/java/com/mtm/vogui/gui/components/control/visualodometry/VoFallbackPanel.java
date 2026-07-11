@@ -8,6 +8,7 @@ package com.mtm.vogui.gui.components.control.visualodometry;
 import javax.swing.*;
 import java.awt.*;
 
+@SuppressWarnings("serial")
 public class VoFallbackPanel extends JPanel {
 
     public VoFallbackPanel() {

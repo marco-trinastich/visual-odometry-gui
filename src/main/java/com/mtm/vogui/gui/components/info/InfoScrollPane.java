@@ -30,6 +30,7 @@ import java.awt.*;
  * <p/>
  * This panel contains all Visual Odometry processing details
  */
+@SuppressWarnings("serial")
 public class InfoScrollPane extends JScrollPane {
 
     // State fields

@@ -17,7 +17,9 @@ import com.mtm.vogui.models.enums.core.CalibrationLoadResult;
 import com.mtm.vogui.models.enums.settings.TrackerType;
 import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.context.settings.visualodometry.monoplaneinfinity.MonoPlaneInfinitySettings;
+import com.mtm.vogui.models.constants.Messages;
 import com.mtm.vogui.utilities.CoreUtils;
+import com.mtm.vogui.utilities.LogUtils;
 import georegression.struct.se.Se3_F64;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +47,7 @@ public class CoreSetup {
             var writer = new StringWriter();
             reader.transferTo(writer);
             content = writer.toString();
-        } catch (Exception ignored) {
+        } catch (Exception _) {
             return CalibrationLoadResult.NotFound;
         }
 
@@ -59,7 +61,7 @@ public class CoreSetup {
         Object calibration = null;
         try {
             calibration = params.calibration(CalibrationIO.load(new StringReader(content)));
-        } catch (Exception ignored) {
+        } catch (Exception _) {
         }
 
         return calibration != null ? CalibrationLoadResult.Ok : CalibrationLoadResult.Invalid;
@@ -98,7 +100,7 @@ public class CoreSetup {
                     return false;
                 }
             }
-        } catch (CameraException ignored) {
+        } catch (CameraException _) {
             // potential error in camera open catch block
             return false;
         }
@@ -117,7 +119,7 @@ public class CoreSetup {
         TrackerFactory trackerFactory;
         try {
             trackerFactory = TrackerFactory.from(imageType);
-        } catch (InvalidImageFormatException ignored) {
+        } catch (InvalidImageFormatException _) {
             return false;
         }
 
@@ -180,7 +182,8 @@ public class CoreSetup {
 //																   kltTracker_maxFeatures, kltTracker_radius,
 //																   kltTracker_threshold));
                     }
-                } catch (Exception e) {
+                } catch (Exception exc) {
+                    LogUtils.errorf(exc, Messages.TRACKER_SETUP_ERROR, exc);
                     return false;
                 }
                 break;
@@ -197,7 +200,8 @@ public class CoreSetup {
                     params.tracker(
                             trackerFactory.createSURF(surfTrackerMaxFeaturesPerScale, surfTrackerExtractRadius,
                                     surfTrackerInitialSampleSize));
-                } catch (Exception e) {
+                } catch (Exception exc) {
+                    LogUtils.errorf(exc, Messages.TRACKER_SETUP_ERROR, exc);
                     return false;
                 }
                 break;
@@ -219,7 +223,8 @@ public class CoreSetup {
                 try {
                     // Tries to generate the Tracker
                     params.tracker(trackerFactory.createDefault());
-                } catch (Exception e) {
+                } catch (Exception exc) {
+                    LogUtils.errorf(exc, Messages.TRACKER_SETUP_ERROR, exc);
                     //If the Tracker generation fails
                     //Returns false
                     return false;
@@ -252,7 +257,7 @@ public class CoreSetup {
         VisualOdometryFactory voFactory;
         try {
             voFactory = VisualOdometryFactory.from(calibration, tracker, imageType, null);
-        } catch (InvalidImageFormatException ignored) {
+        } catch (InvalidImageFormatException _) {
             return false;
         }
 
@@ -267,7 +272,7 @@ public class CoreSetup {
                         voEngine = voFactory.createMonoPlaneInfinity(new MonoPlaneInfinitySettings());
                 default -> { /* StereoDepth, StereoDualPnP, StereoQuadPnP, DepthDepthPnP: not implemented, voEngine stays null */ }
             }
-        } catch (Exception ignored) {
+        } catch (Exception _) {
         }
 
         if (voEngine == null)

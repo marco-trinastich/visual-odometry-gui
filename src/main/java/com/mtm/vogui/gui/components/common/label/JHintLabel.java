@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.math.BigDecimal;
 
+@SuppressWarnings("serial")
 public class JHintLabel extends JPanel {
     private final JLabel lblHint;
     private final JLabel lblText;
