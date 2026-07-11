@@ -5,8 +5,8 @@
 
 package com.mtm.vogui.utilities;
 
-import com.mtm.vogui.gui.components.chart.ChartSettings;
-import com.mtm.vogui.gui.components.common.border.RoundedCornerBorder;
+import com.mtm.vogui.gui.swing.components.chart.ChartSettings;
+import com.mtm.vogui.gui.swing.components.common.border.RoundedCornerBorder;
 import com.mtm.vogui.models.constants.GuiConstants;
 import org.jetbrains.annotations.NotNull;
 

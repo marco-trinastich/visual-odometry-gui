@@ -22,6 +22,9 @@
         <openblas.version>0.3.31-${javacv.version}</openblas.version>
         <!-- Capture: BoofCv path (JNA-based native webcam driver) -->
         <jna.version>5.18.1</jna.version>
+        <!-- GUI (JavaFX; OpenJFX POM profiles auto-resolve the platform classifier) -->
+        <javafx.version>26.0.1</javafx.version>
+        <atlantafx.version>2.1.0</atlantafx.version>
         <!-- Utilities -->
         <lombok.version>1.18.46</lombok.version>
         <!-- Build -->
@@ -63,6 +66,23 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
+        </dependency>
+
+        <!-- GUI (JavaFX) -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.mkpaz</groupId>
+            <artifactId>atlantafx-base</artifactId>
+            <version>${atlantafx.version}</version>
         </dependency>
 
         <!-- Vision -->
