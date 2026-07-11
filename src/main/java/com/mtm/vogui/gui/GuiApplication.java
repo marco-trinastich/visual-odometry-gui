@@ -20,6 +20,7 @@ import javax.swing.filechooser.FileFilter;
 
 import com.mtm.vogui.core.Core;
 import com.mtm.vogui.core.CoreRendering;
+import com.mtm.vogui.core.integration.discovery.DeviceDiscovery;
 import com.mtm.vogui.gui.components.control.visualodometry.MonoPlaneOverheadPanel;
 import com.mtm.vogui.gui.components.control.visualodometry.VoFallbackPanel;
 import com.mtm.vogui.gui.components.info.InfoScrollPane;
@@ -49,6 +50,9 @@ import com.mtm.vogui.models.constants.AppConstants;
 import com.mtm.vogui.models.constants.GuiConstants;
 import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.models.settings.core.chart.ChartSettings;
+import com.mtm.vogui.models.settings.core.common.PathSettings;
+
+import javax.swing.plaf.basic.ComboPopup;
 import com.mtm.vogui.models.settings.core.image.ImageSettings;
 import com.mtm.vogui.models.settings.core.input.InputSettings;
 import com.mtm.vogui.models.settings.core.tracker.TrackerSettings;
@@ -58,13 +62,14 @@ import com.mtm.vogui.utilities.*;
 import boofcv.BoofVersion;
 import boofcv.gui.image.ImagePanel;
 
+import io.quarkus.logging.Log;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.javatuples.Triplet;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("rawtypes")
 @ApplicationScoped
 public class GuiApplication {
 
@@ -472,12 +477,13 @@ public class GuiApplication {
         );
         txtCalibration.setPrefixEnabled(false);
         txtCalibration.setSelectedItem(inputSettings.calibration().path());
+        installRecentPathDeletion(txtCalibration, inputSettings.calibration());
 
         /*Calibration Browsing Button*/
         final JButton btnCalibrationBrowsing = new JButton("...");
         /*Listener (for clicks on Calibration Browsing Button)*/
         btnCalibrationBrowsing.addActionListener(
-                new BrowseButtonListener(guiComponents, txtCalibration,
+                new BrowseButtonListener(guiComponents, txtCalibration, inputSettings.calibration(),
                         "Open Calibration",
                         new String[]{".yaml", ".yml"},
                         new String[]{"YAML Camera Calibration (*.yaml)", "YAML Camera Calibration (*.yml)",
@@ -520,13 +526,14 @@ public class GuiApplication {
         txtVideoSource.setPrefixEnabled(false);
         txtVideoSource.setEnabled(isVideo);
         txtVideoSource.setSelectedItem(inputSettings.video().path());
+        installRecentPathDeletion(txtVideoSource, inputSettings.video());
 
         // Video source path browse button
         var btnVideoSourceBrowsing = new JButton("...");
         btnVideoSourceBrowsing.setEnabled(isVideo);
         /*Listener (for clicks on Video Source Browsing Button)*/
         btnVideoSourceBrowsing.addActionListener(
-                new BrowseButtonListener(guiComponents, txtVideoSource,
+                new BrowseButtonListener(guiComponents, txtVideoSource, inputSettings.video(),
                         "Open Video",
                         new String[]{".avi", ".mp4", ".mjpeg"},
                         new String[]{"AVI Audio/Video Interleave (*.avi)", "MPEG-4/H.264 Video (*.mp4)", "Motion JPEG Video (*.mjpeg)", "All supported media (*.mjpeg, *.mp4, *.avi)"},
@@ -543,10 +550,12 @@ public class GuiApplication {
         optDeviceSource.addActionListener(new InputSourceOptionListener(SourceType.Device, this.settings));
 
         // Device path ComboBox
+        healDevicePath(this.settings);
         var txtDevicePath = new DisplayValueEditableComboBox<>(
-                settings.core().input().device().paths(),
+                devicePaths(this.settings),
                 path -> settings.core().input().device().path(path),
-                DevicePath::from);
+                DevicePath::from,
+                selection -> refreshDeviceResolutions(this.settings));
         txtDevicePath.setEnabled(isDevice);
         txtDevicePath.setSelectedItem(settings.core().input().device().path());
 
@@ -558,10 +567,13 @@ public class GuiApplication {
                 selection -> {
                     // Reload device paths if needed
                     if (!selection.previous().value().is(selection.current().value())) {
-                        inputSettings.device().reloadPaths();
-                        txtDevicePath.setModel(new DefaultComboBoxModel<>(inputSettings.device().paths()));
+                        DeviceDiscovery.forType(inputSettings.device().type()).reload();
+                        healDevicePath(this.settings);
+                        txtDevicePath.setModel(new DefaultComboBoxModel<>(devicePaths(this.settings)));
                         // Selecting the item commits it to settings through the combo listener
                         txtDevicePath.setSelectedItem(inputSettings.device().path());
+                        // The new driver may advertise a different resolution set
+                        refreshDeviceResolutions(this.settings);
                     }
                 }
         );
@@ -724,6 +736,8 @@ public class GuiApplication {
         guiComponents.put("txtDevicePath", txtDevicePath);
         guiComponents.put("lblDeviceResolution", lblDeviceResolution);
         guiComponents.put("txtDeviceResolution", txtDeviceResolution);
+        // Now that the ComboBox is reachable, swap the static model for the device-advertised sizes
+        refreshDeviceResolutions(this.settings);
         guiComponents.put("chkDeviceSustainFramerate", chkDeviceSustainFramerate);
         guiComponents.put("chkDeviceTimeoutImageIO", chkDeviceTimeoutImageIO);
         guiComponents.put("chkDeviceKeepFormat", chkDeviceKeepFormat);
@@ -932,7 +946,7 @@ public class GuiApplication {
 
 
         guiComponents.put("txtImageType", txtImageType);
-        guiComponents.put("chkImageKeepOriginal", chkImageResize);
+        guiComponents.put("chkImageResize", chkImageResize);
         guiComponents.put("chkInternalImagePreview", chkInternalImagePreview);
         guiComponents.put("txtImageResize", txtImageResize);
         guiComponents.put("chkFrameSkipEnabled", chkFrameSkipEnabled);
@@ -2001,16 +2015,129 @@ public class GuiApplication {
         }
     }
 
+    /**
+     * Shift+Delete on the highlighted dropdown entry removes it from the recent-paths
+     * history (plain Delete is left to the editor for normal text editing; the current
+     * editor text is preserved).
+     */
+    private static void installRecentPathDeletion(JComboBox<String> pathComboBox,
+                                                  @NotNull PathSettings pathSettings) {
+        pathComboBox.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent event) {
+                if (event.getKeyCode() != KeyEvent.VK_DELETE || !event.isShiftDown()
+                        || !pathComboBox.isPopupVisible()) {
+                    return;
+                }
+                if (!(pathComboBox.getUI().getAccessibleChild(pathComboBox, 0) instanceof ComboPopup popup)) {
+                    return;
+                }
+                int index = popup.getList().getSelectedIndex();
+                if (index < 0) {
+                    return;
+                }
+
+                String editorText = String.valueOf(pathComboBox.getEditor().getItem());
+                pathSettings.removeRecentPath(pathComboBox.getItemAt(index));
+                pathComboBox.setModel(new DefaultComboBoxModel<>(pathSettings.paths()));
+                pathComboBox.setSelectedItem(editorText);
+                pathComboBox.showPopup();
+                event.consume();
+            }
+        });
+    }
+
+    /**
+     * Available device identifiers for the currently selected driver, as ComboBox descriptors
+     */
+    private static DevicePath @NotNull [] devicePaths(@NotNull Settings settings) {
+        var device = settings.core().input().device();
+        return CommonUtils.getDevicePathDescriptors(DeviceDiscovery.forType(device.type()).listDevices());
+    }
+
+    /**
+     * Heals the persisted device path so the GUI always shows what will actually run.
+     * The requested-to-actual mapping is fully delegated to
+     * {@link DeviceDiscovery#resolveDevice}, the same call the cameras make at capture
+     * time: startup and play can never disagree on which device a path means.
+     */
+    private static void healDevicePath(@NotNull Settings settings) {
+        var device = settings.core().input().device();
+        var discovery = DeviceDiscovery.forType(device.type());
+
+        String saved = device.path().id().trim();
+        String resolved = discovery.resolveDevice(saved);
+        if (!resolved.isEmpty() && !resolved.equals(saved)) {
+            device.path(CommonUtils.getDevicePathDescriptor(resolved));
+        }
+    }
+
+    /**
+     * Resolutions advertised by the currently selected device, decorated with the
+     * standard names when they match a {@link DeviceResolution}. Empty when the
+     * device cannot be queried, so callers can fall back to the static list.
+     */
+    private static Resolution @NotNull [] availableDeviceResolutions(@NotNull Settings settings) {
+        var device = settings.core().input().device();
+        java.util.List<Dimension> sizes =
+                DeviceDiscovery.forType(device.type()).listViewSizes(device.path().id().trim());
+        return sizes.stream()
+                .distinct()
+                .sorted(Comparator.comparingLong(size -> (long) size.width * size.height))
+                .map(size -> {
+                    Resolution standard = DeviceResolution.findByResolution(size.width, size.height);
+                    return standard != null ? standard : CustomResolution.from(size.width, size.height);
+                })
+                .toArray(Resolution[]::new);
+    }
+
+    /**
+     * Repopulates the device resolution ComboBox from the device-advertised sizes.
+     * A saved resolution the device no longer advertises is replaced by the nearest
+     * advertised one. When the device cannot be queried the static standard list is
+     * kept and the saved value is preserved (capture-time adjustment remains the
+     * safety net for values the device refuses).
+     */
+    @SuppressWarnings("unchecked")
+    private static void refreshDeviceResolutions(@NotNull Settings settings) {
+        var txtDeviceResolution = (DisplayValueEditableComboBox<Resolution>)
+                settings.state().guiComponents().get("txtDeviceResolution");
+        if (txtDeviceResolution == null) {
+            return; // the GUI is still being built
+        }
+
+        var device = settings.core().input().device();
+        Resolution[] available = availableDeviceResolutions(settings);
+        if (available.length == 0) {
+            txtDeviceResolution.setModel(new DefaultComboBoxModel<Resolution>(DeviceResolution.values()));
+            txtDeviceResolution.setSelectedItem(device.resolution());
+            return;
+        }
+
+        // Same nearest-match metric used by the cameras at capture time, applied to the
+        // already-queried list (no second hardware query)
+        Resolution saved = device.resolution();
+        Resolution nearest = Arrays.stream(available)
+                .min(Comparator.comparingLong(item ->
+                        CommonUtils.getResolutionDistance(item.width(), item.height(), saved.width(), saved.height())))
+                .orElse(available[0]);
+        txtDeviceResolution.setModel(new DefaultComboBoxModel<>(available));
+        // Selecting the item commits it to settings through the combo listener
+        txtDeviceResolution.setSelectedItem(nearest);
+        device.resolution(nearest);
+    }
+
+    // Unchecked: every typed retrieval from the Object-valued guiComponents map is an unchecked cast
     @SuppressWarnings("unchecked")
     public static Boolean refreshGuiFromParameters(Settings settings) {
 
         try {
-            /**Extracts all components from guiComponents and Resets them to new Parameters value*/
+            /* Extracts all components from guiComponents and resets them to the new parameters values */
 
             /**Input Settings Panel Reloading**/
 
             //Calibration ComboBox
-            JComboBox txtCalibration = (JComboBox) settings.state().guiComponents().get("txtCalibration");
+            JComboBox<String> txtCalibration = (JComboBox<String>) settings.state().guiComponents().get("txtCalibration");
             txtCalibration.setModel(new DefaultComboBoxModel<>(settings.core().input().calibration().paths()));
             txtCalibration.setSelectedItem(settings.core().input().calibration().path());
 
@@ -2024,7 +2151,7 @@ public class GuiApplication {
             }
 
             //Video Source ComboBox
-            JComboBox txtVideoSource = (JComboBox) settings.state().guiComponents().get("txtVideoSource");
+            JComboBox<String> txtVideoSource = (JComboBox<String>) settings.state().guiComponents().get("txtVideoSource");
             txtVideoSource.setModel(new DefaultComboBoxModel<>(settings.core().input().video().paths()));
             txtVideoSource.setSelectedItem(settings.core().input().video().path());
 
@@ -2043,13 +2170,13 @@ public class GuiApplication {
             txtDeviceType.setSelectedItem(settings.core().input().device().type());
 
             //Device Path ComboBox
-            JComboBox<DevicePath> txtDevicePath = (JComboBox) settings.state().guiComponents().get("txtDevicePath");
-            txtDevicePath.setModel(new DefaultComboBoxModel<>(settings.core().input().device().paths()));
+            healDevicePath(settings);
+            JComboBox<DevicePath> txtDevicePath = (JComboBox<DevicePath>) settings.state().guiComponents().get("txtDevicePath");
+            txtDevicePath.setModel(new DefaultComboBoxModel<>(devicePaths(settings)));
             txtDevicePath.setSelectedItem(settings.core().input().device().path());
 
-            //Device Resolution combo box
-            JComboBox<Resolution> txtDeviceResolution = (JComboBox) settings.state().guiComponents().get("txtDeviceResolution");
-            txtDeviceResolution.setSelectedItem(settings.core().input().device().resolution());
+            //Device Resolution combo box (repopulated from the device-advertised sizes)
+            refreshDeviceResolutions(settings);
 
 
             //Device Sustain Framerate CheckBox
@@ -2103,7 +2230,7 @@ public class GuiApplication {
             }
 
             //Image Resize Width TextField
-            JComboBox<Resolution> txtImageResize = (JComboBox) settings.state().guiComponents().get("txtImageResize");
+            JComboBox<Resolution> txtImageResize = (JComboBox<Resolution>) settings.state().guiComponents().get("txtImageResize");
             txtImageResize.setSelectedItem(settings.core().image().resolution());
 
             // Internal image preview CheckBox
@@ -2309,7 +2436,8 @@ public class GuiApplication {
             chartYPanel.resetSize();
 
             return true;
-        } catch (Exception ignored) {
+        } catch (Exception exc) {
+            Log.error("GUI refresh from parameters failed", exc);
             return false;
         }
     }
@@ -2328,23 +2456,48 @@ public class GuiApplication {
         //Parameters for Load/Save Buttons only
         private static String saveFormat = "XML";//Can be XML or Serialized (Object Output)
 
-        //Declaration of components needed by the single-click functions
-        private ImageButton btnStartVisualOdometry;
-        private ImageButton btnPauseVisualOdometry;
-        private ImageButton btnResetVisualOdometry;
-        private ImageButton btnStopVisualOdometry;
-        private ImageButton btnClearVisualOdometry;
-        private ImageButton btnTimedVO;
-        private JTextField txtTimedStopVisualOdometry;
-        private ChartScrollPane chartXZPanel;
-        private ChartScrollPane chartYPanel;
-        private InfoScrollPane chartInfoPanel;
-        private JFrame mainFrame;
-
         public MainButtonListener(String function, Settings settings, Core core) {
             this.function = function;
             this.settings = settings;
             this.core = core;
+        }
+
+        //Components needed by the click functions, resolved on use
+        //(the listener is created before all guiComponents are registered)
+        private ImageButton btnStartVO() {
+            return (ImageButton) this.settings.state().guiComponents().get("btnStartVO");
+        }
+
+        private ImageButton btnPauseVO() {
+            return (ImageButton) this.settings.state().guiComponents().get("btnPauseVO");
+        }
+
+        private ImageButton btnResetVO() {
+            return (ImageButton) this.settings.state().guiComponents().get("btnResetVO");
+        }
+
+        private ImageButton btnStopVO() {
+            return (ImageButton) this.settings.state().guiComponents().get("btnStopVO");
+        }
+
+        private ImageButton btnClearVO() {
+            return (ImageButton) this.settings.state().guiComponents().get("btnClearVO");
+        }
+
+        private ImageButton btnTimedVO() {
+            return (ImageButton) this.settings.state().guiComponents().get("btnTimedProcessingVO");
+        }
+
+        private JFrame mainFrame() {
+            return (JFrame) this.settings.state().guiComponents().get("mainFrame");
+        }
+
+        private ChartScrollPane chartXZPanel() {
+            return this.settings.state().guiController().chartXZPanel();
+        }
+
+        private InfoScrollPane infoPanel() {
+            return this.settings.state().guiController().infoPanel();
         }
 
 
@@ -2383,33 +2536,7 @@ public class GuiApplication {
             //depending on how this class is used (MouseListener or ActionListener)
         }
 
-        @SuppressWarnings("unused")
         public void singleClick(AWTEvent evt) {
-
-            //Determines the correct Event Type (Depending if this class is used as Action or Mouse Listener)
-            ActionEvent aevt = (evt instanceof ActionEvent) ? (ActionEvent) evt : null;
-            MouseEvent mevt = (evt instanceof MouseEvent) ? (MouseEvent) evt : null;
-
-            String function = aevt != null && !aevt.getActionCommand().isEmpty() ? aevt.getActionCommand() : this.function;
-
-            //Extracts components needed by the single-click functions only if they haven't been already extracted
-            //(does this at Runtime, here in the singleClick trigger, because all the guiComponents are surely loaded)
-            if (btnStartVisualOdometry == null || btnPauseVisualOdometry == null || btnResetVisualOdometry == null
-                    || btnStopVisualOdometry == null || btnClearVisualOdometry == null || btnTimedVO == null
-                    || txtTimedStopVisualOdometry == null || chartXZPanel == null || chartYPanel == null || chartInfoPanel == null) {
-
-                btnStartVisualOdometry = (ImageButton) this.settings.state().guiComponents().get("btnStartVO");
-                btnPauseVisualOdometry = (ImageButton) this.settings.state().guiComponents().get("btnPauseVO");
-                btnResetVisualOdometry = (ImageButton) this.settings.state().guiComponents().get("btnResetVO");
-                btnStopVisualOdometry = (ImageButton) this.settings.state().guiComponents().get("btnStopVO");
-                btnClearVisualOdometry = (ImageButton) this.settings.state().guiComponents().get("btnClearVO");
-                btnTimedVO = (ImageButton) this.settings.state().guiComponents().get("btnTimedProcessingVO");
-                txtTimedStopVisualOdometry = (JTextField) this.settings.state().guiComponents().get("txtTimedStopVisualOdometry");
-                chartXZPanel = this.settings.state().guiController().chartXZPanel();
-                chartYPanel = this.settings.state().guiController().chartYPanel();
-                chartInfoPanel = this.settings.state().guiController().infoPanel();
-                mainFrame = (JFrame) this.settings.state().guiComponents().get("mainFrame");
-            }
 
             switch (function) {    //Depending on function value associated to the button acts differently:
                 case "loadSettings": //On click on Load Settings
@@ -2418,22 +2545,22 @@ public class GuiApplication {
                             //Update Parameters reference into the passed Core to the new Parameters
                             //and updates Status Label content
                             if (this.settings.loadFromXml() && refreshGuiFromParameters(this.settings)) {
-                                chartInfoPanel.setAppStatus(AppStatus.XMLSettingsLoaded);
+                                infoPanel().setAppStatus(AppStatus.XMLSettingsLoaded);
                             } else if (!Files.exists(this.settings.xmlPath())) {
-                                chartInfoPanel.setAppStatus(AppStatus.XMLSettingsNotFound);
+                                infoPanel().setAppStatus(AppStatus.XMLSettingsNotFound);
                             } else {
-                                chartInfoPanel.setAppStatus(AppStatus.XMLSettingsLoadError);
+                                infoPanel().setAppStatus(AppStatus.XMLSettingsLoadError);
                             }
                             break;
                         case "Serialized":
                             //Update Parameters reference into the passed Core to the new Parameters
                             //and updates Status Label content
                             if (this.settings.loadFromDat() && refreshGuiFromParameters(this.settings)) {
-                                chartInfoPanel.setAppStatus(AppStatus.DATSettingsLoaded);
+                                infoPanel().setAppStatus(AppStatus.DATSettingsLoaded);
                             } else if (!Files.exists(this.settings.datPath())) {
-                                chartInfoPanel.setAppStatus(AppStatus.DATSettingsNotFound);
+                                infoPanel().setAppStatus(AppStatus.DATSettingsNotFound);
                             } else {
-                                chartInfoPanel.setAppStatus(AppStatus.DATSettingsLoadError);
+                                infoPanel().setAppStatus(AppStatus.DATSettingsLoadError);
                             }
                             break;
                         default:
@@ -2444,13 +2571,13 @@ public class GuiApplication {
                     switch (saveFormat) {
                         case "XML":
                             //Updates Status Label content
-                            chartInfoPanel.setAppStatus(this.settings.saveToXml()
+                            infoPanel().setAppStatus(this.settings.saveToXml()
                                     ? AppStatus.XMLSettingsSaved
                                     : AppStatus.XMLSettingsSaveError);
                             break;
                         case "Serialized":
                             //Updates Status Label content
-                            chartInfoPanel.setAppStatus(this.settings.saveToDat()
+                            infoPanel().setAppStatus(this.settings.saveToDat()
                                     ? AppStatus.DATSettingsSaved
                                     : AppStatus.DATSettingsSaveError);
                             break;
@@ -2464,13 +2591,13 @@ public class GuiApplication {
                     boolean resetSuccess = refreshGuiFromParameters(settings);
                     //Updates Status Label content
                     if (resetSuccess) {
-                        chartInfoPanel.setAppStatus(AppStatus.SettingsReset);
+                        infoPanel().setAppStatus(AppStatus.SettingsReset);
                     } else {
-                        chartInfoPanel.setAppStatus(AppStatus.SettingsResetError);
+                        infoPanel().setAppStatus(AppStatus.SettingsResetError);
                     }
                     break;
                 case "switchSettings":
-                    int choice = JOptionPane.showOptionDialog(this.settings.state().guiComponents().get("mainFrame"),
+                    int choice = JOptionPane.showOptionDialog(this.mainFrame(),
                             "Do you want to change Save Format? (Actual save format: " + saveFormat + ")",
                             "Change Save Format",
                             JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
@@ -2564,7 +2691,7 @@ public class GuiApplication {
                 CoreUtils.setProcessingStateSafe(this.settings, ProcessingState.Running);
             }
             // Switch pause/resume icon
-            this.btnPauseVisualOdometry.switchIconSet();
+            this.btnPauseVO().switchIconSet();
         }
 
         private void resetVisualOdometry() {
@@ -2592,7 +2719,7 @@ public class GuiApplication {
         private void timedStopVisualOdometry() {
             final int totalSeconds;
             String choice = (String) JOptionPane.showInputDialog(
-                    this.mainFrame,
+                    this.mainFrame(),
                     GuiConstants.DLG_TIMED_PROCESSING_MESSAGE,
                     GuiConstants.DLG_TIMED_PROCESSING_TITLE,
                     JOptionPane.QUESTION_MESSAGE,
@@ -2611,14 +2738,14 @@ public class GuiApplication {
 
             Executors.newSingleThreadExecutor(NamedThreadFactory.from(AppConstants.VO_TIMED_STOP_THREAD)).submit(() -> {
                 // Suspend thread until vo process is running (or error)
-                this.btnDisableAndRepaint(this.btnTimedVO);
+                this.btnDisableAndRepaint(this.btnTimedVO());
                 this.settings.state().processing().waitUntil(
                         ProcessingState.Running,
                         ProcessingState.Error
                 );
                 if (this.settings.state().processing().is(ProcessingState.Error))
                     return;
-                this.btnSwitchAndSetText(this.btnTimedVO, totalSeconds);
+                this.btnSwitchAndSetText(this.btnTimedVO(), totalSeconds);
 
                 // Start countdown
                 AtomicInteger seconds = new AtomicInteger(0);
@@ -2646,7 +2773,7 @@ public class GuiApplication {
 
                 // Update counter
                 int currSeconds = seconds.incrementAndGet();
-                this.btnTimedVO.setForegroundText(String.valueOf(totalSeconds - currSeconds));
+                this.btnTimedVO().setForegroundText(String.valueOf(totalSeconds - currSeconds));
 
                 // If countdown ended
                 if (currSeconds == totalSeconds) {
@@ -2671,7 +2798,7 @@ public class GuiApplication {
         }
 
         private void setReadyToolbar(Boolean clearEnabled) {
-            clearEnabled = clearEnabled != null ? clearEnabled : this.chartXZPanel.hasPoints();
+            clearEnabled = clearEnabled != null ? clearEnabled : this.chartXZPanel().hasPoints();
             boolean timedEnabled = SourceType.Device.is(settings.core().input().source());
 
             this.setToolbarStatus(true, false, false, false,
@@ -2681,12 +2808,12 @@ public class GuiApplication {
 
         private void setToolbarStatus(boolean startEnabled, boolean pauseEnabled, boolean stopEnabled,
                                       boolean resetEnabled, boolean clearEnabled, boolean timedEnabled) {
-            this.btnStartVisualOdometry.setEnabled(startEnabled);
-            this.btnPauseVisualOdometry.setEnabled(pauseEnabled);
-            this.btnStopVisualOdometry.setEnabled(stopEnabled);
-            this.btnResetVisualOdometry.setEnabled(resetEnabled);
-            this.btnClearVisualOdometry.setEnabled(clearEnabled);
-            this.btnTimedVO.setEnabled(timedEnabled);
+            this.btnStartVO().setEnabled(startEnabled);
+            this.btnPauseVO().setEnabled(pauseEnabled);
+            this.btnStopVO().setEnabled(stopEnabled);
+            this.btnResetVO().setEnabled(resetEnabled);
+            this.btnClearVO().setEnabled(clearEnabled);
+            this.btnTimedVO().setEnabled(timedEnabled);
         }
 
         private void btnDisableAndRepaint(@NotNull JButton button) {
@@ -2700,9 +2827,10 @@ public class GuiApplication {
         }
 
         private void restoreButtons() {
-            this.btnTimedVO.removeForegroundText();
-            this.btnTimedVO.defaultIconSet();
-            this.btnPauseVisualOdometry.defaultIconSet();
+            ImageButton btnTimedVO = this.btnTimedVO();
+            btnTimedVO.removeForegroundText();
+            btnTimedVO.defaultIconSet();
+            this.btnPauseVO().defaultIconSet();
         }
     }
 
@@ -2711,16 +2839,19 @@ public class GuiApplication {
 
         private final HashMap<String, Component> mainFrameContainer;
         private final JComboBox<String> pathComboBox;
+        private final PathSettings pathSettings;
         private final String dialogTitle;
         private final String[] dialogFileFilterExtension;
         private final String[] dialogFileFilterDescription;
         private final boolean enableDirectorySelection;
 
-        private BrowseButtonListener(HashMap<String, Component> mainFrameContainer, JComboBox<String> pathComboBox, String dialogTitle,
+        private BrowseButtonListener(HashMap<String, Component> mainFrameContainer, JComboBox<String> pathComboBox,
+                                     PathSettings pathSettings, String dialogTitle,
                                      String[] dialogFileFilterExtension, String[] dialogFileFilterDescription, boolean enableDirectorySelection) {
 
             this.mainFrameContainer = mainFrameContainer;
             this.pathComboBox = pathComboBox;
+            this.pathSettings = pathSettings;
             this.dialogTitle = dialogTitle;
             this.dialogFileFilterExtension = dialogFileFilterExtension;
             this.dialogFileFilterDescription = dialogFileFilterDescription;
@@ -2789,8 +2920,11 @@ public class GuiApplication {
             browse.setFileSelectionMode(enableDirectorySelection ? JFileChooser.FILES_AND_DIRECTORIES : JFileChooser.FILES_ONLY);
 
             if (browse.showOpenDialog(mainFrameContainer.get("mainFrame")) == 0) {//Opens the File Browsing Dialog and if an existing file has been selected
-                File choice = browse.getSelectedFile(); //Gets the selected file
-                pathComboBox.setSelectedItem(choice.getAbsolutePath());    //Sets the Path TextComponent content
+                String choice = browse.getSelectedFile().getAbsolutePath(); //Gets the selected file
+                // Browse confirmation commits the choice to the recent-paths history
+                pathSettings.pushRecentPath(choice);
+                pathComboBox.setModel(new DefaultComboBoxModel<>(pathSettings.paths()));
+                pathComboBox.setSelectedItem(choice);    //Sets the Path TextComponent content
                 //to the file path (triggering also a change
                 //to the Path parameter, thanks to
                 //the TextComponent change Listener)
@@ -3037,22 +3171,22 @@ public class GuiApplication {
 
         @Override
         public int getValue() {
-            return (int) Math.round(component.getHeight() * proportion);
+            return Math.round(component.getHeight() * proportion);
         }
 
         @Override
         public int getPreferredValue() {
-            return (int) Math.round(component.getHeight() * proportion);
+            return Math.round(component.getHeight() * proportion);
         }
 
         @Override
         public int getMinimumValue() {
-            return (int) Math.round(component.getHeight() * proportion);
+            return Math.round(component.getHeight() * proportion);
         }
 
         @Override
         public int getMaximumValue() {
-            return (int) Math.round(component.getHeight() * proportion);
+            return Math.round(component.getHeight() * proportion);
         }
     }
 

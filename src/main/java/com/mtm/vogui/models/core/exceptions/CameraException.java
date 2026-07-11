@@ -9,4 +9,8 @@ public class CameraException extends Exception {
     public CameraException() {
         super();
     }
+
+    public CameraException(Throwable cause) {
+        super(cause);
+    }
 }

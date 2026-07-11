@@ -8,18 +8,20 @@ package com.mtm.vogui.models.core.concurrency;
 import com.mtm.vogui.models.core.exceptions.BufferTimeoutException;
 import com.mtm.vogui.utilities.CommonUtils;
 
-import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 
 public class AwaitableBuffer<T> {
+    // Concurrent: the buffer is shared between the capture thread (push/strip) and the
+    // vo processing thread (poll), without any external synchronization
     private final Queue<T> buffer;
     private final Awaitable<Object> awaitable;
     private final static int BUFFER_WAIT_TIMEOUT = 10;
     public final static long INFINITE_BUFFER = Long.MAX_VALUE;
 
     public AwaitableBuffer() {
-        this.buffer = new LinkedList<>();
+        this.buffer = new ConcurrentLinkedQueue<>();
         this.awaitable = new Awaitable<>(new Object());
     }
 
@@ -31,14 +33,6 @@ public class AwaitableBuffer<T> {
 
     public T poll() {
         T element = this.buffer.poll();
-        // Notify buffer change
-        this.awaitable.set(new Object());
-        return element;
-    }
-
-    public T pollLast() {
-        // slight violation of queue contract (it shouldn't be possible to pollLast)
-        T element = ((LinkedList<T>) this.buffer).pollLast();
         // Notify buffer change
         this.awaitable.set(new Object());
         return element;

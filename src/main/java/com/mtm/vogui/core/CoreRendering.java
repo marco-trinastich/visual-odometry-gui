@@ -18,8 +18,13 @@ import com.mtm.vogui.models.core.processing.tracking.PointFactory;
 import com.mtm.vogui.models.enums.core.ProcessingState;
 import com.mtm.vogui.models.enums.gui.AppStatus;
 import com.mtm.vogui.models.enums.settings.ChartType;
+import com.mtm.vogui.models.enums.settings.DevicePath;
 import com.mtm.vogui.models.enums.settings.SourceType;
+import com.mtm.vogui.models.enums.settings.resolution.CustomResolution;
+import com.mtm.vogui.models.enums.settings.resolution.DeviceResolution;
+import com.mtm.vogui.models.interfaces.Resolution;
 import com.mtm.vogui.models.settings.Settings;
+import com.mtm.vogui.models.settings.core.common.PathSettings;
 import com.mtm.vogui.utilities.CommonUtils;
 import georegression.struct.point.Point2D_F64;
 import org.jetbrains.annotations.NotNull;
@@ -100,6 +105,82 @@ public class CoreRendering {
             // Refresh video frames
             inputVideoFrame.pack();
             outputVideoFrame.pack();
+        });
+    }
+
+    /**
+     * RenderDeviceResolution
+     * Backfills the resolution ComboBox and the persisted target with the resolution the
+     * device actually granted, whenever capture-time adjustment changed the requested one
+     */
+    public static void renderDeviceResolution(@NotNull Settings settings, Dimension actual) {
+        if (actual == null) {
+            return;
+        }
+        var device = settings.core().input().device();
+        if (device.targetWidth() == actual.width && device.targetHeight() == actual.height) {
+            return;
+        }
+
+        DeviceResolution standard = DeviceResolution.findByResolution(actual.width, actual.height);
+        Resolution resolution = standard != null ? standard : CustomResolution.from(actual.width, actual.height);
+        device.resolution(resolution);
+
+        SwingUtilities.invokeLater(() -> {
+            @SuppressWarnings("unchecked")
+            var txtDeviceResolution = (JComboBox<Resolution>) settings.state().guiComponents().get("txtDeviceResolution");
+            if (txtDeviceResolution != null) {
+                txtDeviceResolution.setSelectedItem(resolution);
+            }
+        });
+    }
+
+    /**
+     * Reflects into GUI/settings the device that was actually opened, when the capture
+     * fell back to a different one than requested (same contains-matching semantics as
+     * discovery). No-op when the requested device was honored.
+     */
+    public static void renderDevicePath(@NotNull Settings settings, String actualName) {
+        if (actualName == null || actualName.isBlank()) {
+            return;
+        }
+        var device = settings.core().input().device();
+        String requested = device.path().id().trim();
+        if (!requested.isEmpty() && actualName.contains(requested)) {
+            return;
+        }
+
+        var descriptor = CommonUtils.getDevicePathDescriptor(actualName);
+        device.path(descriptor);
+
+        SwingUtilities.invokeLater(() -> {
+            @SuppressWarnings("unchecked")
+            var txtDevicePath = (JComboBox<DevicePath>) settings.state().guiComponents().get("txtDevicePath");
+            if (txtDevicePath != null) {
+                txtDevicePath.setSelectedItem(descriptor);
+            }
+        });
+    }
+
+    /**
+     * Records a successfully used path in its most-recently-used history and refreshes
+     * the corresponding ComboBox. Typed paths enter the history only through here, so
+     * only values that actually opened are ever recorded.
+     */
+    public static void renderRecentPath(@NotNull Settings settings, @NotNull PathSettings pathSettings,
+                                        String usedPath, String comboKey) {
+        if (usedPath == null || usedPath.isBlank()) {
+            return;
+        }
+        pathSettings.pushRecentPath(usedPath);
+
+        SwingUtilities.invokeLater(() -> {
+            @SuppressWarnings("unchecked")
+            var pathComboBox = (JComboBox<String>) settings.state().guiComponents().get(comboKey);
+            if (pathComboBox != null) {
+                pathComboBox.setModel(new DefaultComboBoxModel<>(pathSettings.paths()));
+                pathComboBox.setSelectedItem(usedPath);
+            }
         });
     }
 
@@ -216,10 +297,10 @@ public class CoreRendering {
     }
 
     public static void renderAppStatus(@NotNull Settings settings) {
-        renderAppStatus(settings, (Exception) null);
+        renderAppStatus(settings, (Throwable) null);
     }
 
-    public static void renderAppStatus(@NotNull Settings settings, Exception processingEx) {
+    public static void renderAppStatus(@NotNull Settings settings, Throwable processingEx) {
         var state = settings.state().processing().get();
         renderAppStatus(settings, AppStatus.from(state, processingEx));
     }

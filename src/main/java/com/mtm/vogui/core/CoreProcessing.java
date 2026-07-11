@@ -29,6 +29,7 @@ import com.mtm.vogui.models.settings.Settings;
 import com.mtm.vogui.utilities.CommonUtils;
 import com.mtm.vogui.utilities.CoreUtils;
 import com.mtm.vogui.utilities.ImageUtils;
+import com.mtm.vogui.utilities.LogUtils;
 import georegression.struct.point.Point2D_F64;
 import georegression.struct.se.Se3_F64;
 import io.quarkus.logging.Log;
@@ -39,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class CoreProcessing {
 
@@ -183,6 +183,14 @@ public class CoreProcessing {
                     return null;
                 }
                 inputImage = device.nextImage();
+                if (inputImage == null) {
+                    // A concurrent stop/clear can legitimately drain the buffer between waitBuffer
+                    // and nextImage; in any other case an empty poll is a bug worth surfacing
+                    if (settings.state().processing().is(ProcessingState.Running)) {
+                        Log.warn(Messages.BUFFER_EMPTY_POLL);
+                    }
+                    return null;
+                }
                 if (isFrameSkip)
                     return null;
                 inputLeftImage = ImageUtils.getBoofCvFromBuffered(inputImage, imageType);
@@ -253,7 +261,7 @@ public class CoreProcessing {
         } catch (Exception ex) {
             // Exception estimating ego motion
             infoPanel.setAppStatus(AppStatus.VoException);
-            Log.errorf(Messages.VO_EXCEPTION, ex.getMessage(), Arrays.toString(ex.getStackTrace()));
+            LogUtils.errorf(ex, Messages.VO_EXCEPTION, ex.getMessage());
             throw new VoProcessingException();
         }
 

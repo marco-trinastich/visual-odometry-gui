@@ -7,6 +7,7 @@ package com.mtm.vogui.core.integration.camera;
 
 import boofcv.io.webcamcapture.UtilWebcamCapture;
 import com.github.sarxos.webcam.Webcam;
+import com.mtm.vogui.core.integration.discovery.BoofCvDeviceDiscovery;
 import com.mtm.vogui.models.constants.AppConstants;
 import com.mtm.vogui.models.constants.Messages;
 import com.mtm.vogui.models.core.concurrency.NamedThreadFactory;
@@ -19,8 +20,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
@@ -36,7 +35,7 @@ public class BoofCvCamera extends BufferedCamera {
     }
 
     @Override
-    public BufferedCamera start() throws CameraStartException {
+    public BoofCvCamera start() throws CameraStartException {
         if (!this.running.get()) {
             this.captureException = null;
 
@@ -45,7 +44,7 @@ public class BoofCvCamera extends BufferedCamera {
 
             // Start device
             var input = this.settings.core().input();
-            this.webcam = input.device().boofCv().webcam();
+            this.webcam = BoofCvDeviceDiscovery.instance().webcam(input.device().boofCv().path());
             if (this.webcam == null) {
                 throw new CameraStartException();
             }
@@ -72,7 +71,8 @@ public class BoofCvCamera extends BufferedCamera {
         this.captureStopped();
 
         if (this.captureException != null) {
-            throw new CameraException();
+            // Chain the capture-time failure: this rethrow is just the messenger
+            throw new CameraException(this.captureException);
         }
     }
 
@@ -100,20 +100,26 @@ public class BoofCvCamera extends BufferedCamera {
         return null;
     }
 
+    /**
+     * Name of the device actually opened (discovery may have fallen back to the
+     * first available one when the requested path didn't match any webcam).
+     */
+    public String getDeviceName() {
+        return this.webcam != null ? this.webcam.getName() : null;
+    }
+
     private void adjustResolution(int targetWidth, int targetHeight) {
         // The AVFoundation-based native driver only starts with resolutions the device advertises,
         // so pick the closest supported one instead of forcing a custom size like UtilWebcamCapture
         var sizes = this.webcam.getViewSizes();
         if (sizes == null || sizes.length == 0) {
+            // Unqueryable device: fall back to forcing the requested size
             UtilWebcamCapture.adjustResolution(this.webcam, targetWidth, targetHeight);
             return;
         }
-        var best = Arrays.stream(sizes)
-                .min(Comparator.comparingLong(size ->
-                        (long) (size.width - targetWidth) * (size.width - targetWidth)
-                                + (long) (size.height - targetHeight) * (size.height - targetHeight)))
-                .orElse(sizes[0]);
-        this.webcam.setViewSize(best);
+        // Same nearest-match the GUI uses at startup: capture and combo can never disagree
+        this.webcam.setViewSize(BoofCvDeviceDiscovery.instance()
+                .nearestViewSize(this.webcam.getName(), new Dimension(targetWidth, targetHeight)));
     }
 
     private void captureCycle() {
@@ -128,7 +134,8 @@ public class BoofCvCamera extends BufferedCamera {
                 this.fillBufferAndRender(image);
             }
         } catch (Exception ex) {
-            Log.errorf(Messages.DEVICE_BOOFCV_CAPTURE_ERROR, ex.getMessage());
+            // ex, not ex.getMessage(): driver exceptions often carry no message at all
+            Log.errorf(Messages.DEVICE_BOOFCV_CAPTURE_ERROR, ex);
             this.captureException = ex;
         }
 
@@ -136,7 +143,7 @@ public class BoofCvCamera extends BufferedCamera {
             // Close device
             this.webcam.close();
         } catch (Exception ex) {
-            Log.errorf(Messages.DEVICE_BOOFCV_CLOSE_ERROR, ex.getMessage());
+            Log.errorf(Messages.DEVICE_BOOFCV_CLOSE_ERROR, ex);
             this.captureException = ex;
         }
 

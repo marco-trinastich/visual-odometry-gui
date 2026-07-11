@@ -212,7 +212,7 @@ The application is CDI-managed (**Quarkus ArC / Jakarta CDI**): settings, GUI, a
 The GUI itself runs anywhere Java and Swing do (**Windows / macOS / Linux**, including ARM). Camera backends differ:
 
 - **BoofCV / webcam-capture** — Windows, Linux, and Intel macOS. Webcam discovery is **not available on Apple Silicon** (the underlying BridJ library ships no macOS ARM64 natives), so on those machines use video-file input.
-- **V4L4J** — **Linux only** (Video4Linux). Device nodes are discovered by scanning `/dev/video*`.
+- **V4L4J** — **Linux only** (Video4Linux). Device nodes are discovered by scanning `/dev/video*`. The V4L4J native libraries (`libvideo.so` and `libv4l4j.so`) must be resolvable by the JVM: install them in a system library directory (e.g. `/usr/lib/jni`, or any `ldconfig`-known path) or point `-Djava.library.path` to their folder at launch.
 
 Video-file processing works on every platform.
 

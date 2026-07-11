@@ -9,6 +9,7 @@ import boofcv.abst.sfm.d3.DepthVisualOdometry;
 import boofcv.abst.sfm.d3.MonocularPlaneVisualOdometry;
 import boofcv.abst.sfm.d3.StereoVisualOdometry;
 import boofcv.struct.image.*;
+import com.mtm.vogui.models.constants.Messages;
 import com.mtm.vogui.models.core.processing.*;
 import com.mtm.vogui.models.core.processing.fps.FpsCounter;
 import com.mtm.vogui.models.core.processing.frames.ProcessedFrame;
@@ -24,6 +25,7 @@ import javax.swing.*;
 
 import com.mtm.vogui.utilities.CoreUtils;
 import com.mtm.vogui.utilities.OSUtils;
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
@@ -55,7 +57,7 @@ public class Core {
 
     private ProcessingResult run() {
         ProcessingState result;
-        Exception exception = null;
+        Throwable exception = null;
         try {
             if (this.setup() && this.process(this.settings, this.params)) {
                 // Successful processing
@@ -64,8 +66,11 @@ public class Core {
                 // Checked errors occurred during processing
                 result = ProcessingState.Error;
             }
-        } catch (Exception ex) {
-            // Unexpected errors occurred during processing
+        } catch (Throwable ex) {
+            // Unexpected errors occurred during processing. Errors too (e.g. LinkageError from
+            // missing natives): escaping here would skip finalize() and leave locks/state hanging.
+            // Unexpected means a bug somewhere: always log the full stack trace
+            Log.error(Messages.VO_UNEXPECTED_ERROR, ex);
             result = ProcessingState.Error;
             exception = ex;
         }
@@ -110,6 +115,9 @@ public class Core {
             return false;
         }
         infoPanel.setAppStatus(AppStatus.ValidCalibration);
+        // Successful open commits the used path to the recent-paths history
+        CoreRendering.renderRecentPath(this.settings, this.settings.core().input().calibration(),
+                this.params.frozenSettings().core().input().calibration().path(), "txtCalibration");
 
         // Open input source
         switch (this.params.frozenSettings().core().input().source()) {
@@ -121,6 +129,9 @@ public class Core {
                     return false;
                 }
                 infoPanel.setAppStatus(AppStatus.ValidVideo);
+                // Successful open commits the used path to the recent-paths history
+                CoreRendering.renderRecentPath(this.settings, this.settings.core().input().video(),
+                        this.params.frozenSettings().core().input().video().path(), "txtVideoSource");
                 break;
             case Device:
                 // Open input device

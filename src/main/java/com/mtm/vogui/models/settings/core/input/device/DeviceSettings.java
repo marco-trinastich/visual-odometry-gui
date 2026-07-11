@@ -79,19 +79,6 @@ public class DeviceSettings implements Serializable, WithDefault<DeviceSettings>
         }
     }
 
-    public DevicePath[] paths() {
-        return CommonUtils.getDevicePathDescriptors(switch (this.type) {
-            case BoofCv -> this.boofCv.paths();
-            case V4L4J -> this.v4l4j.paths();
-        });
-    }
-
-    public void reloadPaths() {
-        if (DeviceType.BoofCv.is(this.type)) {
-            this.boofCv.reloadWebcams();
-        }
-    }
-
     public void loadDefaults() {
         this.type = defaultDeviceType();
         this.resolution(defaultDeviceResolution());

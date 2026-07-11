@@ -43,6 +43,9 @@ public class BufferMonitor {
     private final static double HEAP_OVERHEAD = 6;
     private final static int CYCLE_INTERVAL_MS = 100;
     private final static int LOG_INTERVAL_MS = 10000;
+    // Never shrink the buffer below ~1s of frames at 30fps: a near-zero limit turns the
+    // capture-side strip into a continuous drain racing against the vo consumer
+    private final static long MIN_BUFFER_ITEMS = 30;
 
     private BufferMonitor(AwaitableBuffer<?> buffer, BufferedImage capturedImage, Consumer<BufferStatus> consumer) {
         this.buffer = buffer;
@@ -78,25 +81,25 @@ public class BufferMonitor {
         this.heapInitialSize = Runtime.getRuntime().totalMemory();
 
         // Compute max buffer items
-        this.maxBufferItems = this.computeMaxBufferItems(this.heapMaxSize, this.heapInitialSize, this.imageSize,
-                HEAP_OVERHEAD);
+        this.maxBufferItems = Math.max(this.computeMaxBufferItems(this.heapMaxSize, this.heapInitialSize,
+                this.imageSize, HEAP_OVERHEAD), MIN_BUFFER_ITEMS);
     }
 
     public BufferStatus getBufferStatus() {
         long bufferItems = this.buffer.size();
         long bufferSize = bufferItems * this.imageSize;
-        long maxBufferItems = this.getMaxBufferItems();
-
+        
         // Adjust max buffer size if needed
         long heapCurrentSize = Runtime.getRuntime().totalMemory();
         if (heapCurrentSize == this.heapMaxSize && this.gcLimitMaxBufferItems == null) {
             // Warning: full heap reserved by JVM -> perform gc and limit buffer items to current size
             System.gc();
-            maxBufferItems = this.gcLimitMaxBufferItems = bufferItems;
+            this.gcLimitMaxBufferItems = Math.max(bufferItems, MIN_BUFFER_ITEMS);
         }
         if (heapCurrentSize < this.heapMaxSize && this.gcLimitMaxBufferItems != null) {
             this.gcLimitMaxBufferItems = null;
         }
+        long maxBufferItems = this.getMaxBufferItems();
         var bufferStatus = BufferStatus.from(
                 this.imageSize,
                 this.heapInitialSize,

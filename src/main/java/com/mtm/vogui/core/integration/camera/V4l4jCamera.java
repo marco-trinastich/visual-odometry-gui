@@ -5,6 +5,7 @@
 
 package com.mtm.vogui.core.integration.camera;
 
+import com.mtm.vogui.core.integration.discovery.V4l4jDeviceDiscovery;
 import com.mtm.vogui.core.integration.shared.VideoController;
 import com.mtm.vogui.core.integration.bridge.V4l4jVideo;
 import com.mtm.vogui.models.constants.AppConstants;
@@ -26,6 +27,7 @@ public class V4l4jCamera extends BufferedCamera {
     private final V4l4jVideo device;
     private final VideoController controller;
     private Exception captureException;
+    private String devicePath;
 
     private V4l4jCamera(Settings settings, Consumer<BufferedImage> guiRenderer, Consumer<BufferStatus> bufferRenderer) {
         super(settings, guiRenderer, bufferRenderer);
@@ -35,7 +37,7 @@ public class V4l4jCamera extends BufferedCamera {
     }
 
     @Override
-    public BufferedCamera start() throws CameraStartException {
+    public V4l4jCamera start() throws CameraStartException {
         if (!this.running.get()) {
             this.captureException = null;
 
@@ -52,11 +54,18 @@ public class V4l4jCamera extends BufferedCamera {
                     input.device().v4l4j().timeoutImageIO(),
                     input.device().v4l4j().keepFormat()
             );
+            // Resolve the requested node against discovery (unknown node -> first real device)
+            var discovery = V4l4jDeviceDiscovery.instance();
+            this.devicePath = discovery.resolveDevice(input.device().path().id().trim());
+            // Pre-adjust to the nearest advertised size, same nearest-match the GUI uses
+            // at startup (kernel-level VIDIOC_S_FMT adjustment remains the safety net)
+            Dimension targetSize = discovery.nearestViewSize(this.devicePath,
+                    new Dimension(input.device().targetWidth(), input.device().targetHeight()));
             // Start device
             if (this.device.start(
-                    input.device().path().id().trim(),
-                    input.device().targetWidth(),
-                    input.device().targetHeight(),
+                    this.devicePath,
+                    targetSize.width,
+                    targetSize.height,
                     ImageUtils.getParametrizedImageType(image.descriptor()),
                     this.controller)
             ) {
@@ -75,6 +84,14 @@ public class V4l4jCamera extends BufferedCamera {
         return this;
     }
 
+    /**
+     * Node actually opened (discovery may have resolved an unknown requested
+     * path to the first available device).
+     */
+    public String getDevicePath() {
+        return this.devicePath;
+    }
+
     @Override
     public void stop() throws CameraException {
         if (this.running.get()) {
@@ -87,7 +104,8 @@ public class V4l4jCamera extends BufferedCamera {
         this.captureStopped();
 
         if (this.captureException != null) {
-            throw new CameraException();
+            // Chain the capture-time failure: this rethrow is just the messenger
+            throw new CameraException(this.captureException);
         }
     }
 

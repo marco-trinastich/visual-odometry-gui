@@ -40,11 +40,4 @@ public class AppConstants {
     public static final String VO_TOOLBAR_THREAD = "VO Toolbar Thread";
     public static final String VO_TIMED_STOP_THREAD = "VO Timed Stop Thread";
     public static final String VO_TIMED_STOP_COUNTDOWN_THREAD = "VO Timed Stop Countdown Thread";
-
-    // Native properties
-    public static final String JAVA_LIBRARY_PATH = "java.library.path";
-    public static final String SYS_PATHS_FIELD = "sys_paths";
-
-    // Drivers
-    public static final String V4L4J_DRIVER_PATH = "data/v4l4j-0.9.1/libvideo.so";
 }

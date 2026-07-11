@@ -23,13 +23,11 @@ import com.mtm.vogui.models.enums.core.ProcessingState;
 import com.mtm.vogui.models.enums.settings.ImageTypeDescriptor;
 import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.settings.Settings;
-import io.quarkus.logging.Log;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -55,7 +53,7 @@ public class CoreUtils {
                 video = new LoadFileImageSequence(ImageUtils.getImageType(imageType), videoPath, "");
             }
         } catch (Exception e) {
-            Log.errorf(Messages.OPEN_VIDEO_ERROR, Arrays.toString(e.getStackTrace()));
+            LogUtils.errorf(e, Messages.OPEN_VIDEO_ERROR, e.getMessage());
         }
 
         // Update video in params
@@ -82,9 +80,13 @@ public class CoreUtils {
             ).start();
             settings.state().device(camera);
             params.frameSize(camera.getFrameSize());
+            // Reflect into GUI/settings the device actually opened and the resolution it granted
+            CoreRendering.renderDevicePath(settings, camera.getDevicePath());
+            CoreRendering.renderDeviceResolution(settings, camera.getFrameSize());
             return true;
-        } catch (Exception e) {
-            Log.errorf(Messages.OPEN_DEVICE_ERROR, Arrays.toString(e.getStackTrace()));
+        } catch (Throwable e) {
+            // Throwable: missing V4L4J natives surface as LinkageError, not Exception
+            LogUtils.errorf(e, Messages.OPEN_DEVICE_ERROR, e.getMessage());
 
             // Close device
             if (settings.state().device() != null) {
@@ -106,9 +108,13 @@ public class CoreUtils {
             ).start();
             settings.state().device(camera);
             params.frameSize(camera.getFrameSize());
+            // Reflect into GUI/settings the device actually opened and the resolution it granted
+            CoreRendering.renderDevicePath(settings, camera.getDeviceName());
+            CoreRendering.renderDeviceResolution(settings, camera.getFrameSize());
             return true;
-        } catch (Exception e) {
-            Log.errorf(Messages.OPEN_DEVICE_ERROR, Arrays.toString(e.getStackTrace()));
+        } catch (Throwable e) {
+            // Throwable: missing webcam natives surface as LinkageError, not Exception
+            LogUtils.errorf(e, Messages.OPEN_DEVICE_ERROR, e.getMessage());
 
             // Close device
             if (settings.state().device() != null) {

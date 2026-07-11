@@ -9,20 +9,19 @@ import au.edu.jcu.v4l4j.*;
 import au.edu.jcu.v4l4j.exceptions.V4L4JException;
 import boofcv.io.image.ConvertBufferedImage;
 import boofcv.struct.image.*;
-import com.mtm.vogui.models.constants.AppConstants;
 import com.mtm.vogui.models.constants.Messages;
 import com.mtm.vogui.models.core.integration.VideoCallBack;
+import com.mtm.vogui.utilities.LogUtils;
+import com.mtm.vogui.utilities.OSUtils;
 import io.quarkus.logging.Log;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -45,10 +44,6 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
     @Setter
     private boolean convertBufferedImage = false;
 
-    static {
-        loadNative4L4J();
-    }
-
     public V4l4jVideo() {
         this.captureException = null;
     }
@@ -62,7 +57,7 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
         try {
             this.initFrameGrabber(devicePath, width, height, imageType);
         } catch (V4L4JException ex) {
-            Log.errorf(Messages.DEVICE_SETUP_ERROR, Arrays.toString(ex.getStackTrace()));
+            LogUtils.errorf(ex, Messages.DEVICE_SETUP_ERROR, ex.getMessage());
             this.stopCapture();
             return false;
         }
@@ -72,7 +67,7 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
             this.frameGrabber.startCapture();
             return true;
         } catch (V4L4JException ex) {
-            Log.errorf(Messages.DEVICE_INIT_ERROR, Arrays.toString(ex.getStackTrace()));
+            LogUtils.errorf(ex, Messages.DEVICE_INIT_ERROR, ex.getMessage());
             this.stopCapture();
             return false;
         }
@@ -128,7 +123,8 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
         try {
             this.frameGrabber.stopCapture();
         } catch (Exception ex) {
-            Log.errorf(Messages.DEVICE_V4L4J_CLOSE_ERROR, ex.getMessage());
+            // ex, not ex.getMessage(): driver exceptions often carry no message at all
+            Log.errorf(Messages.DEVICE_V4L4J_CLOSE_ERROR, ex);
             // this error may be thrown if the frame grabber is already stopped, but it will be notified anyway since
             // this should not happen
             this.captureException = ex;
@@ -138,7 +134,7 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
             // disable controls
             this.setControlsEnabled(false);
         } catch (Exception ex) {
-            Log.errorf(Messages.DEVICE_V4L4J_CLOSE_ERROR, ex.getMessage());
+            Log.errorf(Messages.DEVICE_V4L4J_CLOSE_ERROR, ex);
             this.captureException = ex;
         }
 
@@ -147,7 +143,7 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
             this.videoDevice.releaseFrameGrabber();
             this.videoDevice.release();
         } catch (Exception ex) {
-            Log.errorf(Messages.DEVICE_V4L4J_CLOSE_ERROR, ex.getMessage());
+            Log.errorf(Messages.DEVICE_V4L4J_CLOSE_ERROR, ex);
             this.captureException = ex;
         }
 
@@ -170,7 +166,7 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
     public void exceptionReceived(@NotNull V4L4JException ex) {
         // This method is called by v4l4j if an exception occurs while waiting for a new frame to be ready.
         // The exception is available through e.getCause()
-        Log.errorf(Messages.DEVICE_V4L4J_ERROR, Arrays.toString(ex.getStackTrace()), ex.getCause());
+        LogUtils.errorf(ex, Messages.DEVICE_V4L4J_ERROR, ex.getMessage(), ex.getCause());
         this.captureException = ex;
         this.stopCapture();
     }
@@ -222,28 +218,43 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
         }
     }
 
-    public static void loadNative4L4J() {
-        File libVideoPath = new File(AppConstants.V4L4J_DRIVER_PATH);
-        System.setProperty(AppConstants.JAVA_LIBRARY_PATH, libVideoPath.getParentFile().getAbsolutePath());
-
-        Field fieldSysPath;
-        try {
-            fieldSysPath = ClassLoader.class.getDeclaredField(AppConstants.SYS_PATHS_FIELD);
-            fieldSysPath.setAccessible(true);
-            fieldSysPath.set(null, null);
-        } catch (NoSuchFieldException | IllegalAccessException ex) {
-            Log.errorf(Messages.DEVICE_V4L4J_SYS_FIELD_ERROR, Arrays.toString(ex.getStackTrace()));
+    /**
+     * Queries the discrete JPEG-encodable resolutions advertised by a V4L device
+     * without starting a capture. Returns an empty list when the device (or the
+     * native library) is unavailable, so callers can fall back to a static list.
+     */
+    public static List<Dimension> listViewSizes(String devicePath) {
+        if (!OSUtils.isUnix()) {
+            // V4L4J is Linux-only: expected on other platforms, callers fall back quietly
+            Log.debugf("V4L4J view sizes discovery skipped for %s: not a Linux platform", devicePath);
+            return List.of();
         }
 
+        VideoDevice device = null;
         try {
-            System.load(libVideoPath.getAbsolutePath());
-        } catch (Exception ex) {
-            Log.errorf(Messages.DEVICE_V4L4J_LOAD_DRIVER_ERROR, Arrays.toString(ex.getStackTrace()));
-
+            device = new VideoDevice(devicePath);
+            return device.getDeviceInfo().getFormatList().getJPEGEncodableFormats().stream()
+                    .map(ImageFormat::getResolutionInfo)
+                    .filter(info -> info.getType() == ResolutionInfo.Type.DISCRETE)
+                    .flatMap(info -> info.getDiscreteResolutions().stream())
+                    .map(resolution -> new Dimension(resolution.getWidth(), resolution.getHeight()))
+                    .distinct()
+                    .toList();
+        } catch (Throwable exc) {
+            Log.warnf("V4L4J view sizes discovery unavailable for %s: %s", devicePath, exc.getMessage());
+            return List.of();
+        } finally {
+            if (device != null) {
+                try {
+                    device.release();
+                } catch (Throwable ignored) {
+                    // the device may already be in use by an active capture
+                }
+            }
         }
     }
 
-    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             V4l4jVideo camera = new V4l4jVideo();
             camera.start("/dev/video0", 320, 240,

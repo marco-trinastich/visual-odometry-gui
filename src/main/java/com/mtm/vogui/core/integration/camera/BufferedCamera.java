@@ -6,6 +6,7 @@
 package com.mtm.vogui.core.integration.camera;
 
 import com.mtm.vogui.core.integration.shared.BufferMonitor;
+import com.mtm.vogui.models.constants.Messages;
 import com.mtm.vogui.models.core.concurrency.Awaitable;
 import com.mtm.vogui.models.core.concurrency.AwaitableBuffer;
 import com.mtm.vogui.models.core.integration.BufferStatus;
@@ -14,6 +15,8 @@ import com.mtm.vogui.models.core.exceptions.BufferTimeoutException;
 import com.mtm.vogui.models.core.exceptions.CameraException;
 import com.mtm.vogui.models.core.exceptions.CameraStartException;
 import com.mtm.vogui.models.settings.Settings;
+import com.mtm.vogui.utilities.ImageUtils;
+import io.quarkus.logging.Log;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -41,6 +44,17 @@ public abstract class BufferedCamera {
     // State
     protected final Awaitable<Boolean> stopRequested;
     protected final Awaitable<Boolean> running;
+
+    // Warmup gate: a device reopened while still warm can deliver a burst of black frames
+    // before the sensor actually streams (observed: ~290 frames in ~300ms on macOS AVFoundation).
+    // Feeding them to the vo engine wedges it into a failed state, so they are kept out of the
+    // buffer until real content shows up — with a time budget so a legitimately dark scene
+    // (fail-open) is let through anyway.
+    private static final double WARMUP_LUMINANCE_THRESHOLD = 5.0;
+    private static final long WARMUP_TIMEOUT_MS = 2000;
+    private boolean warmupDone;
+    private long warmupStartMs;
+    private long warmupDiscarded;
 
     protected BufferedCamera(@NotNull Settings settings,
                              Consumer<BufferedImage> guiRenderer,
@@ -178,6 +192,14 @@ public abstract class BufferedCamera {
             this.bufferMonitor = BufferMonitor.from(this.buffer, capturedImage, this::monitorBufferStatus).start();
         }
 
+        if (!this.warmupDone && this.isWarmupFrame(capturedImage)) {
+            // Kept out of the buffer but still rendered: the preview stays honest
+            if (this.guiRenderer != null) {
+                this.guiRenderer.accept(capturedImage);
+            }
+            return;
+        }
+
         if (this.buffer.size() >= this.maxBufferItems) {
             // Buffer overrun, discard frames
             this.stripBufferBottom(this.maxBufferItems);
@@ -193,6 +215,26 @@ public abstract class BufferedCamera {
         }
     }
 
+    private boolean isWarmupFrame(BufferedImage capturedImage) {
+        if (this.warmupStartMs == 0) {
+            this.warmupStartMs = System.currentTimeMillis();
+        }
+        long elapsed = System.currentTimeMillis() - this.warmupStartMs;
+
+        if (elapsed < WARMUP_TIMEOUT_MS &&
+                ImageUtils.meanLuminance(capturedImage) <= WARMUP_LUMINANCE_THRESHOLD) {
+            this.warmupDiscarded++;
+            return true;
+        }
+
+        // First real frame (or budget exhausted): gate stays open, luminance is never sampled again
+        this.warmupDone = true;
+        if (this.warmupDiscarded > 0) {
+            Log.infof(Messages.DEVICE_WARMUP_LOG, this.warmupDiscarded, elapsed);
+        }
+        return false;
+    }
+
     protected void monitorBufferStatus(BufferStatus bufferStatus) {
         this.maxBufferItems = bufferStatus != null ?
                 bufferStatus.maxBufferItems() :
@@ -206,15 +248,8 @@ public abstract class BufferedCamera {
 
     protected void stripBufferBottom(long limit) {
         long excess = this.buffer.size() - limit;
-        for (long i = 0; i <= excess; i++) {
+        for (long i = 0; i < excess; i++) {
             this.buffer.poll();
-        }
-    }
-
-    protected void stripBufferTop(long limit) {
-        long excess = this.buffer.size() - limit;
-        for (long i = 0; i <= excess; i++) {
-            this.buffer.pollLast();
         }
     }
 }

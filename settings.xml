@@ -1,7 +1,7 @@
 <com.mtm.vogui.models.settings.core.CoreSettings>
   <input>
     <calibration>
-      <path>assets/datasets/boofcv/applet/vo/drc/mono_plane.yaml</path>
+      <path>../assets/datasets/boofcv/applet/vo/drc/mono_plane.yaml</path>
       <paths>
         <string>assets/datasets/boofcv/applet/vo/drc/mono_plane.yaml</string>
         <string>assets/datasets/vogui/calibration/mono/intrinsic_Asus_N56VZ_Webcam_1280_720.yaml</string>
@@ -12,7 +12,7 @@
         <string>assets/datasets/vogui/calibration/mono/intrinsic_Samsung_GalaxyS2_Camera_320_240_CustomBaseheight.yaml</string>
       </paths>
     </calibration>
-    <source>Video</source>
+    <source>Device</source>
     <video>
       <path>assets/datasets/boofcv/applet/vo/drc/left_mono.mjpeg</path>
       <paths>
@@ -40,11 +40,11 @@
       </paths>
     </video>
     <device>
-      <type>V4L4J</type>
-      <targetWidth>320</targetWidth>
-      <targetHeight>240</targetHeight>
+      <type>BoofCv</type>
+      <targetWidth>640</targetWidth>
+      <targetHeight>480</targetHeight>
       <boofCv>
-        <path></path>
+        <path>Fotocamera di MacBook Pro</path>
       </boofCv>
       <v4l4j>
         <path>/dev/video0</path>

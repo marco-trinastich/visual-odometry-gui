@@ -121,6 +121,15 @@ public class CommonUtils {
         return String.format(AppConstants.RESOLUTION_PATTERN, width, height);
     }
 
+    /**
+     * Squared euclidean distance between two resolutions: the single nearest-match
+     * metric shared by GUI reconciliation and capture-time adjustment.
+     */
+    public static long getResolutionDistance(int width, int height, int targetWidth, int targetHeight) {
+        return (long) (width - targetWidth) * (width - targetWidth)
+                + (long) (height - targetHeight) * (height - targetHeight);
+    }
+
     public static DevicePath @NotNull [] getDevicePathDescriptors(String[] pathsArray) {
         return Arrays.stream(pathsArray).map(CommonUtils::getDevicePathDescriptor)
                 .toArray(DevicePath[]::new);

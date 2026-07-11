@@ -72,7 +72,7 @@ public enum AppStatus implements WithValue {
         return from(state, null);
     }
 
-    public static AppStatus from(@NotNull ProcessingState state, Exception ex) {
+    public static AppStatus from(@NotNull ProcessingState state, Throwable ex) {
         AppStatus message;
 
         if (ex == null) {

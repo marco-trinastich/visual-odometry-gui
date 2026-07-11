@@ -13,5 +13,5 @@ import lombok.Data;
 @Builder
 public class ProcessingResult {
     private ProcessingState state;
-    private Exception exception;
+    private Throwable exception;
 }

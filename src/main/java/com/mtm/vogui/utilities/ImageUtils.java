@@ -90,6 +90,24 @@ public class ImageUtils {
         return ConvertBufferedImage.convertFrom(source, type, true);
     }
 
+    /**
+     * Average pixel luminance, sampled on a coarse grid (16px steps) to keep the cost negligible.
+     *
+     * @param image source image
+     * @return mean luminance in the 0-255 range
+     */
+    public static double meanLuminance(@NotNull BufferedImage image) {
+        long sum = 0, samples = 0;
+        for (int y = 0; y < image.getHeight(); y += 16) {
+            for (int x = 0; x < image.getWidth(); x += 16) {
+                int rgb = image.getRGB(x, y);
+                sum += ((rgb >> 16 & 0xFF) + (rgb >> 8 & 0xFF) + (rgb & 0xFF)) / 3;
+                samples++;
+            }
+        }
+        return samples > 0 ? (double) sum / samples : 0;
+    }
+
     @SuppressWarnings("rawtypes")
     public static ImageType<? extends ImageBase> getImageType(ImageTypeDescriptor descriptor) {
         return getParametrizedImageType(descriptor);

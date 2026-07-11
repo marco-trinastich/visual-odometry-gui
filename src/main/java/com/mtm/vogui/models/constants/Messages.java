@@ -10,11 +10,14 @@ public class Messages {
     // Visual Odometry
     public final static String VO_FAILED = "Warning: Visual Odometry estimation failed. Skipping frames, reset " +
             "context to restore.";
-    public final static String VO_EXCEPTION = "Error: Visual Odometry processing failed: %s\nStack trace: %s";
+    public final static String VO_EXCEPTION = "Error: Visual Odometry processing failed: %s";
+    public final static String VO_UNEXPECTED_ERROR = "Error: unexpected error during Visual Odometry processing";
 
     // Devices
     public final static String UNKNOWN_SOURCE_EXCEPTION = "Error: Unknown source %s";
     public final static String BUFFER_TIMEOUT_EXCEPTION = "Error: Buffer timed out. Aborting.";
+    public final static String BUFFER_EMPTY_POLL = "Warning: device buffer empty after waitBuffer while running. " +
+            "Skipping frame.";
     public final static String OPEN_VIDEO_ERROR = "Error opening video: %s";
     public final static String OPEN_DEVICE_ERROR = "Error opening camera device: %s";
     public final static String DEVICE_SETUP_ERROR = "Error setting up capture: %s";
@@ -22,9 +25,8 @@ public class Messages {
     public final static String DEVICE_V4L4J_MISSING_CONTROLS = "Specified controls not found";
     public final static String DEVICE_V4L4J_ERROR = "Error during V4L4J capture: %s.\n Cause: %s";
     public final static String DEVICE_V4L4J_CLOSE_ERROR = "Error closing V4L4J device.\n Cause: %s";
-    public final static String DEVICE_V4L4J_SYS_FIELD_ERROR = "Error loading V4L4J driver: Cannot clear sys_field.\n" +
-            "Cause: %s";
-    public final static String DEVICE_V4L4J_LOAD_DRIVER_ERROR = "Error loading V4L4J driver.\n Cause: %s";
+    public final static String DEVICE_WARMUP_LOG = "Device warmup: discarded %d black frames in %d ms before the " +
+            "first real frame";
     public final static String DEVICE_BOOFCV_CAPTURE_ERROR = "Error during BoofCv capture.\n Cause: %s";
     public final static String DEVICE_BOOFCV_CLOSE_ERROR = "Error closing BoofCv device.\n Cause: %s";
 
