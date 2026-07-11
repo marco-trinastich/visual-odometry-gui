@@ -6,8 +6,8 @@ runtime only — there is no web endpoint; the "app" is the Swing UI itself.
 ## Build & run
 
 - Java 25
-- Build with plain `mvn <goal>`. The root `settings.xml` is NOT Maven config — it is the
-  application's saved settings (XStream), read/written by the in-app Load/Save Settings.
+- Build with plain `mvn <goal>`. Root `settings.json`/`settings.yaml` are the application's
+  saved settings (gitignored user state), read/written by the in-app Load/Save Settings.
 - Don't run `quarkus dev` expecting a headless service: startup opens Swing windows.
 
 ## Conventions
@@ -20,13 +20,17 @@ runtime only — there is no web endpoint; the "app" is the Swing UI itself.
 - Layering: `models` must not import `core` or `gui`. Settings are pure persisted data;
   anything asked to the hardware (device lists, resolutions) goes through the
   `core.integration.discovery.DeviceDiscovery` singletons — never back into settings.
+  Deliberate exception: `settings.state.State` is the app's shared runtime blackboard
+  and references gui/core types by design.
 - No absolute machine-local paths in committed files; no hardcoded default asset paths —
   video/calibration lists start empty and users add paths via GUI.
 
 ## Settings persistence (why it's shaped this way)
 
-- Two formats: XML (XStream, primary) and Java-serialized `.dat` (legacy, kept deliberately
-  for backward compatibility — do not drop it).
+- Two formats via Jackson: JSON (primary) and YAML, switchable in-app (choice is session-only,
+  never persisted). Field-based mapping (fluent Lombok accessors are not bean getters);
+  deserialization goes through the no-arg constructors, so fields missing from the file keep
+  their defaults. Legacy XStream XML and Java-serialized `.dat` were dropped in July 2026.
 - Resolutions persist as raw `targetWidth`/`targetHeight` ints. `DeviceResolution` (named
   standards: QVGA, HD, ...) and `CustomResolution` are presentation-only, reconstructed on read.
 - An empty persisted device path means "first available": healed at GUI level via discovery.

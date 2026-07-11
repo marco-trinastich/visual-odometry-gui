@@ -13,8 +13,6 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import com.mtm.vogui.models.settings.core.input.device.boofcv.BoofCvCameraSettings;
 import com.mtm.vogui.models.settings.core.input.device.v4l4j.V4l4jCameraSettings;
 import com.mtm.vogui.utilities.CommonUtils;
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +24,6 @@ import java.io.Serializable;
  * Options related to input device.
  */
 @Data
-@Dependent
 public class DeviceSettings implements Serializable, WithDefault<DeviceSettings> {
 
     // Device
@@ -36,10 +33,10 @@ public class DeviceSettings implements Serializable, WithDefault<DeviceSettings>
     private BoofCvCameraSettings boofCv;
     private V4l4jCameraSettings v4l4j;
 
-    @Inject
-    public DeviceSettings(BoofCvCameraSettings boofCv, V4l4jCameraSettings v4l4j) {
-        this.boofCv = boofCv;
-        this.v4l4j = v4l4j;
+    public DeviceSettings() {
+        // Also the Jackson deserialization entry point
+        this.boofCv = new BoofCvCameraSettings();
+        this.v4l4j = new V4l4jCameraSettings();
 
         this.loadDefaults();
     }

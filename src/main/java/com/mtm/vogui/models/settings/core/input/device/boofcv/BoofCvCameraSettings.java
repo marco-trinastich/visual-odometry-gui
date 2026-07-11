@@ -6,8 +6,6 @@
 package com.mtm.vogui.models.settings.core.input.device.boofcv;
 
 import com.mtm.vogui.models.interfaces.WithDefault;
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,12 +19,10 @@ import java.io.Serializable;
  * {@code core.integration.discovery} layer, never stored here.
  */
 @Data
-@Dependent
 public class BoofCvCameraSettings implements Serializable, WithDefault<BoofCvCameraSettings> {
 
     private String path;
 
-    @Inject
     public BoofCvCameraSettings() {
         this.loadDefaults();
     }

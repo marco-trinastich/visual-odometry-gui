@@ -1039,9 +1039,9 @@ public class GuiApplication {
         // templateRadius
         var lblKltTrackerTemplateRadius = new JLabel("<html>Template Radius:</html>");
         var txtKltTrackerTemplateRadius = new IntegerTextField(
-                trackerSettings::setKltTracker_templateRadius,
-                trackerSettings::getKltTracker_templateRadius,
-                defaultTrackerSettings.getKltTracker_templateRadius(),
+                trackerSettings.klt()::templateRadius,
+                trackerSettings.klt()::templateRadius,
+                defaultTrackerSettings.klt().templateRadius(),
                 5,
                 JTextField.CENTER
         );
@@ -1049,9 +1049,9 @@ public class GuiApplication {
         // pyramidScaling
         var lblKltTrackerPyramidLevels = new JLabel("<html>Pyramid Levels:</html>");
         var txtKltTrackerPyramidLevels = new IntegerTextField(
-                trackerSettings::setKltTracker_pyramidLevels,
-                trackerSettings::getKltTracker_pyramidLevels,
-                defaultTrackerSettings.getKltTracker_pyramidLevels(),
+                trackerSettings.klt()::pyramidLevels,
+                trackerSettings.klt()::pyramidLevels,
+                defaultTrackerSettings.klt().pyramidLevels(),
                 5,
                 JTextField.CENTER
         );
@@ -1059,9 +1059,9 @@ public class GuiApplication {
         // maxFeatures
         var lblKltTrackerMaxFeatures = new JLabel("<html>Max Features:</html>");
         var txtKltTracker_maxFeatures = new IntegerTextField(
-                trackerSettings::setKltTracker_maxFeatures,
-                trackerSettings::getKltTracker_maxFeatures,
-                defaultTrackerSettings.getKltTracker_maxFeatures(),
+                trackerSettings.klt()::maxFeatures,
+                trackerSettings.klt()::maxFeatures,
+                defaultTrackerSettings.klt().maxFeatures(),
                 5,
                 JTextField.CENTER
         );
@@ -1069,9 +1069,9 @@ public class GuiApplication {
         // radius
         var lblKltTrackerRadius = new JLabel("<html>Radius:</html>");
         var txtKltTrackerRadius = new IntegerTextField(
-                trackerSettings::setKltTracker_radius,
-                trackerSettings::getKltTracker_radius,
-                defaultTrackerSettings.getKltTracker_radius(),
+                trackerSettings.klt()::radius,
+                trackerSettings.klt()::radius,
+                defaultTrackerSettings.klt().radius(),
                 5,
                 JTextField.CENTER
         );
@@ -1079,9 +1079,9 @@ public class GuiApplication {
         // threshold
         var lblKltTrackerThreshold = new JLabel("<html>Threshold:</html>");
         var txtKltTrackerThreshold = new FloatTextField(
-                trackerSettings::setKltTracker_threshold,
-                trackerSettings::getKltTracker_threshold,
-                defaultTrackerSettings.getKltTracker_threshold(),
+                trackerSettings.klt()::threshold,
+                trackerSettings.klt()::threshold,
+                defaultTrackerSettings.klt().threshold(),
                 5,
                 JTextField.CENTER
         );
@@ -1137,9 +1137,9 @@ public class GuiApplication {
         // maxFeaturesPerScale
         var lblSurfTrackerMaxFeaturesPerScale = new JLabel("<html>Max Features Per Scale:</html>");
         var txtSurfTrackerMaxFeaturesPerScale = new IntegerTextField(
-                trackerSettings::setSurfTracker_maxFeaturesPerScale,
-                trackerSettings::getSurfTracker_maxFeaturesPerScale,
-                defaultTrackerSettings.getSurfTracker_maxFeaturesPerScale(),
+                trackerSettings.surf()::maxFeaturesPerScale,
+                trackerSettings.surf()::maxFeaturesPerScale,
+                defaultTrackerSettings.surf().maxFeaturesPerScale(),
                 5,
                 JTextField.CENTER
         );
@@ -1147,9 +1147,9 @@ public class GuiApplication {
         // extractRadius
         var lblSurfTrackerExtractRadius = new JLabel("<html>Extract Radius:</html>");
         var txtSurfTrackerExtractRadius = new IntegerTextField(
-                trackerSettings::setSurfTracker_extractRadius,
-                trackerSettings::getSurfTracker_extractRadius,
-                defaultTrackerSettings.getSurfTracker_extractRadius(),
+                trackerSettings.surf()::extractRadius,
+                trackerSettings.surf()::extractRadius,
+                defaultTrackerSettings.surf().extractRadius(),
                 5,
                 JTextField.CENTER
         );
@@ -1157,9 +1157,9 @@ public class GuiApplication {
         // initialSampleSize
         var lblSurfTrackerInitialSampleSize = new JLabel("<html>Initial Sample Size:</html>");
         var txtSurfTrackerInitialSampleSize = new IntegerTextField(
-                trackerSettings::setSurfTracker_initialSampleSize,
-                trackerSettings::getSurfTracker_initialSampleSize,
-                defaultTrackerSettings.getSurfTracker_initialSampleSize(),
+                trackerSettings.surf()::initialSampleSize,
+                trackerSettings.surf()::initialSampleSize,
+                defaultTrackerSettings.surf().initialSampleSize(),
                 5,
                 JTextField.CENTER
         );
@@ -1202,16 +1202,16 @@ public class GuiApplication {
 
         // Show active Tracks
         var chkTrackerShowActiveTracks =
-                new JCheckBox(trackerSettings.isTrackerShowActiveTracks() ? "<html><b>Show Active Tracks</b></html>" : "<html>Show Active Tracks</html>");
-        chkTrackerShowActiveTracks.setSelected(trackerSettings.isTrackerShowActiveTracks());
+                new JCheckBox(trackerSettings.showActiveTracks() ? "<html><b>Show Active Tracks</b></html>" : "<html>Show Active Tracks</html>");
+        chkTrackerShowActiveTracks.setSelected(trackerSettings.showActiveTracks());
         /*Listener*/
         chkTrackerShowActiveTracks.addActionListener(
                 new ParameterCheckBoxListener("trackerShowActiveTracks", chkTrackerShowActiveTracks, this.settings));
 
         // Show new tracks
         var chkTrackerShowNewTracks =
-                new JCheckBox(trackerSettings.isTrackerShowNewTracks() ? "<html><b>Show New Tracks</b></html>" : "<html>Show New Tracks</html>");
-        chkTrackerShowNewTracks.setSelected(trackerSettings.isTrackerShowNewTracks());
+                new JCheckBox(trackerSettings.showNewTracks() ? "<html><b>Show New Tracks</b></html>" : "<html>Show New Tracks</html>");
+        chkTrackerShowNewTracks.setSelected(trackerSettings.showNewTracks());
         /*Listener*/
         chkTrackerShowNewTracks.addActionListener(
                 new ParameterCheckBoxListener("trackerShowNewTracks", chkTrackerShowNewTracks, this.settings));
@@ -1220,11 +1220,11 @@ public class GuiApplication {
         var lblTrackerType = new JLabel("<html><b>Tracker Type:</b></html>");
         var txtTrackerType = new DisplayValueComboBox<>(
                 TrackerType.values(),
-                trackerSettings::setTrackerType,
+                trackerSettings::type,
                 index -> TrackerType.values()[index],
                 selection -> this.switchTrackerPanel(selection.current().value(), kltTrackerPanel, surfTrackerPanel)
         );
-        txtTrackerType.setSelectedItem(trackerSettings.getTrackerType());
+        txtTrackerType.setSelectedItem(trackerSettings.type());
 
         // Fill guiComponents
 
@@ -1285,7 +1285,7 @@ public class GuiApplication {
 
         trackerSettingsPanel.setLayout(panelLayout);
 
-        this.switchTrackerPanel(trackerSettings.getTrackerType(), kltTrackerPanel, surfTrackerPanel);
+        this.switchTrackerPanel(trackerSettings.type(), kltTrackerPanel, surfTrackerPanel);
 
         return trackerSettingsPanel;
     }
@@ -1643,12 +1643,22 @@ public class GuiApplication {
         mnuResetSettings.addActionListener(new MainButtonListener("resetSettings", this.settings, this.core));
         JMenuItem mnuSwitchSettings = new JMenuItem(GuiConstants.MNU_SWITCH_SETTINGS_TEXT);
         mnuSwitchSettings.addActionListener(new MainButtonListener("switchSettings", this.settings, this.core));
+        JCheckBoxMenuItem mnuAutosave = new JCheckBoxMenuItem(GuiConstants.MNU_AUTOSAVE_TEXT);
+        mnuAutosave.setSelected(this.settings.core().autosave());
+        mnuAutosave.addActionListener(evt -> {
+            this.settings.core().autosave(mnuAutosave.isSelected());
+            // Persisted immediately: an OFF choice could never survive the exit otherwise
+            // (autosave-on-exit is skipped exactly when it has just been turned off)
+            this.settings.saveToCurrentFormat();
+        });
+        this.settings.state().guiComponents().put("mnuAutosave", mnuAutosave);
 
         JPopupMenu popupSettings = new JPopupMenu();
         popupSettings.add(mnuLoadSettings);
         popupSettings.add(mnuSaveSettings);
         popupSettings.add(mnuResetSettings);
         popupSettings.add(mnuSwitchSettings);
+        popupSettings.add(mnuAutosave);
 
         // Force menu size calculation
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -2136,6 +2146,10 @@ public class GuiApplication {
 
             /**Input Settings Panel Reloading**/
 
+            //Autosave menu CheckBox
+            JCheckBoxMenuItem mnuAutosave = (JCheckBoxMenuItem) settings.state().guiComponents().get("mnuAutosave");
+            mnuAutosave.setSelected(settings.core().autosave());
+
             //Calibration ComboBox
             JComboBox<String> txtCalibration = (JComboBox<String>) settings.state().guiComponents().get("txtCalibration");
             txtCalibration.setModel(new DefaultComboBoxModel<>(settings.core().input().calibration().paths()));
@@ -2256,7 +2270,7 @@ public class GuiApplication {
             // Tracker type ComboBox
             var txtTrackerType = (DisplayValueComboBox<TrackerType>) settings.state().guiComponents()
                     .get("txtTrackerType");
-            txtTrackerType.setSelectedItem(settings.core().tracker().getTrackerType());
+            txtTrackerType.setSelectedItem(settings.core().tracker().type());
 
             //KLT Tracker
 
@@ -2264,27 +2278,27 @@ public class GuiApplication {
             var txtKltTrackerTemplateRadius = (IntegerTextField) settings.state().guiComponents()
                     .get("txtKltTracker_templateRadius");
             txtKltTrackerTemplateRadius
-                    .updateModel(settings.core().tracker().getKltTracker_templateRadius());
+                    .updateModel(settings.core().tracker().klt().templateRadius());
 
             // pyramidLevels
             var txtKltTrackerPyramidLevels = (IntegerTextField) settings.state().guiComponents()
                     .get("txtKltTracker_pyramidLevels");
-            txtKltTrackerPyramidLevels.updateModel(settings.core().tracker().getKltTracker_pyramidLevels());
+            txtKltTrackerPyramidLevels.updateModel(settings.core().tracker().klt().pyramidLevels());
 
             // maxFeatures
             var txtKltTrackerMaxFeatures = (IntegerTextField) settings.state().guiComponents()
                     .get("txtKltTracker_maxFeatures");
-            txtKltTrackerMaxFeatures.updateModel(settings.core().tracker().getKltTracker_maxFeatures());
+            txtKltTrackerMaxFeatures.updateModel(settings.core().tracker().klt().maxFeatures());
 
             // radius
             var txtKltTrackerRadius = (IntegerTextField) settings.state().guiComponents()
                     .get("txtKltTracker_radius");
-            txtKltTrackerRadius.updateModel(settings.core().tracker().getKltTracker_radius());
+            txtKltTrackerRadius.updateModel(settings.core().tracker().klt().radius());
 
             // threshold
             var txtKltTrackerThreshold = (FloatTextField) settings.state().guiComponents()
                     .get("txtKltTracker_threshold");
-            txtKltTrackerThreshold.updateModel(settings.core().tracker().getKltTracker_threshold());
+            txtKltTrackerThreshold.updateModel(settings.core().tracker().klt().threshold());
 
             // SURF Tracker
 
@@ -2292,30 +2306,30 @@ public class GuiApplication {
             var txtSurfTrackerMaxFeaturesPerScale = (IntegerTextField) settings.state().guiComponents()
                     .get("txtSurfTracker_maxFeaturesPerScale");
             txtSurfTrackerMaxFeaturesPerScale
-                    .updateModel(settings.core().tracker().getSurfTracker_maxFeaturesPerScale());
+                    .updateModel(settings.core().tracker().surf().maxFeaturesPerScale());
 
             // extractRadius
             var txtSurfTrackerExtractRadius = (IntegerTextField) settings.state().guiComponents()
                     .get("txtSurfTracker_extractRadius");
-            txtSurfTrackerExtractRadius.updateModel(settings.core().tracker().getSurfTracker_extractRadius());
+            txtSurfTrackerExtractRadius.updateModel(settings.core().tracker().surf().extractRadius());
 
             // initialSampleSize
             var txtSurfTrackerInitialSampleSize = (IntegerTextField) settings.state().guiComponents()
                     .get("txtSurfTracker_initialSampleSize");
-            txtSurfTrackerInitialSampleSize.updateModel(settings.core().tracker().getSurfTracker_initialSampleSize());
+            txtSurfTrackerInitialSampleSize.updateModel(settings.core().tracker().surf().initialSampleSize());
 
             // Tracker options
 
             // Show active tracks CheckBox
             var chkTrackerShowActiveTracks = (JCheckBox) settings.state().guiComponents().get("chkTrackerShowActiveTracks");
-            chkTrackerShowActiveTracks.setSelected(settings.core().tracker().isTrackerShowActiveTracks());
+            chkTrackerShowActiveTracks.setSelected(settings.core().tracker().showActiveTracks());
             for (ActionListener actionListener : chkTrackerShowActiveTracks.getActionListeners()) { //Trigger Listener
                 actionListener.actionPerformed(new ActionEvent(chkTrackerShowActiveTracks, ActionEvent.ACTION_PERFORMED, null));
             }
 
             // Show new tracks CheckBox
             var chkTrackerShowNewTracks = (JCheckBox) settings.state().guiComponents().get("chkTrackerShowNewTracks");
-            chkTrackerShowNewTracks.setSelected(settings.core().tracker().isTrackerShowNewTracks());
+            chkTrackerShowNewTracks.setSelected(settings.core().tracker().showNewTracks());
             for (ActionListener actionListener : chkTrackerShowNewTracks.getActionListeners()) { //Trigger Listener
                 actionListener.actionPerformed(new ActionEvent(chkTrackerShowNewTracks, ActionEvent.ACTION_PERFORMED, null));
             }
@@ -2454,7 +2468,6 @@ public class GuiApplication {
         private int clickInterval;
 
         //Parameters for Load/Save Buttons only
-        private static String saveFormat = "XML";//Can be XML or Serialized (Object Output)
 
         public MainButtonListener(String function, Settings settings, Core core) {
             this.function = function;
@@ -2540,27 +2553,27 @@ public class GuiApplication {
 
             switch (function) {    //Depending on function value associated to the button acts differently:
                 case "loadSettings": //On click on Load Settings
-                    switch (saveFormat) {
-                        case "XML":
+                    switch (this.settings.currentFormat()) {
+                        case JSON:
                             //Update Parameters reference into the passed Core to the new Parameters
                             //and updates Status Label content
-                            if (this.settings.loadFromXml() && refreshGuiFromParameters(this.settings)) {
-                                infoPanel().setAppStatus(AppStatus.XMLSettingsLoaded);
-                            } else if (!Files.exists(this.settings.xmlPath())) {
-                                infoPanel().setAppStatus(AppStatus.XMLSettingsNotFound);
+                            if (this.settings.loadFromJson() && refreshGuiFromParameters(this.settings)) {
+                                infoPanel().setAppStatus(AppStatus.JSONSettingsLoaded);
+                            } else if (!Files.exists(this.settings.jsonPath())) {
+                                infoPanel().setAppStatus(AppStatus.JSONSettingsNotFound);
                             } else {
-                                infoPanel().setAppStatus(AppStatus.XMLSettingsLoadError);
+                                infoPanel().setAppStatus(AppStatus.JSONSettingsLoadError);
                             }
                             break;
-                        case "Serialized":
+                        case YAML:
                             //Update Parameters reference into the passed Core to the new Parameters
                             //and updates Status Label content
-                            if (this.settings.loadFromDat() && refreshGuiFromParameters(this.settings)) {
-                                infoPanel().setAppStatus(AppStatus.DATSettingsLoaded);
-                            } else if (!Files.exists(this.settings.datPath())) {
-                                infoPanel().setAppStatus(AppStatus.DATSettingsNotFound);
+                            if (this.settings.loadFromYaml() && refreshGuiFromParameters(this.settings)) {
+                                infoPanel().setAppStatus(AppStatus.YAMLSettingsLoaded);
+                            } else if (!Files.exists(this.settings.yamlPath())) {
+                                infoPanel().setAppStatus(AppStatus.YAMLSettingsNotFound);
                             } else {
-                                infoPanel().setAppStatus(AppStatus.DATSettingsLoadError);
+                                infoPanel().setAppStatus(AppStatus.YAMLSettingsLoadError);
                             }
                             break;
                         default:
@@ -2568,18 +2581,18 @@ public class GuiApplication {
                     }
                     break;
                 case "saveSettings": //On single-click on Save Settings
-                    switch (saveFormat) {
-                        case "XML":
+                    switch (this.settings.currentFormat()) {
+                        case JSON:
                             //Updates Status Label content
-                            infoPanel().setAppStatus(this.settings.saveToXml()
-                                    ? AppStatus.XMLSettingsSaved
-                                    : AppStatus.XMLSettingsSaveError);
+                            infoPanel().setAppStatus(this.settings.saveToJson()
+                                    ? AppStatus.JSONSettingsSaved
+                                    : AppStatus.JSONSettingsSaveError);
                             break;
-                        case "Serialized":
+                        case YAML:
                             //Updates Status Label content
-                            infoPanel().setAppStatus(this.settings.saveToDat()
-                                    ? AppStatus.DATSettingsSaved
-                                    : AppStatus.DATSettingsSaveError);
+                            infoPanel().setAppStatus(this.settings.saveToYaml()
+                                    ? AppStatus.YAMLSettingsSaved
+                                    : AppStatus.YAMLSettingsSaveError);
                             break;
                         default:
                             break;
@@ -2597,22 +2610,45 @@ public class GuiApplication {
                     }
                     break;
                 case "switchSettings":
+                    SettingsType currentFormat = this.settings.currentFormat();
                     int choice = JOptionPane.showOptionDialog(this.mainFrame(),
-                            "Do you want to change Save Format? (Actual save format: " + saveFormat + ")",
+                            "Do you want to change Save Format? (Actual save format: " + currentFormat + ")",
                             "Change Save Format",
                             JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
                             null,
-                            new String[]{"Serialized", "XML"},
-                            "XML");
-                    switch (choice) {
-                        case 1: //XML
-                            saveFormat = "XML";
-                            break;
-                        case 0: //Serialized
-                            saveFormat = "Serialized";
-                            break;
-                        default: //If canceled leaves current saveFormat
-                            break;
+                            new String[]{"YAML", "JSON"},
+                            "JSON");
+                    SettingsType chosenFormat = switch (choice) {
+                        case 0 -> SettingsType.YAML;
+                        case 1 -> SettingsType.JSON;
+                        default -> null; //If canceled leaves current format
+                    };
+                    if (chosenFormat == null || chosenFormat == currentFormat) {
+                        break;
+                    }
+
+                    // Save in the new format, then drop the old file: the chosen format
+                    // survives reboots implicitly, as the only settings file that exists
+                    boolean switched = chosenFormat == SettingsType.JSON
+                            ? this.settings.saveToJson()
+                            : this.settings.saveToYaml();
+                    if (switched) {
+                        this.settings.state().settingsFormat(chosenFormat);
+                        try {
+                            Files.deleteIfExists(chosenFormat == SettingsType.JSON
+                                    ? this.settings.yamlPath()
+                                    : this.settings.jsonPath());
+                        } catch (IOException ex) {
+                            Log.warnf("Could not remove the previous settings file: %s", ex.toString());
+                        }
+                        infoPanel().setAppStatus(chosenFormat == SettingsType.JSON
+                                ? AppStatus.JSONSettingsSaved
+                                : AppStatus.YAMLSettingsSaved);
+                    } else {
+                        // Save failed: the previous file is left untouched, format unchanged
+                        infoPanel().setAppStatus(chosenFormat == SettingsType.JSON
+                                ? AppStatus.JSONSettingsSaveError
+                                : AppStatus.YAMLSettingsSaveError);
                     }
                     break;
                 case "startVisualOdometry":
@@ -3089,12 +3125,12 @@ public class GuiApplication {
                             controllerCheckBox.isSelected() ? "<html><b>Frame skip</b></html>" : "<html>Frame skip</html>");
                     break;
                 case "trackerShowActiveTracks":
-                    this.settings.core().tracker().setTrackerShowActiveTracks(controllerCheckBox.isSelected());
+                    this.settings.core().tracker().showActiveTracks(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(
                             controllerCheckBox.isSelected() ? "<html><b>Show Active Tracks</b></html>" : "<html>Show Active Tracks</html>");
                     break;
                 case "trackerShowNewTracks":
-                    this.settings.core().tracker().setTrackerShowNewTracks(controllerCheckBox.isSelected());
+                    this.settings.core().tracker().showNewTracks(controllerCheckBox.isSelected());
                     controllerCheckBox.setText(
                             controllerCheckBox.isSelected() ? "<html><b>Show New Tracks</b></html>" : "<html>Show New Tracks</html>");
                     break;

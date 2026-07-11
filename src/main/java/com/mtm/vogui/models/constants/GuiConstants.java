@@ -95,6 +95,7 @@ public class GuiConstants {
     public final static String MNU_SAVE_SETTINGS_TEXT = "Save settings";
     public final static String MNU_RESET_SETTINGS_TEXT = "Reset settings to defaults";
     public final static String MNU_SWITCH_SETTINGS_TEXT = "Choose save format...";
+    public final static String MNU_AUTOSAVE_TEXT = "Autosave";
     public final static String BTN_START_TOOLTIP = "Start";
     public final static String BTN_PAUSE_TOOLTIP = "Pause/Resume";
     public final static String BTN_RESET_TOOLTIP = "Reset Visual Odometry";
@@ -113,7 +114,9 @@ public class GuiConstants {
 
     // MonoPlaneInfinity
     public final static String LBL_VO_MONO_INF_THRESHOLD_ADD = "Threshold add:";
-    public final static String LBL_VO_MONO_INF_INLIER_PIXEL_TOL = "Inlier pixel tolerance:";
+    // Abbreviated to fit beside its text field (column shared with "Threshold add:")
+    public final static String LBL_VO_MONO_INF_INLIER_PIXEL_TOL = "Inlier pixel tol:";
+    public final static String TIP_VO_MONO_INF_INLIER_PIXEL_TOL = "Inlier pixel tolerance";
 
     // MonoPlaneOverhead
     public final static String LBL_VO_MONO_OVH_CELL_SIZE = "Cell size:";

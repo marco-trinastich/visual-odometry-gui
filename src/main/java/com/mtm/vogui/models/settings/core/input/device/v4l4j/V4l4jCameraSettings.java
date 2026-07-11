@@ -6,8 +6,6 @@
 package com.mtm.vogui.models.settings.core.input.device.v4l4j;
 
 import com.mtm.vogui.models.interfaces.WithDefault;
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +19,6 @@ import java.io.Serializable;
  * {@code core.integration.discovery} layer, never stored here.
  */
 @Data
-@Dependent
 public class V4l4jCameraSettings implements Serializable, WithDefault<V4l4jCameraSettings> {
 
     private String path;
@@ -29,7 +26,6 @@ public class V4l4jCameraSettings implements Serializable, WithDefault<V4l4jCamer
     private boolean timeoutImageIO;
     private boolean keepFormat;
 
-    @Inject
     public V4l4jCameraSettings() {
         this.loadDefaults();
     }

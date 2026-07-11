@@ -5,12 +5,18 @@
 
 package com.mtm.vogui.models.interfaces;
 
-import jakarta.enterprise.inject.spi.CDI;
-
 @SuppressWarnings("unchecked")
 public interface WithDefault<T> {
 
+    /**
+     * A fresh instance with default values, built through the no-arg constructor
+     * every implementation is required to provide.
+     */
     default T getDefault() {
-        return (T) CDI.current().select(this.getClass()).get();
+        try {
+            return (T) this.getClass().getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException exc) {
+            throw new IllegalStateException("Missing no-arg constructor for " + this.getClass().getName(), exc);
+        }
     }
 }

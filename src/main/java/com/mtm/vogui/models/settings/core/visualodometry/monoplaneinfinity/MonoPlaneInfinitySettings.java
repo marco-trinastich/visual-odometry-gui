@@ -7,8 +7,6 @@ package com.mtm.vogui.models.settings.core.visualodometry.monoplaneinfinity;
 
 import boofcv.factory.sfm.ConfigPlanarTrackPnP;
 import com.mtm.vogui.models.interfaces.WithDefault;
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,14 +18,12 @@ import java.io.Serializable;
  * Options related to MonoPlaneInfinity vo algorithm.
  */
 @Data
-@Dependent
 public class MonoPlaneInfinitySettings implements Serializable, WithDefault<MonoPlaneInfinitySettings> {
     private int thresholdAdd;
     private int thresholdRetire;
     private double inlierPixelTol;
     private int ransacIterations;
 
-    @Inject
     public MonoPlaneInfinitySettings() {
         this.loadDefaults();
     }

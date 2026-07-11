@@ -10,6 +10,7 @@ import com.mtm.vogui.gui.GuiController;
 import com.mtm.vogui.models.core.concurrency.Awaitable;
 import com.mtm.vogui.models.core.processing.tracking.TrackedPoint;
 import com.mtm.vogui.models.enums.core.ProcessingState;
+import com.mtm.vogui.models.enums.settings.SettingsType;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.Data;
@@ -29,6 +30,10 @@ public class State {
     private BufferedCamera device;
     private final DefaultListModel<TrackedPoint> trackedPoints;
 
+    // settings format in use: never persisted, derived at boot from the file that loaded
+    // (the format choice survives reboots implicitly, as the settings file that exists)
+    private SettingsType settingsFormat;
+
     // gui
     private final GuiController guiController;
     private final HashMap<String, Component> guiComponents;
@@ -40,6 +45,7 @@ public class State {
         this.failedEvent = new Awaitable<>(false);
         this.device = null;
         this.trackedPoints = new DefaultListModel<>();
+        this.settingsFormat = SettingsType.JSON;
 
         // gui
         this.guiController = guiController;
@@ -53,6 +59,7 @@ public class State {
         this.failedEvent = new Awaitable<>(state.failedEvent.get());
         this.device = state.device;
         this.trackedPoints = state.trackedPoints;
+        this.settingsFormat = state.settingsFormat;
 
         // Keep gui components reference
         this.guiComponents = state.guiComponents;

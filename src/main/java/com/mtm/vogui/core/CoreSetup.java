@@ -113,7 +113,7 @@ public class CoreSetup {
         JFrame mainFrame = (JFrame) settings.state().guiComponents().get("mainFrame");
 
         var imageType = params.frozenSettings().core().image().descriptor();
-        var trackerType = params.frozenSettings().core().tracker().getTrackerType();
+        var trackerType = params.frozenSettings().core().tracker().type();
         TrackerFactory trackerFactory;
         try {
             trackerFactory = TrackerFactory.from(imageType);
@@ -126,11 +126,11 @@ public class CoreSetup {
             case Klt:
             case Klt2:
                 // Klt
-                var kltTrackerTemplateRadius = params.frozenSettings().core().tracker().getKltTracker_templateRadius();
-                var kltTrackerPyramidLevels = params.frozenSettings().core().tracker().getKltTracker_pyramidLevels();
-                var kltTrackerMaxFeatures = params.frozenSettings().core().tracker().getKltTracker_maxFeatures();
-                var kltTrackerRadius = params.frozenSettings().core().tracker().getKltTracker_radius();
-                var kltTrackerThreshold = params.frozenSettings().core().tracker().getKltTracker_threshold();
+                var kltTrackerTemplateRadius = params.frozenSettings().core().tracker().klt().templateRadius();
+                var kltTrackerPyramidLevels = params.frozenSettings().core().tracker().klt().pyramidLevels();
+                var kltTrackerMaxFeatures = params.frozenSettings().core().tracker().klt().maxFeatures();
+                var kltTrackerRadius = params.frozenSettings().core().tracker().klt().radius();
+                var kltTrackerThreshold = params.frozenSettings().core().tracker().klt().threshold();
 
                 //If the extracted pyramid levels is 0
                 if (kltTrackerPyramidLevels == 0) {
@@ -151,12 +151,12 @@ public class CoreSetup {
                             ((JTextField) params.frozenSettings().state().guiComponents().get("txtKltTracker_pyramidLevels"))
                                     .setText("4");
                             //Changes original Parameters (to persist the modification)
-                            settings.core().tracker().setKltTracker_pyramidLevels(4);
+                            settings.core().tracker().klt().pyramidLevels(4);
                             //Changes stored Parameter (to continue current elaboration)
-                            params.frozenSettings().core().tracker().setKltTracker_pyramidLevels(4);
+                            params.frozenSettings().core().tracker().klt().pyramidLevels(4);
 
                             //Sets the local pyramidScaling value to default value
-                            kltTrackerPyramidLevels = params.frozenSettings().core().tracker().getKltTracker_pyramidLevels();
+                            kltTrackerPyramidLevels = params.frozenSettings().core().tracker().klt().pyramidLevels();
                             break;
                         case JOptionPane.CANCEL_OPTION:
                         default:
@@ -187,9 +187,9 @@ public class CoreSetup {
             case Surf:
                 // Surf
                 var surfTrackerMaxFeaturesPerScale = params.frozenSettings().core().tracker()
-                        .getSurfTracker_maxFeaturesPerScale();
-                var surfTrackerExtractRadius = params.frozenSettings().core().tracker().getSurfTracker_extractRadius();
-                var surfTrackerInitialSampleSize = params.frozenSettings().core().tracker().getSurfTracker_initialSampleSize();
+                        .surf().maxFeaturesPerScale();
+                var surfTrackerExtractRadius = params.frozenSettings().core().tracker().surf().extractRadius();
+                var surfTrackerInitialSampleSize = params.frozenSettings().core().tracker().surf().initialSampleSize();
 
                 //If the SURF Tracker has been selected:
                 try {

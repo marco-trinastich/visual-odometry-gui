@@ -10,8 +10,6 @@ import com.mtm.vogui.models.interfaces.WithDefault;
 import com.mtm.vogui.models.settings.core.input.calibration.CalibrationSettings;
 import com.mtm.vogui.models.settings.core.input.device.DeviceSettings;
 import com.mtm.vogui.models.settings.core.input.video.VideoSettings;
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +22,6 @@ import java.io.Serializable;
  */
 
 @Data
-@Dependent
 public class InputSettings implements Serializable, WithDefault<InputSettings> {
 
     private CalibrationSettings calibration;
@@ -34,11 +31,11 @@ public class InputSettings implements Serializable, WithDefault<InputSettings> {
     private boolean inputPreview;
     private boolean fullResolutionPreview;
 
-    @Inject
-    public InputSettings(CalibrationSettings calibration, VideoSettings video, DeviceSettings device) {
-        this.calibration = calibration;
-        this.video = video;
-        this.device = device;
+    public InputSettings() {
+        // Also the Jackson deserialization entry point
+        this.calibration = new CalibrationSettings();
+        this.video = new VideoSettings();
+        this.device = new DeviceSettings();
 
         this.loadDefaults();
     }

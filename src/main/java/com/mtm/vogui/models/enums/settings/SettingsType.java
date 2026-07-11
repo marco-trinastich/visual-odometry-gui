@@ -11,9 +11,8 @@ import lombok.Getter;
 
 @Getter
 public enum SettingsType implements WithValue, Comparable {
-    XML("xml"),
-    YAML("yaml"),
-    DAT("dat");
+    JSON("json"),
+    YAML("yaml");
 
     private final String value;
 

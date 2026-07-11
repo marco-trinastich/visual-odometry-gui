@@ -79,7 +79,7 @@ The project is intended for **research, learning, and experimentation** in visua
 
 ### Settings Persistence
 
-- All settings can be saved to and loaded from disk in **XML** (XStream) or **serialized** format (`settings.xml` / `settings.dat`), switchable from the GUI.
+- All settings can be saved to and loaded from disk in **JSON** or **YAML** format (`settings.json` / `settings.yaml`, Jackson), switchable from the GUI.
 - Only meaningful state is persisted (selections, parameters, and input-path history) — device lists and available types are rediscovered at runtime.
 - One-click **reset to defaults**.
 
@@ -119,7 +119,7 @@ assets/datasets/
 To get started:
 
 1. A ready-made sample (video + matching calibration) is available among the **[BoofCV example datasets](https://github.com/lessthanoptimal/BoofCV-Data)** — the classic `vo/drc` monocular sequence (`left_mono.mjpeg` with `mono_plane.yaml`) works out of the box when placed under `assets/datasets/boofcv/applet/vo/drc/`.
-2. Alternatively, use **your own videos**: record a sequence with a camera you have calibrated (BoofCV provides [calibration tools](https://boofcv.org/index.php?title=Tutorial_Camera_Calibration)) and add both the video and the intrinsics file from the GUI — the paths are remembered in `settings.xml`.
+2. Alternatively, use **your own videos**: record a sequence with a camera you have calibrated (BoofCV provides [calibration tools](https://boofcv.org/index.php?title=Tutorial_Camera_Calibration)) and add both the video and the intrinsics file from the GUI — the paths are remembered in `settings.json`.
 
 > **Calibration matters:** monocular plane-based VO needs intrinsics that actually match the camera (and resolution) that produced the video. A mismatched calibration is the most common cause of poor or failing estimates.
 
@@ -139,12 +139,11 @@ The build produces a Quarkus fast-jar under `target/quarkus-app/`.
 
 ### Configuration
 
-- **Application settings (runtime):** everything is configurable from the GUI and persisted on demand to `settings.xml` (or `settings.dat`) in the working directory — see [Settings Persistence](#settings-persistence).
-- **Framework configuration (build-time):** `src/main/resources/application.properties` defines the settings file name and the XStream deserialization allow-list:
+- **Application settings (runtime):** everything is configurable from the GUI and persisted on demand to `settings.json` (or `settings.yaml`) in the working directory — see [Settings Persistence](#settings-persistence). These files are user state and are not tracked by git.
+- **Framework configuration (build-time):** `src/main/resources/application.properties` defines the settings file name:
 
   ```properties
   config.settings.file-name=settings
-  config.settings.allowed-xml-classes=com.mtm.vogui.**,java.**,boofcv.**,org.apache.commons.**
   ```
 
 - **Headless flag:** Quarkus dev mode forces `java.awt.headless=true` by default, which would prevent the Swing GUI from opening. The `quarkus-maven-plugin` is already configured with `-Djava.awt.headless=false` in `pom.xml` — keep it if you customize the build.
@@ -201,7 +200,7 @@ The main window opens with the chart area/settings panels on the left and the vi
 ├── assets/
 │   ├── datasets/      # Videos & calibrations (git-ignored, provided separately)
 │   └── screenshots/   # Images used by this README
-├── settings.xml       # The app's own persisted settings (not a Maven file!)
+├── settings.json      # The app's own persisted settings (gitignored user state)
 └── pom.xml            # Maven + Quarkus build definition
 ```
 
@@ -220,7 +219,7 @@ Video-file processing works on every platform.
 
 - `mvn quarkus:dev` gives live reload and the Quarkus dev tooling; the Swing window opens thanks to the headless override in `pom.xml`.
 - From an IDE, run the `VisualOdometryGui` main class (make sure `-Djava.awt.headless=false` is set if you launch through a Quarkus run configuration).
-- Settings load/save problems are logged with their cause (e.g. `Error loading settings from: settings.xml (…)`); deleting a stale `settings.xml` regenerates it from defaults.
+- Settings load/save problems are logged with their cause (e.g. `Error loading settings from: settings.json (…)`); deleting a stale `settings.json` regenerates it from defaults.
 
 ### Improvements
 
@@ -235,7 +234,7 @@ Potential future enhancements:
 
 ### FAQs
 
-**Q: The app logs `Error loading settings from: settings.xml` at startup.**
+**Q: The app logs `Error loading settings from: settings.json` at startup.**
 A: The settings file on disk is stale or corrupted (e.g. produced by an older version). Delete it — the app starts from defaults and recreates it at the next save.
 
 **Q: No webcams appear in the device list on my Mac.**
@@ -255,7 +254,7 @@ This project builds upon excellent open-source work:
 - **[Quarkus](https://quarkus.io/)** — application framework and CDI container.
 - **[webcam-capture](https://github.com/sarxos/webcam-capture)** and **[V4L4J](https://github.com/sarxos/v4l4j)** — live camera access.
 - **[JavaCV](https://github.com/bytedeco/javacv)** — media decoding support.
-- **[XStream](https://x-stream.github.io/)** — XML settings persistence.
+- **[Jackson](https://github.com/FasterXML/jackson)** — JSON/YAML settings persistence.
 - **[Lombok](https://projectlombok.org/)** — boilerplate reduction.
 
 ## Support

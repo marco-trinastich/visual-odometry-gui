@@ -33,3 +33,10 @@ target/
 # Visual Odometry GUI Data
 data/
 assets/datasets/
+
+# Application settings (user state, regenerated from defaults at startup)
+/settings.xml
+/settings.dat
+/settings.json
+/settings.yaml
+/settings.yml

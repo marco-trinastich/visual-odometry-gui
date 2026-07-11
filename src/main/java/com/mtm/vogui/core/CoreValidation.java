@@ -29,8 +29,8 @@ public class CoreValidation {
         var imageResizeHeight = params.frozenSettings().core().image().resizeHeight();
 
         // Tracker settings
-        var trackerType = params.frozenSettings().core().tracker().getTrackerType();
-        var kltTrackerPyramidLevels = params.frozenSettings().core().tracker().getKltTracker_pyramidLevels();
+        var trackerType = params.frozenSettings().core().tracker().type();
+        var kltTrackerPyramidLevels = params.frozenSettings().core().tracker().klt().pyramidLevels();
 
         // Visual odometry settings
         var visualOdometryType = params.frozenSettings().core().visualOdometry().type();
@@ -129,9 +129,9 @@ public class CoreValidation {
                     ((JTextField) settings.state().guiComponents().get("txtKltTracker_pyramidLevels"))
                             .setText("4");
                     //Changes original parameter (to persist the modification)
-                    settings.core().tracker().setKltTracker_pyramidLevels(4);
+                    settings.core().tracker().klt().pyramidLevels(4);
                     //Changes stored parameter (to continue current elaboration)
-                    params.frozenSettings().core().tracker().setKltTracker_pyramidLevels(4);
+                    params.frozenSettings().core().tracker().klt().pyramidLevels(4);
                     break;
                 case JOptionPane.CANCEL_OPTION:
                     return false;

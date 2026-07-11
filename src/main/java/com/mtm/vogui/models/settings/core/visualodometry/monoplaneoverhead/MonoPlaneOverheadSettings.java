@@ -6,8 +6,6 @@
 package com.mtm.vogui.models.settings.core.visualodometry.monoplaneoverhead;
 
 import com.mtm.vogui.models.interfaces.WithDefault;
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +17,6 @@ import java.io.Serializable;
  * Options related to MonoPlaneOverhead vo algorithm.
  */
 @Data
-@Dependent
 public class MonoPlaneOverheadSettings implements Serializable, WithDefault<MonoPlaneOverheadSettings> {
     private double cellSize;
     private double maxCellsPerPixel;
@@ -31,7 +28,6 @@ public class MonoPlaneOverheadSettings implements Serializable, WithDefault<Mono
     private double respawnTrackFraction;
     private double respawnCoverageFraction;
 
-    @Inject
     public MonoPlaneOverheadSettings() {
         this.loadDefaults();
     }

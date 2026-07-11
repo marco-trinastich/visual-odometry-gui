@@ -62,6 +62,7 @@ public class MonoPlaneInfinityPanel extends JPanel {
 
         // inlierPixelTol
         this.lblInlierPixelTol = new JLabel(GuiConstants.LBL_VO_MONO_INF_INLIER_PIXEL_TOL);
+        this.lblInlierPixelTol.setToolTipText(GuiConstants.TIP_VO_MONO_INF_INLIER_PIXEL_TOL);
         this.txtInlierPixelTol = new DoubleTextField(
                 monoVoSettings::inlierPixelTol,
                 monoVoSettings::inlierPixelTol,
@@ -69,6 +70,7 @@ public class MonoPlaneInfinityPanel extends JPanel {
                 5,
                 JTextField.CENTER
         );
+        this.txtInlierPixelTol.setToolTipText(GuiConstants.TIP_VO_MONO_INF_INLIER_PIXEL_TOL);
 
         // ransacIterations
         this.lblRansacIterations = new JLabel(GuiConstants.LBL_VO_MONO_RANSAC_ITERATIONS);

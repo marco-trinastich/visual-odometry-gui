@@ -7,8 +7,6 @@ package com.mtm.vogui.models.settings.core.chart;
 
 import com.mtm.vogui.models.enums.settings.ChartType;
 import com.mtm.vogui.models.interfaces.WithDefault;
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,14 +18,12 @@ import java.io.Serializable;
  * Options related to charts.
  */
 @Data
-@Dependent
 public class ChartSettings implements Serializable, WithDefault<ChartSettings> {
 
     private ChartType type;
     private double scaleXZ;
     private double scaleY;
 
-    @Inject
     public ChartSettings() {
         this.loadDefaults();
     }

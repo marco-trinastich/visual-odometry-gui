@@ -13,7 +13,5 @@ public interface Config {
 
     interface Settings {
         String fileName();
-
-        String[] allowedXmlClasses();
     }
 }

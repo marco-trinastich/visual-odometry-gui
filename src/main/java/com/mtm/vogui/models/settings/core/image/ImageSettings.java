@@ -12,8 +12,6 @@ import com.mtm.vogui.models.enums.settings.resolution.CustomResolution;
 import com.mtm.vogui.models.enums.settings.resolution.ResizeResolution;
 import com.mtm.vogui.models.interfaces.Resolution;
 import com.mtm.vogui.models.interfaces.WithDefault;
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
  * Options for the images provided to the algorithm.
  */
 @Data
-@Dependent
 public class ImageSettings implements Serializable, WithDefault<ImageSettings> {
 
     private ImageTypeDescriptor descriptor;
@@ -34,7 +31,6 @@ public class ImageSettings implements Serializable, WithDefault<ImageSettings> {
     private int frameSkipValue;
     private boolean internalImagePreview;
 
-    @Inject
     public ImageSettings() {
         this.loadDefaults();
     }

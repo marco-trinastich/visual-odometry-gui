@@ -350,14 +350,14 @@ public class CoreRendering {
             Graphics2D g2 = status.frame().vo().buffered().createGraphics();
 
             // Draw active tracks
-            if (settings.core().tracker().isTrackerShowActiveTracks()) {
+            if (settings.core().tracker().showActiveTracks()) {
                 for (Point2D_F64 p : status.tracking().trackInliers()) {
                     VisualizeFeatures.drawPoint(g2, (int) p.getX(), (int) p.getY(), Color.blue);
                 }
             }
 
             // Draw new tracks
-            if (settings.core().tracker().isTrackerShowNewTracks()) {
+            if (settings.core().tracker().showNewTracks()) {
                 for (Point2D_F64 p : status.tracking().trackNew()) {
                     VisualizeFeatures.drawPoint(g2, (int) p.getX(), (int) p.getY(), Color.green);
                 }
