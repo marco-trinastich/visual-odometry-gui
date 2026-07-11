@@ -19,9 +19,9 @@ import com.mtm.vogui.models.core.exceptions.BufferTimeoutException;
 import com.mtm.vogui.models.core.exceptions.VoProcessingException;
 import com.mtm.vogui.models.core.processing.tracking.PointFactory;
 import com.mtm.vogui.models.enums.gui.AppStatus;
-import com.mtm.vogui.gui.components.info.InfoScrollPane;
-
-import javax.swing.*;
+import com.mtm.vogui.models.enums.gui.RecentPathTarget;
+import com.mtm.vogui.core.rendering.RenderSink;
+import com.mtm.vogui.core.rendering.SettingsSync;
 
 import com.mtm.vogui.utilities.CoreUtils;
 import com.mtm.vogui.utilities.OSUtils;
@@ -40,11 +40,13 @@ public class Core {
 
     private final AppContext context;
     private final ProcessingParameters params;
+    private final RenderSink sink;
 
     @Inject
-    public Core(AppContext context, ProcessingParameters params) {
+    public Core(AppContext context, ProcessingParameters params, RenderSink sink) {
         this.context = context;
         this.params = params;
+        this.sink = sink;
     }
 
     /**
@@ -89,18 +91,15 @@ public class Core {
         // - original settings -> impacted by GUI interactions (used for preview, frame skip and buffer)
         this.params.frozenContext(context.deepClone());
 
-        // GUI components
-        InfoScrollPane infoPanel = context.state().guiController().infoPanel();
-        infoPanel.setAppStatus(AppStatus.Init);
-        JFrame mainFrame = (JFrame) context.state().guiComponents().get("mainFrame");
+        this.sink.renderAppStatus(AppStatus.Init);
 
         // Check settings
-        boolean valid = CoreValidation.validateSettings(this.context, this.params);
+        boolean valid = CoreValidation.validateSettings(this.context, this.params, this.sink);
         if (!valid) {
-            infoPanel.setAppStatus(AppStatus.InvalidSettings);
+            this.sink.renderAppStatus(AppStatus.InvalidSettings);
             return false;
         }
-        infoPanel.setAppStatus(AppStatus.ValidSettings);
+        this.sink.renderAppStatus(AppStatus.ValidSettings);
 
         // Open calibration
         var calibrationResult = CoreSetup.openCalibration(this.params);
@@ -110,72 +109,69 @@ public class Core {
                 case LegacyXmlFormat -> "Calibration file uses the legacy BoofCV XML format,\nwhich is no longer supported.\nConvert it to the current YAML format (*.yaml).";
                 default -> "Calibration file isn't a valid YAML camera calibration!";
             };
-            JOptionPane.showConfirmDialog(mainFrame, message, "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
-            infoPanel.setAppStatus(AppStatus.InvalidCalibration);
+            this.sink.notifyError(message);
+            this.sink.renderAppStatus(AppStatus.InvalidCalibration);
             return false;
         }
-        infoPanel.setAppStatus(AppStatus.ValidCalibration);
+        this.sink.renderAppStatus(AppStatus.ValidCalibration);
         // Successful open commits the used path to the recent-paths history
-        CoreRendering.renderRecentPath(this.context, this.context.settings().input().calibration(),
-                this.params.frozenContext().settings().input().calibration().path(), "txtCalibration");
+        SettingsSync.commitRecentPath(this.sink, RecentPathTarget.Calibration,
+                this.context.settings().input().calibration(),
+                this.params.frozenContext().settings().input().calibration().path());
 
         // Open input source
         switch (this.params.frozenContext().settings().input().source()) {
             case Video:
                 if (!CoreSetup.openVideo(this.params)) {
                     // Open video file
-                    JOptionPane.showConfirmDialog(mainFrame, "Video file isn't valid or the specified file doesn't exist!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
-                    infoPanel.setAppStatus(AppStatus.InvalidVideo);
+                    this.sink.notifyError("Video file isn't valid or the specified file doesn't exist!");
+                    this.sink.renderAppStatus(AppStatus.InvalidVideo);
                     return false;
                 }
-                infoPanel.setAppStatus(AppStatus.ValidVideo);
+                this.sink.renderAppStatus(AppStatus.ValidVideo);
                 // Successful open commits the used path to the recent-paths history
-                CoreRendering.renderRecentPath(this.context, this.context.settings().input().video(),
-                        this.params.frozenContext().settings().input().video().path(), "txtVideoSource");
+                SettingsSync.commitRecentPath(this.sink, RecentPathTarget.VideoSource,
+                        this.context.settings().input().video(),
+                        this.params.frozenContext().settings().input().video().path());
                 break;
             case Device:
                 // Open input device
-                if (!CoreSetup.openDevice(this.context, this.params)) {
+                if (!CoreSetup.openDevice(this.context, this.params, this.sink)) {
                     if (!OSUtils.isUnix() && this.params.frozenContext().settings().input().device().path().id().indexOf("V4L4J") >= 0) {
-                        JOptionPane.showConfirmDialog(
-                                mainFrame,
-                                "V4L4J Device Driver runs only under Linux!\nYour current os is: "
-                                        + (OSUtils.isWindows() ?
-                                        "Windows"
-                                        : (OSUtils.isMac() ?
-                                        "Mac"
-                                        : "Unknown"))
-                                , "Error"
-                                , JOptionPane.PLAIN_MESSAGE
-                                , JOptionPane.ERROR_MESSAGE);
+                        this.sink.notifyError("V4L4J Device Driver runs only under Linux!\nYour current os is: "
+                                + (OSUtils.isWindows() ?
+                                "Windows"
+                                : (OSUtils.isMac() ?
+                                "Mac"
+                                : "Unknown")));
                     } else {
-                        JOptionPane.showConfirmDialog(mainFrame, "Device path/type isn't valid, or doesn't exist\nor doesn't support selected adjustments!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+                        this.sink.notifyError("Device path/type isn't valid, or doesn't exist\nor doesn't support selected adjustments!");
                     }
-                    infoPanel.setAppStatus(AppStatus.InvalidDevice);
+                    this.sink.renderAppStatus(AppStatus.InvalidDevice);
                     return false;
                 }
-                infoPanel.setAppStatus(AppStatus.ValidDevice);
+                this.sink.renderAppStatus(AppStatus.ValidDevice);
                 break;
             default:
-                infoPanel.setAppStatus(AppStatus.UnknownDevice);
+                this.sink.renderAppStatus(AppStatus.UnknownDevice);
                 return false;
         }
 
         // Setup tracker
-        if (!CoreSetup.setupTracker(this.context, this.params)) {
-            JOptionPane.showConfirmDialog(mainFrame, "Error setting up the Tracker!\nCheck out Tracker settings", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
-            infoPanel.setAppStatus(AppStatus.InvalidTracker);
+        if (!CoreSetup.setupTracker(this.context, this.params, this.sink)) {
+            this.sink.notifyError("Error setting up the Tracker!\nCheck out Tracker settings");
+            this.sink.renderAppStatus(AppStatus.InvalidTracker);
             return false;
         }
-        infoPanel.setAppStatus(AppStatus.ValidTracker);
+        this.sink.renderAppStatus(AppStatus.ValidTracker);
 
         // Setup visual odometry
         if (!CoreSetup.setupVisualOdometry(this.params)) {
-            JOptionPane.showConfirmDialog(mainFrame, "Error setting up the Visual Odometry!\nCheck out Visual Odometry settings, or if the selected\n Visual Odometry type is not implemented.", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
-            infoPanel.setAppStatus(AppStatus.InvalidVo);
+            this.sink.notifyError("Error setting up the Visual Odometry!\nCheck out Visual Odometry settings, or if the selected\n Visual Odometry type is not implemented.");
+            this.sink.renderAppStatus(AppStatus.InvalidVo);
             return false;
         }
-        infoPanel.setAppStatus(AppStatus.ValidVo);
+        this.sink.renderAppStatus(AppStatus.ValidVo);
 
         return true;
     }
@@ -191,7 +187,7 @@ public class Core {
 
         var result = false;
         if (voType.isMono()) {
-            result = processMonoVO((MonocularPlaneVisualOdometry<?>) voEngine, context, params);
+            result = processMonoVO((MonocularPlaneVisualOdometry<?>) voEngine, context, params, this.sink);
         } else if (voType.isStereo()) {
             result = processStereoVO((StereoVisualOdometry<?>) voEngine, context, params);
         } else if (voType.isDepth()) {
@@ -199,8 +195,7 @@ public class Core {
         }
 
         if (!result) {
-            JFrame mainFrame = (JFrame) this.context.state().guiComponents().get("mainFrame");
-            JOptionPane.showConfirmDialog(mainFrame, "An error has occurred during the Visual Odometry elaboration!\nCheck out your Visual Odometry/Tracker Settings.\nOtherwise your input video may be invalid or not estimable, or has an inadequate calibration.", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+            this.sink.notifyError("An error has occurred during the Visual Odometry elaboration!\nCheck out your Visual Odometry/Tracker Settings.\nOtherwise your input video may be invalid or not estimable, or has an inadequate calibration.");
         }
 
         return result;
@@ -212,7 +207,7 @@ public class Core {
 
         if (result.exception() != null) {
             // Show exception message
-            CoreRendering.renderAppStatus(context, result.exception());
+            this.sink.renderAppStatus(context, result.exception());
         }
 
         if (result.state().is(ProcessingState.Error)) {
@@ -234,33 +229,34 @@ public class Core {
     @SneakyThrows
     private static boolean processMonoVO(MonocularPlaneVisualOdometry<? extends ImageBase<?>> monoVo,
                                          @NotNull AppContext context,
-                                         @NotNull ProcessingParameters params) {
+                                         @NotNull ProcessingParameters params,
+                                         @NotNull RenderSink sink) {
         Exception processingException = null;
 
         ProcessingStatus status = ProcessingStatus.build();
         params.pointFactory(PointFactory.from(context, params));
 
-        CoreRendering.renderStartPoint(context, params);
-        CoreRendering.resizeAndRepositionVideoFrames(context, params);
+        sink.renderStartPoint(params);
+        sink.resizeAndRepositionVideoFrames(params);
 
         // Start fps counter thread
-        try (FpsCounter counter = FpsCounter.with(fpsStatus -> CoreRendering.renderCurrentFps(context, fpsStatus,
+        try (FpsCounter counter = FpsCounter.with(fpsStatus -> sink.renderCurrentFps(fpsStatus,
                 status, params)).start()) {
 
             // Set running state
             CoreUtils.setProcessingStateSafe(context, ProcessingState.Running);
 
             // Start core vo processing cycle
-            while (CoreProcessing.shouldContinue(context, counter) &&
+            while (CoreProcessing.shouldContinue(context, sink, counter) &&
                     !CoreProcessing.isProcessCompleted(context, params)) {
-                CoreRendering.renderAppStatus(context);
+                sink.renderAppStatus(context);
                 ProcessedFrame frame = CoreProcessing.getProcessedFrame(context, params, counter);
                 if (frame != null) {
                     // Frame not skipped
                     status.frame(frame);
-                    CoreProcessing.handleResetVO(context, monoVo);
-                    var voResult = CoreProcessing.processVO(monoVo, context, params, status, counter);
-                    CoreRendering.renderVO(context, status, params, voResult);
+                    CoreProcessing.handleResetVO(context, sink, monoVo);
+                    var voResult = CoreProcessing.processVO(monoVo, context, sink, params, status, counter);
+                    sink.renderVO(status, params, voResult);
                 }
             }
         } catch (BufferTimeoutException | VoProcessingException ex) {
@@ -269,12 +265,12 @@ public class Core {
 
         // End processing
         if (context.state().processing().is(ProcessingState.Cleared)) {
-            CoreRendering.renderClearAllPoints(context);
+            sink.renderClearAllPoints();
         } else {
-            CoreRendering.renderEndPoint(context, params);
+            sink.renderEndPoint(params);
         }
         CoreProcessing.closeSource(context, params);
-        CoreRendering.renderAppStatus(context, processingException);
+        sink.renderAppStatus(context, processingException);
 
         return true;
     }

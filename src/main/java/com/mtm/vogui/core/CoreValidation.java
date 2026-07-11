@@ -5,17 +5,18 @@
 
 package com.mtm.vogui.core;
 
+import com.mtm.vogui.core.rendering.RenderSink;
 import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.enums.settings.ChartType;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
 public class CoreValidation {
+    private final static int KLT_PYRAMID_LEVELS_DEFAULT = 4;
 
-    static boolean validateSettings(@NotNull AppContext context, @NotNull ProcessingParameters params) {
+    static boolean validateSettings(@NotNull AppContext context, @NotNull ProcessingParameters params,
+                                    @NotNull RenderSink sink) {
         // Input settings
         var calibrationPath = params.frozenContext().settings().input().calibration().path();
         var sourceType = params.frozenContext().settings().input().source();
@@ -42,19 +43,15 @@ public class CoreValidation {
         var chartYScale = params.frozenContext().settings().chart().scaleY();
 
 
-        //Extracts mainFrame from GuiComponents (needed as JOptionPane Parent window):
-        JFrame mainFrame = (JFrame) context.state().guiComponents().get("mainFrame");
-
-
         //Calibration Path Check
         if (calibrationPath == null || calibrationPath.isEmpty()) {
-            JOptionPane.showConfirmDialog(mainFrame, "Calibration path is empty!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+            sink.notifyError("Calibration path is empty!");
             return false;
         }
 
         //Input Source Check
         if (sourceType == null) {
-            JOptionPane.showConfirmDialog(mainFrame, "Select an Input Source!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+            sink.notifyError("Select an Input Source!");
             return false;
         }
 
@@ -62,108 +59,111 @@ public class CoreValidation {
             case Video:    //If Input Source is Video Input:
                 //Video Path Check
                 if (videoPath == null || videoPath.isEmpty()) {
-                    JOptionPane.showConfirmDialog(mainFrame, "Video path is empty!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+                    sink.notifyError("Video path is empty!");
                     return false;
                 }
                 break;
             case Device:    //If Input Source is Device Input:
                 //Device Path Check
                 if (devicePath == null || devicePath.isEmpty()) {
-                    JOptionPane.showConfirmDialog(mainFrame, "Device path is empty!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+                    sink.notifyError("Device path is empty!");
                     return false;
                 }
 
                 //Device Width Check
                 if (deviceWidth <= 0) {
-                    JOptionPane.showConfirmDialog(mainFrame, "Device acquisition width is less than or equal to zero!\nUse only positive values", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+                    sink.notifyError("Device acquisition width is less than or equal to zero!\nUse only positive values");
                     return false;
                 }
 
                 //Device Height Check
                 if (deviceHeight <= 0) {
-                    JOptionPane.showConfirmDialog(mainFrame, "Device acquisition height is less than or equal to zero!\nUse only positive values", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+                    sink.notifyError("Device acquisition height is less than or equal to zero!\nUse only positive values");
                     return false;
                 }
                 break;
             default:    //If Input Source is unknown:
-                JOptionPane.showConfirmDialog(mainFrame, "Wrong Input Source selected!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+                sink.notifyError("Wrong Input Source selected!");
                 return false;
         }
 
         // Image descriptor Check
         if (imageDescriptor == null || imageDescriptor.type() == null || imageDescriptor.bands() < 1) {
-            JOptionPane.showConfirmDialog(mainFrame, "Select a correct Image Type!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+            sink.notifyError("Select a correct Image Type!");
             return false;
         }
 
         //Processed Image Resize Width Check
         if (imageResizeWidth <= 0) {
-            JOptionPane.showConfirmDialog(mainFrame, "Processed image resize width is less than or equal to zero!\nUse only positive values", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+            sink.notifyError("Processed image resize width is less than or equal to zero!\nUse only positive values");
             return false;
         }
 
         //Processed Image Resize Height Check
         if (imageResizeHeight <= 0) {
-            JOptionPane.showConfirmDialog(mainFrame, "Processed image resize height is less than or equal to zero!\nUse only positive values", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+            sink.notifyError("Processed image resize height is less than or equal to zero!\nUse only positive values");
             return false;
         }
 
         //Tracker Type Check
         if (trackerType == null) {
-            JOptionPane.showConfirmDialog(mainFrame, "Select a correct Tracker Type!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+            sink.notifyError("Select a correct Tracker Type!");
             return false;
         }
 
         //KLT Tracker pyramidScaling Check (KLT Trackers only)
-        if (trackerType.isKlt() && kltTrackerPyramidLevels == 0) {
-
-            int choice = JOptionPane.showConfirmDialog(
-                    mainFrame,
-                    "KLT Tracker Pyramid Levels is empty!\n" +
-                            "Use default value 4 [1,2,4,8]?",
-                    "Error",
-                    JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.ERROR_MESSAGE
-            );
-            switch (choice) {
-                case JOptionPane.OK_OPTION:
-                    ((JTextField) context.state().guiComponents().get("txtKltTracker_pyramidLevels"))
-                            .setText("4");
-                    //Changes original parameter (to persist the modification)
-                    context.settings().tracker().klt().pyramidLevels(4);
-                    //Changes stored parameter (to continue current elaboration)
-                    params.frozenContext().settings().tracker().klt().pyramidLevels(4);
-                    break;
-                case JOptionPane.CANCEL_OPTION:
-                    return false;
-            }
+        if (trackerType.isKlt() && kltTrackerPyramidLevels == 0 &&
+                !healKltPyramidLevels(context, params, sink,
+                        "KLT Tracker Pyramid Levels is empty!\nUse default value 4 [1,2,4,8]?")) {
+            return false;
         }
 
         //Visual Odometry Check
         if (visualOdometryType == null) {
-            JOptionPane.showConfirmDialog(mainFrame, "Select a correct Visual Odometry type!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+            sink.notifyError("Select a correct Visual Odometry type!");
             return false;
         }
 
         //Chart Type Check
         if (chartType == null || (!ChartType.YFrames.is(chartType) && !ChartType.YSeconds.equals(chartType))) {
-            JOptionPane.showConfirmDialog(mainFrame, "Select a correct Chart Type!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+            sink.notifyError("Select a correct Chart Type!");
             return false;
         }
 
         //XZ Chart Scale Check
         if (chartXZScale == 0) {
-            JOptionPane.showConfirmDialog(mainFrame, "Insert an XZ Chart scaling factor different from zero!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+            sink.notifyError("Insert an XZ Chart scaling factor different from zero!");
             return false;
         }
 
         //Y Chart Scale Check
         if (chartYScale == 0) {
-            JOptionPane.showConfirmDialog(mainFrame, "Insert an Y Chart scaling factor different from zero!", "Error", JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+            sink.notifyError("Insert an Y Chart scaling factor different from zero!");
             return false;
         }
 
         //If all checks passed, returns true
+        return true;
+    }
+
+    /**
+     * Asks the user to fall back to the default KLT pyramid levels; on confirmation heals both
+     * the original settings (persisted) and the frozen ones (current elaboration), then lets
+     * the GUI reflect the healed value through the sink.
+     *
+     * @return {@code false} if the user declined (the elaboration must not proceed)
+     */
+    static boolean healKltPyramidLevels(@NotNull AppContext context, @NotNull ProcessingParameters params,
+                                        @NotNull RenderSink sink, String message) {
+        if (!sink.confirmOrCancel(message)) {
+            return false;
+        }
+
+        //Changes original parameter (to persist the modification)
+        context.settings().tracker().klt().pyramidLevels(KLT_PYRAMID_LEVELS_DEFAULT);
+        //Changes stored parameter (to continue current elaboration)
+        params.frozenContext().settings().tracker().klt().pyramidLevels(KLT_PYRAMID_LEVELS_DEFAULT);
+        sink.kltPyramidLevelsChanged(KLT_PYRAMID_LEVELS_DEFAULT);
         return true;
     }
 }

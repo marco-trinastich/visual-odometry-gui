@@ -14,7 +14,8 @@ import boofcv.io.image.SimpleImageSequence;
 import boofcv.io.wrapper.DefaultMediaManager;
 import boofcv.io.wrapper.images.LoadFileImageSequence;
 import boofcv.struct.image.*;
-import com.mtm.vogui.core.CoreRendering;
+import com.mtm.vogui.core.rendering.RenderSink;
+import com.mtm.vogui.core.rendering.SettingsSync;
 import com.mtm.vogui.core.integration.camera.CameraFactory;
 import com.mtm.vogui.models.constants.Messages;
 import com.mtm.vogui.models.context.AppContext;
@@ -66,19 +67,19 @@ public class CoreUtils {
     }
 
     public static boolean openDevice(AppContext context, ProcessingParameters params,
-                                     CameraFactory cameraFactory) throws CameraException {
+                                     RenderSink sink, CameraFactory cameraFactory) throws CameraException {
         try {
             // Start input device
             var camera = cameraFactory.create(
                     context,
-                    image -> CoreRendering.renderInputVideo(context, image),
-                    buffer -> CoreRendering.renderBufferStatus(context, buffer)
+                    sink::renderInputVideo,
+                    sink::renderBufferStatus
             ).start();
             context.state().device(camera);
             params.frameSize(camera.getFrameSize());
             // Reflect into GUI/settings the device actually opened and the resolution it granted
-            CoreRendering.renderDevicePath(context, camera.getDevicePath());
-            CoreRendering.renderDeviceResolution(context, camera.getFrameSize());
+            SettingsSync.reflectOpenedDevice(context, sink, camera.getDevicePath());
+            SettingsSync.reflectGrantedResolution(context, sink, camera.getFrameSize());
             return true;
         } catch (Throwable e) {
             // Throwable: missing capture natives surface as LinkageError, not Exception

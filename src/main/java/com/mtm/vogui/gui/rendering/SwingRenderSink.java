@@ -3,10 +3,11 @@
  * Licensed under GNU GPL v3 - see LICENSE file for details
  */
 
-package com.mtm.vogui.core;
+package com.mtm.vogui.gui.rendering;
 
 import boofcv.gui.feature.VisualizeFeatures;
 import boofcv.gui.image.ImagePanel;
+import com.mtm.vogui.core.rendering.RenderSink;
 import com.mtm.vogui.gui.GuiApplication;
 import com.mtm.vogui.models.constants.GuiConstants;
 import com.mtm.vogui.models.context.AppContext;
@@ -19,32 +20,116 @@ import com.mtm.vogui.models.core.processing.fps.FpsStatus;
 import com.mtm.vogui.models.core.processing.tracking.PointFactory;
 import com.mtm.vogui.models.enums.core.ProcessingState;
 import com.mtm.vogui.models.enums.gui.AppStatus;
+import com.mtm.vogui.models.enums.gui.RecentPathTarget;
 import com.mtm.vogui.models.enums.settings.ChartType;
 import com.mtm.vogui.models.enums.settings.DevicePath;
 import com.mtm.vogui.models.enums.settings.SourceType;
-import com.mtm.vogui.models.enums.settings.resolution.CustomResolution;
-import com.mtm.vogui.models.enums.settings.resolution.DeviceResolution;
 import com.mtm.vogui.models.interfaces.Resolution;
 import com.mtm.vogui.utilities.CommonUtils;
 import georegression.struct.point.Point2D_F64;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class CoreRendering {
+/**
+ * Swing implementation of the core {@link RenderSink}: the only place where core-produced
+ * data meets widgets. Every method marshals to the EDT via {@code SwingUtilities.invokeLater}
+ * (dialogs excepted: they block the calling vo worker thread until the user answers).
+ */
+@ApplicationScoped
+public class SwingRenderSink implements RenderSink {
     private final static int LONGER_RENDER_INTERVAL = 10;
     private final static int DEFAULT_GUI_VIDEO_SIZE = 400;
 
+    private final AppContext context;
 
-    // Rendering
+    @Inject
+    public SwingRenderSink(AppContext context) {
+        this.context = context;
+    }
+
+    // Dialogs
+
+    @Override
+    public void notifyError(String message) {
+        JOptionPane.showConfirmDialog(mainFrame(), message, "Error",
+                JOptionPane.PLAIN_MESSAGE, JOptionPane.ERROR_MESSAGE);
+    }
+
+    @Override
+    public boolean confirmOrCancel(String message) {
+        int choice = JOptionPane.showConfirmDialog(mainFrame(), message, "Error",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+        return choice == JOptionPane.OK_OPTION;
+    }
+
+    // App status
+
+    @Override
+    public void renderAppStatus(AppStatus appStatus) {
+        var infoPanel = context.state().guiController().infoPanel();
+        SwingUtilities.invokeLater(() -> CommonUtils.runIfNotNull(infoPanel, () -> infoPanel.setAppStatus(appStatus)));
+    }
+
+    // Processing lifecycle
+
+    @Override
+    public void renderStartPoint(@NotNull ProcessingParameters params) {
+        var trackedPoints = context.state().trackedPoints();
+        var chartType = params.frozenContext().settings().chart().type();
+        var chartYSettings = context.state().guiController().chartYPanel().settings();
+
+        SwingUtilities.invokeLater(() -> {
+            // Add start point
+            trackedPoints.addElement(params.pointFactory().newStartPoint());
+            chartYSettings.axisNames(chartType);
+        });
+    }
+
+    @Override
+    public void renderEndPoint(ProcessingParameters params) {
+        var chartXZPanel = context.state().guiController().chartXZPanel();
+        var chartYPanel = context.state().guiController().chartYPanel();
+        var trackedPoints = context.state().trackedPoints();
+
+        SwingUtilities.invokeLater(() -> {
+            if (chartXZPanel.hasPointsLastChart() && chartYPanel.hasPointsLastChart()) {
+                chartXZPanel.closeChart();
+                chartYPanel.closeChart();
+                trackedPoints.addElement(params.pointFactory().newEndPoint());
+            } else {
+                PointFactory.removeLastChart(trackedPoints);
+            }
+        });
+    }
+
+    @Override
+    public void renderClearAllPoints() {
+        var chartXZPanel = context.state().guiController().chartXZPanel();
+        var chartYPanel = context.state().guiController().chartYPanel();
+        var infoPanel = context.state().guiController().infoPanel();
+        var trackedPoints = context.state().trackedPoints();
+
+        SwingUtilities.invokeLater(() -> {
+            // Clear and reset charts and info panel
+            trackedPoints.clear();
+            chartXZPanel.clearAllPoints();
+            chartYPanel.clearAllPoints();
+            chartXZPanel.resetSize();
+            chartYPanel.resetSize();
+            infoPanel.setInfoPanelVisible(false);
+        });
+    }
 
     /**
-     * ResizeAndRepositionVideoFrames
      * Adjust size, position and title of input/output video frames
      */
-    public static void resizeAndRepositionVideoFrames(@NotNull AppContext context, @NotNull ProcessingParameters params) {
+    @Override
+    public void resizeAndRepositionVideoFrames(@NotNull ProcessingParameters params) {
         ImagePanel inputVideoPanel = context.state().guiController().inputVideoPanel();
         JFrame inputVideoFrame = context.state().guiController().inputVideoFrame();
         ImagePanel outputVideoPanel = context.state().guiController().outputVideoPanel();
@@ -108,137 +193,19 @@ public class CoreRendering {
         });
     }
 
-    /**
-     * RenderDeviceResolution
-     * Backfills the resolution ComboBox and the persisted target with the resolution the
-     * device actually granted, whenever capture-time adjustment changed the requested one
-     */
-    public static void renderDeviceResolution(@NotNull AppContext context, Dimension actual) {
-        if (actual == null) {
-            return;
-        }
-        var device = context.settings().input().device();
-        if (device.targetWidth() == actual.width && device.targetHeight() == actual.height) {
-            return;
-        }
+    // Per-frame rendering
 
-        DeviceResolution standard = DeviceResolution.findByResolution(actual.width, actual.height);
-        Resolution resolution = standard != null ? standard : CustomResolution.from(actual.width, actual.height);
-        device.resolution(resolution);
-
-        SwingUtilities.invokeLater(() -> {
-            @SuppressWarnings("unchecked")
-            var txtDeviceResolution = (JComboBox<Resolution>) context.state().guiComponents().get("txtDeviceResolution");
-            if (txtDeviceResolution != null) {
-                txtDeviceResolution.setSelectedItem(resolution);
-            }
-        });
+    @Override
+    public void renderVO(ProcessingStatus status, ProcessingParameters params, boolean voResult) {
+        renderInputVideo(status);
+        renderTrackedFeatures(status, voResult);
+        renderOutputVideo(status);
+        renderInfoPanel(status, params, voResult);
+        renderCharts(status, params, voResult);
     }
 
-    /**
-     * Reflects into GUI/settings the device that was actually opened, when the capture
-     * fell back to a different one than requested (same contains-matching semantics as
-     * discovery). No-op when the requested device was honored.
-     */
-    public static void renderDevicePath(@NotNull AppContext context, String actualName) {
-        if (actualName == null || actualName.isBlank()) {
-            return;
-        }
-        var device = context.settings().input().device();
-        String requested = device.path().id().trim();
-        if (!requested.isEmpty() && actualName.contains(requested)) {
-            return;
-        }
-
-        var descriptor = CommonUtils.getDevicePathDescriptor(actualName);
-        device.path(descriptor);
-
-        SwingUtilities.invokeLater(() -> {
-            @SuppressWarnings("unchecked")
-            var txtDevicePath = (JComboBox<DevicePath>) context.state().guiComponents().get("txtDevicePath");
-            if (txtDevicePath != null) {
-                txtDevicePath.setSelectedItem(descriptor);
-            }
-        });
-    }
-
-    /**
-     * Records a successfully used path in its most-recently-used history and refreshes
-     * the corresponding ComboBox. Typed paths enter the history only through here, so
-     * only values that actually opened are ever recorded.
-     */
-    public static void renderRecentPath(@NotNull AppContext context, @NotNull PathSettings pathSettings,
-                                        String usedPath, String comboKey) {
-        if (usedPath == null || usedPath.isBlank()) {
-            return;
-        }
-        pathSettings.pushRecentPath(usedPath);
-
-        SwingUtilities.invokeLater(() -> {
-            @SuppressWarnings("unchecked")
-            var pathComboBox = (JComboBox<String>) context.state().guiComponents().get(comboKey);
-            if (pathComboBox != null) {
-                pathComboBox.setModel(new DefaultComboBoxModel<>(pathSettings.paths()));
-                pathComboBox.setSelectedItem(usedPath);
-            }
-        });
-    }
-
-    public static void renderStartPoint(@NotNull AppContext context, @NotNull ProcessingParameters params) {
-        var trackedPoints = context.state().trackedPoints();
-        var chartType = params.frozenContext().settings().chart().type();
-        var chartYSettings = context.state().guiController().chartYPanel().settings();
-
-        SwingUtilities.invokeLater(() -> {
-            // Add start point
-            trackedPoints.addElement(params.pointFactory().newStartPoint());
-            chartYSettings.axisNames(chartType);
-        });
-    }
-
-    public static void renderEndPoint(@NotNull AppContext context, ProcessingParameters params) {
-        var chartXZPanel = context.state().guiController().chartXZPanel();
-        var chartYPanel = context.state().guiController().chartYPanel();
-        var trackedPoints = context.state().trackedPoints();
-
-        SwingUtilities.invokeLater(() -> {
-            if (chartXZPanel.hasPointsLastChart() && chartYPanel.hasPointsLastChart()) {
-                chartXZPanel.closeChart();
-                chartYPanel.closeChart();
-                trackedPoints.addElement(params.pointFactory().newEndPoint());
-            } else {
-                PointFactory.removeLastChart(trackedPoints);
-            }
-        });
-    }
-
-    public static void renderClearAllPoints(@NotNull AppContext context) {
-        var chartXZPanel = context.state().guiController().chartXZPanel();
-        var chartYPanel = context.state().guiController().chartYPanel();
-        var infoPanel = context.state().guiController().infoPanel();
-        var trackedPoints = context.state().trackedPoints();
-
-        SwingUtilities.invokeLater(() -> {
-            // Clear and reset charts and info panel
-            trackedPoints.clear();
-            chartXZPanel.clearAllPoints();
-            chartYPanel.clearAllPoints();
-            chartXZPanel.resetSize();
-            chartYPanel.resetSize();
-            infoPanel.setInfoPanelVisible(false);
-        });
-    }
-
-    public static void renderVO(AppContext context, ProcessingStatus status, ProcessingParameters params,
-                                boolean voResult) {
-        renderInputVideo(context, status);
-        renderTrackedFeatures(context, status, voResult);
-        renderOutputVideo(context, status);
-        renderInfoPanel(context, status, params, voResult);
-        renderCharts(context, status, params, voResult);
-    }
-
-    public static void renderInputVideo(@NotNull AppContext context, BufferedImage image) {
+    @Override
+    public void renderInputVideo(BufferedImage image) {
         var inputVideoPanel = context.state().guiController().inputVideoPanel();
         var inputVideoFrame = context.state().guiController().inputVideoFrame();
 
@@ -258,8 +225,9 @@ public class CoreRendering {
         });
     }
 
-    public static void renderCurrentFps(@NotNull AppContext context, FpsStatus fpsStatus, ProcessingStatus status,
-                                        @NotNull ProcessingParameters params) {
+    @Override
+    public void renderCurrentFps(FpsStatus fpsStatus, ProcessingStatus status,
+                                 @NotNull ProcessingParameters params) {
         // Running every second
 
         // Settings
@@ -296,21 +264,8 @@ public class CoreRendering {
         });
     }
 
-    public static void renderAppStatus(@NotNull AppContext context) {
-        renderAppStatus(context, (Throwable) null);
-    }
-
-    public static void renderAppStatus(@NotNull AppContext context, Throwable processingEx) {
-        var state = context.state().processing().get();
-        renderAppStatus(context, AppStatus.from(state, processingEx));
-    }
-
-    public static void renderAppStatus(@NotNull AppContext context, AppStatus appStatus) {
-        var infoPanel = context.state().guiController().infoPanel();
-        SwingUtilities.invokeLater(() -> CommonUtils.runIfNotNull(infoPanel, () -> infoPanel.setAppStatus(appStatus)));
-    }
-
-    public static void renderBufferStatus(@NotNull AppContext context, BufferStatus bufferStatus) {
+    @Override
+    public void renderBufferStatus(BufferStatus bufferStatus) {
         var infoPanel = context.state().guiController().infoPanel();
 
         if (bufferStatus == null) {
@@ -334,17 +289,72 @@ public class CoreRendering {
         }
     }
 
+    // Settings healed by the core, reflected into the GUI
+
+    @Override
+    public void deviceResolutionChanged(Resolution resolution) {
+        SwingUtilities.invokeLater(() -> {
+            @SuppressWarnings("unchecked")
+            var txtDeviceResolution = (JComboBox<Resolution>) context.state().guiComponents().get("txtDeviceResolution");
+            if (txtDeviceResolution != null) {
+                txtDeviceResolution.setSelectedItem(resolution);
+            }
+        });
+    }
+
+    @Override
+    public void devicePathChanged(DevicePath devicePath) {
+        SwingUtilities.invokeLater(() -> {
+            @SuppressWarnings("unchecked")
+            var txtDevicePath = (JComboBox<DevicePath>) context.state().guiComponents().get("txtDevicePath");
+            if (txtDevicePath != null) {
+                txtDevicePath.setSelectedItem(devicePath);
+            }
+        });
+    }
+
+    @Override
+    public void recentPathUsed(@NotNull RecentPathTarget target, @NotNull PathSettings pathSettings,
+                               String usedPath) {
+        String comboKey = switch (target) {
+            case Calibration -> "txtCalibration";
+            case VideoSource -> "txtVideoSource";
+        };
+
+        SwingUtilities.invokeLater(() -> {
+            @SuppressWarnings("unchecked")
+            var pathComboBox = (JComboBox<String>) context.state().guiComponents().get(comboKey);
+            if (pathComboBox != null) {
+                pathComboBox.setModel(new DefaultComboBoxModel<>(pathSettings.paths()));
+                pathComboBox.setSelectedItem(usedPath);
+            }
+        });
+    }
+
+    @Override
+    public void kltPyramidLevelsChanged(int pyramidLevels) {
+        SwingUtilities.invokeLater(() -> {
+            var pyramidLevelsField = (JTextField) context.state().guiComponents().get("txtKltTracker_pyramidLevels");
+            if (pyramidLevelsField != null) {
+                pyramidLevelsField.setText(String.valueOf(pyramidLevels));
+            }
+        });
+    }
+
     // Private members
 
-    private static void renderInputVideo(@NotNull AppContext context, @NotNull ProcessingStatus status) {
+    private JFrame mainFrame() {
+        return (JFrame) context.state().guiComponents().get("mainFrame");
+    }
+
+    private void renderInputVideo(@NotNull ProcessingStatus status) {
         var sourceType = context.settings().input().source();
         if (SourceType.Video.is(sourceType)) {
-            renderInputVideo(context, status.frame().input().buffered());
+            renderInputVideo(status.frame().input().buffered());
         }
     }
 
-    private static void renderTrackedFeatures(@NotNull AppContext context, @NotNull ProcessingStatus status,
-                                              boolean voResult) {
+    private void renderTrackedFeatures(@NotNull ProcessingStatus status, boolean voResult) {
         if (voResult) {
             // Write on vo (output) buffered image
             Graphics2D g2 = status.frame().vo().buffered().createGraphics();
@@ -367,7 +377,7 @@ public class CoreRendering {
         }
     }
 
-    private static void renderOutputVideo(@NotNull AppContext context, ProcessingStatus status) {
+    private void renderOutputVideo(ProcessingStatus status) {
         var outputVideoPanel = context.state().guiController().outputVideoPanel();
         var outputVideoFrame = context.state().guiController().outputVideoFrame();
 
@@ -381,14 +391,13 @@ public class CoreRendering {
         });
     }
 
-    private static void renderInfoPanel(@NotNull AppContext context, @NotNull ProcessingStatus status,
-                                        @NotNull ProcessingParameters params, boolean voResult) {
-        renderMainInfo(context, status, params, voResult);
-        //renderBufferInfo(context);
+    private void renderInfoPanel(@NotNull ProcessingStatus status, @NotNull ProcessingParameters params,
+                                 boolean voResult) {
+        renderMainInfo(status, params, voResult);
     }
 
-    private static void renderMainInfo(@NotNull AppContext context, @NotNull ProcessingStatus status,
-                                       @NotNull ProcessingParameters params, boolean voResult) {
+    private void renderMainInfo(@NotNull ProcessingStatus status, @NotNull ProcessingParameters params,
+                                boolean voResult) {
         // Frozen info
         var sourceType = params.frozenContext().settings().input().source();
         final var deviceFps = SourceType.Device.is(sourceType) ? context.state().device().getAverageFPS() : 0;
@@ -458,8 +467,8 @@ public class CoreRendering {
         }));
     }
 
-    private static void renderCharts(@NotNull AppContext context, @NotNull ProcessingStatus status,
-                                     @NotNull ProcessingParameters params, boolean voResult) {
+    private void renderCharts(@NotNull ProcessingStatus status, @NotNull ProcessingParameters params,
+                              boolean voResult) {
         var chartXZPanel = context.state().guiController().chartXZPanel();
         var chartYPanel = context.state().guiController().chartYPanel();
         var chartType = params.frozenContext().settings().chart().type();
