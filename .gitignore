@@ -45,3 +45,7 @@ assets/datasets/
 /settings.json
 /settings.yaml
 /settings.yml
+
+# Temp folders
+/tmp/
+/temp/
