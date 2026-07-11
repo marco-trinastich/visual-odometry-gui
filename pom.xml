@@ -15,7 +15,7 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.37.1</quarkus.platform.version>
         <!-- Vision -->
-        <boofcv.version>1.1.3</boofcv.version>
+        <boofcv.version>1.4.0</boofcv.version>
         <!-- Capture: OpenCv path (JavaCV) -->
         <javacv.version>1.5.13</javacv.version>
         <opencv.version>4.13.0-${javacv.version}</opencv.version>
