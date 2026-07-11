@@ -19,7 +19,7 @@ import javax.swing.Timer;
 import javax.swing.filechooser.FileFilter;
 
 import com.mtm.vogui.core.Core;
-import com.mtm.vogui.core.CoreRendering;
+import com.mtm.vogui.core.rendering.RenderSink;
 import com.mtm.vogui.core.integration.discovery.DeviceDiscovery;
 import com.mtm.vogui.gui.components.control.visualodometry.MonoPlaneOverheadPanel;
 import com.mtm.vogui.gui.components.control.visualodometry.VoFallbackPanel;
@@ -77,6 +77,7 @@ public class GuiApplication {
     private final AppContext context;
     private final Core core;
     private final GuiController controller;
+    private final RenderSink renderSink;
 
     // Visual Odometry executor
     private Future<?> voTask;
@@ -88,10 +89,11 @@ public class GuiApplication {
     private boolean isSystemLookAndFeelEnabled;
 
     @Inject
-    public GuiApplication(AppContext context, Core core, GuiController controller) {
+    public GuiApplication(AppContext context, Core core, GuiController controller, RenderSink renderSink) {
         this.context = context;
         this.core = core;
         this.controller = controller;
+        this.renderSink = renderSink;
         this.voExecutor = Executors.newSingleThreadExecutor(NamedThreadFactory.from(AppConstants.VO_EXECUTOR_THREAD));
     }
 
@@ -2748,8 +2750,8 @@ public class GuiApplication {
                 // Notify clear to vo thread; the vo task itself restores the toolbar on exit
                 CoreUtils.setProcessingStateSafe(this.context, ProcessingState.Cleared);
             } else {
-                CoreRendering.renderClearAllPoints(this.context);
-                CoreRendering.renderAppStatus(this.context, AppStatus.Cleared);
+                renderSink.renderClearAllPoints();
+                renderSink.renderAppStatus(AppStatus.Cleared);
                 this.setReadyToolbar(false);
             }
         }

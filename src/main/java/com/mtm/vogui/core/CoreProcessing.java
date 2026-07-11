@@ -12,6 +12,7 @@ import boofcv.abst.sfm.d3.VisualOdometry;
 import boofcv.abst.tracker.PointTrack;
 import boofcv.abst.tracker.PointTracker;
 import boofcv.struct.image.ImageBase;
+import com.mtm.vogui.core.rendering.RenderSink;
 import com.mtm.vogui.models.constants.Messages;
 import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
@@ -45,10 +46,10 @@ public class CoreProcessing {
 
     // State check
 
-    public static boolean shouldContinue(@NotNull AppContext context, FpsCounter counter) {
+    public static boolean shouldContinue(@NotNull AppContext context, @NotNull RenderSink sink, FpsCounter counter) {
         boolean shouldContinue = true;
         switch (context.state().processing().get()) {
-            case Paused -> handlePauseVO(context, counter);
+            case Paused -> handlePauseVO(context, sink, counter);
             case Stopped, Cleared -> shouldContinue = false;
             default -> { /* Running, StandBy, Completed, Error: keep processing */ }
         }
@@ -56,21 +57,23 @@ public class CoreProcessing {
         return shouldContinue;
     }
 
-    private static void handlePauseVO(@NotNull AppContext context, @NotNull FpsCounter counter) {
+    private static void handlePauseVO(@NotNull AppContext context, @NotNull RenderSink sink,
+                                      @NotNull FpsCounter counter) {
         // Suspend processing thread until user action
-        CoreRendering.renderAppStatus(context);
+        sink.renderAppStatus(context);
         counter.pause();
         context.state().processing().waitUntilNot(ProcessingState.Paused);
         counter.resume();
     }
 
-    public static void handleResetVO(@NotNull AppContext context, @NotNull VisualOdometry<Se3_F64> vo) {
+    public static void handleResetVO(@NotNull AppContext context, @NotNull RenderSink sink,
+                                     @NotNull VisualOdometry<Se3_F64> vo) {
         if (CoreUtils.isResetRequested(context)) {
             // Reset vo context
             vo.reset();
             CoreUtils.setResetRequested(context, false);
             CoreUtils.setFailedEvent(context, false);
-            CoreRendering.renderAppStatus(context, AppStatus.VoReset);
+            sink.renderAppStatus(AppStatus.VoReset);
         }
     }
 
@@ -250,24 +253,23 @@ public class CoreProcessing {
 // Processing
 
     public static boolean processVO(MonocularPlaneVisualOdometry<? extends ImageBase<?>> monoVo, @NotNull AppContext context,
-                                    ProcessingParameters params, ProcessingStatus status, FpsCounter counter)
+                                    @NotNull RenderSink sink, ProcessingParameters params, ProcessingStatus status,
+                                    FpsCounter counter)
             throws VoProcessingException {
-        var infoPanel = context.state().guiController().infoPanel();
-
         // Execute vo processing
         boolean result;
         try {
             result = CoreUtils.processVisualOdometry(monoVo, status.frame().vo().left());
         } catch (Exception ex) {
             // Exception estimating ego motion
-            infoPanel.setAppStatus(AppStatus.VoException);
+            sink.renderAppStatus(AppStatus.VoException);
             LogUtils.errorf(ex, Messages.VO_EXCEPTION, ex.getMessage());
             throw new VoProcessingException();
         }
 
         if (!result) {
             // Failed estimating ego motion
-            infoPanel.setAppStatus(AppStatus.VoFailed);
+            sink.renderAppStatus(AppStatus.VoFailed);
             if (!context.state().failedEvent().get()) {
                 Log.warn(Messages.VO_FAILED);
                 CoreUtils.setFailedEvent(context, true);

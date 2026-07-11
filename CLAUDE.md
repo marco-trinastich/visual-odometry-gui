@@ -20,6 +20,10 @@ runtime only — there is no web endpoint; the "app" is the Swing UI itself.
 - Layering: `models` must not import `core` or `gui`. Settings are pure persisted data;
   anything asked to the hardware (device lists, resolutions) goes through the
   `core.integration.discovery.DeviceDiscovery` singletons — never back into settings.
+  Core→GUI goes ONLY through `core.rendering.RenderSink` (Swing impl:
+  `gui.rendering.SwingRenderSink`): core never touches widgets, dialogs or the
+  `guiComponents` map. Runtime-negotiated values reach settings via
+  `core.rendering.SettingsSync` (mutation core-side, widget refresh via sink).
   Deliberate exception: `context.state.State` is the app's shared runtime blackboard
   and references gui/core types by design.
 - No absolute machine-local paths in committed files; no hardcoded default asset paths —

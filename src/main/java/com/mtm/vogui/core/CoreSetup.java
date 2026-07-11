@@ -7,6 +7,7 @@ package com.mtm.vogui.core;
 
 import boofcv.abst.sfm.d3.VisualOdometry;
 import boofcv.io.calibration.CalibrationIO;
+import com.mtm.vogui.core.rendering.RenderSink;
 import com.mtm.vogui.core.integration.camera.BoofCvCamera;
 import com.mtm.vogui.core.integration.camera.OpenCvCamera;
 import com.mtm.vogui.core.integration.camera.V4l4jCamera;
@@ -27,7 +28,6 @@ import com.mtm.vogui.utilities.OSUtils;
 import georegression.struct.se.Se3_F64;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -89,20 +89,21 @@ public class CoreSetup {
      * </p>
      * Tries to open a video stream from a video input device
      */
-    static boolean openDevice(@NotNull AppContext context, @NotNull ProcessingParameters params) {
+    static boolean openDevice(@NotNull AppContext context, @NotNull ProcessingParameters params,
+                              @NotNull RenderSink sink) {
         var deviceType = params.frozenContext().settings().input().device().type();
 
         try {
             switch (deviceType) {
                 case BoofCv -> {
-                    return CoreUtils.openDevice(context, params, BoofCvCamera::from);
+                    return CoreUtils.openDevice(context, params, sink, BoofCvCamera::from);
                 }
                 case OpenCv -> {
-                    return CoreUtils.openDevice(context, params, OpenCvCamera::from);
+                    return CoreUtils.openDevice(context, params, sink, OpenCvCamera::from);
                 }
                 case V4L4J -> {
                     // V4L4J is Linux-only: don't even try elsewhere
-                    return OSUtils.isUnix() && CoreUtils.openDevice(context, params, V4l4jCamera::from);
+                    return OSUtils.isUnix() && CoreUtils.openDevice(context, params, sink, V4l4jCamera::from);
                 }
                 default -> {
                     return false;
@@ -119,9 +120,8 @@ public class CoreSetup {
      * </p>
      * Tries to create and set up a tracker
      */
-    static boolean setupTracker(@NotNull AppContext context, @NotNull ProcessingParameters params) {
-        JFrame mainFrame = (JFrame) context.state().guiComponents().get("mainFrame");
-
+    static boolean setupTracker(@NotNull AppContext context, @NotNull ProcessingParameters params,
+                                @NotNull RenderSink sink) {
         var imageType = params.frozenContext().settings().image().descriptor();
         var trackerType = params.frozenContext().settings().tracker().type();
         TrackerFactory trackerFactory;
@@ -142,38 +142,16 @@ public class CoreSetup {
                 var kltTrackerRadius = params.frozenContext().settings().tracker().klt().radius();
                 var kltTrackerThreshold = params.frozenContext().settings().tracker().klt().threshold();
 
-                //If the extracted pyramid levels is 0
+                //If the extracted pyramid levels is 0, asks to fall back to the default value
                 if (kltTrackerPyramidLevels == 0) {
-                    //Shows a message to tell that pyramidLevels is not valid, and asks
-                    //to change for default value:
-                    int choice = JOptionPane.showConfirmDialog(
-                            mainFrame,
-                            "KLT Tracker Pyramid Levels is not valid!\n" +
-                                    "Use default value 4 [1,2,4,8]?",
-                            "Error",
-                            JOptionPane.OK_CANCEL_OPTION,
-                            JOptionPane.ERROR_MESSAGE
-                    );
-                    switch (choice) {
-                        case JOptionPane.OK_OPTION:
-                            //If accepted
-                            //Reset KLT Tracker pyramidLevels TextField content to default value
-                            ((JTextField) params.frozenContext().state().guiComponents().get("txtKltTracker_pyramidLevels"))
-                                    .setText("4");
-                            //Changes original Parameters (to persist the modification)
-                            context.settings().tracker().klt().pyramidLevels(4);
-                            //Changes stored Parameter (to continue current elaboration)
-                            params.frozenContext().settings().tracker().klt().pyramidLevels(4);
-
-                            //Sets the local pyramidScaling value to default value
-                            kltTrackerPyramidLevels = params.frozenContext().settings().tracker().klt().pyramidLevels();
-                            break;
-                        case JOptionPane.CANCEL_OPTION:
-                        default:
-                            //If canceled
-                            //Exits and returns false (error in Tracker settings)
-                            return false;
+                    if (!CoreValidation.healKltPyramidLevels(context, params, sink,
+                            "KLT Tracker Pyramid Levels is not valid!\nUse default value 4 [1,2,4,8]?")) {
+                        //If canceled: exits and returns false (error in Tracker settings)
+                        return false;
                     }
+
+                    //Sets the local pyramidScaling value to default value
+                    kltTrackerPyramidLevels = params.frozenContext().settings().tracker().klt().pyramidLevels();
                 }
 
                 try {
