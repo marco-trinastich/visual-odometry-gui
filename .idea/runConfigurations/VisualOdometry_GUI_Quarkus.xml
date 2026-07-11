@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="VisualOdometry GUI" type="QuarkusRunConfiguration" factoryName="QuarkusRunConfiguration">
+    <module name="vogui" />
+    <option name="profile" />
+    <option name="programParameters" />
+    <method v="2" />
+  </configuration>
+</component>

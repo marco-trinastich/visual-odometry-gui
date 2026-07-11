@@ -1,0 +1,23 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="VisualOdometry GUI" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.mtm.vogui.VisualOdometryGui" />
+    <option name="VM_PARAMETERS" value="-Djava.awt.headless=false -Xdock:name=VisualOdometryGUI --enable-native-access=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED" />
+    <module name="vogui" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.mtm.vogui.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <extension name="de.eudaemon.ideaswag.SwingspectorExtension">
+      <Swingspector>
+        <keystroke code="90" modifiers="130" />
+        <active value="false" />
+        <timeout>5.0</timeout>
+      </Swingspector>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

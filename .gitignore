@@ -30,6 +30,11 @@ target/
 # Apple
 .DS_Store
 
+# IntelliJ (local IDE state; only shared run configurations are versioned)
+.idea/*
+!.idea/runConfigurations/
+*.iml
+
 # Visual Odometry GUI Data
 data/
 assets/datasets/
