@@ -1856,9 +1856,10 @@ public class GuiApplication {
         // Add layout to main frame
         mainFrame.setLayout(panelLayout);
 
-        // Move main frame to the right of chart frame
-        // (X location set to frame default width + 55 and Y location to the screen top)
-        mainFrame.setLocation(getDefaultFrameDimension().width + 55, 0);
+        // Move main frame to the right of chart frame, centered in the horizontal band between
+        // the chart frame and the video frames (which sit at 2 * default width + 65, leaving
+        // 55px of slack to split evenly), Y location at the screen top
+        mainFrame.setLocation(getDefaultFrameDimension().width + (55 / 2), 0);
         // Resize frame to frame default width/height
         mainFrame.setPreferredSize(getDefaultFrameDimension());
         mainFrame.pack();
