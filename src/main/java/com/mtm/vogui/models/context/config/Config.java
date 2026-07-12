@@ -5,10 +5,15 @@
 
 package com.mtm.vogui.models.context.config;
 
+import com.mtm.vogui.models.enums.gui.UiToolkit;
 import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
 
 @ConfigMapping(prefix = "config")
 public interface Config {
+    @WithDefault("JavaFx")
+    UiToolkit ui();
+
     Settings settings();
 
     interface Settings {

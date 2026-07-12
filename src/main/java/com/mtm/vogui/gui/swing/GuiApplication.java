@@ -65,35 +65,34 @@ import boofcv.gui.image.ImagePanel;
 
 import io.quarkus.logging.Log;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.javatuples.Triplet;
 import org.jetbrains.annotations.NotNull;
 
-@ApplicationScoped
+/**
+ * Legacy Swing application root. Not a bean: built by {@code gui.swing.SwingLauncher} only
+ * when the Swing UI is active.
+ */
 public class GuiApplication {
 
     private final AppContext context;
     private final Core core;
     private final GuiController controller;
     private final RenderSink renderSink;
+    private final String appVersion;
 
     // Visual Odometry executor
     private Future<?> voTask;
     private final ExecutorService voExecutor;
 
-    @ConfigProperty(name = "quarkus.application.version")
-    String appVersion;
-
     private boolean isSystemLookAndFeelEnabled;
 
-    @Inject
-    public GuiApplication(AppContext context, Core core, GuiController controller, RenderSink renderSink) {
+    public GuiApplication(AppContext context, Core core, GuiController controller, RenderSink renderSink,
+                          String appVersion) {
         this.context = context;
         this.core = core;
         this.controller = controller;
         this.renderSink = renderSink;
+        this.appVersion = appVersion;
         this.voExecutor = Executors.newSingleThreadExecutor(NamedThreadFactory.from(AppConstants.VO_EXECUTOR_THREAD));
     }
 

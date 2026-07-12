@@ -37,7 +37,7 @@ import java.awt.image.BufferedImage;
  * Swing implementation of the core {@link RenderSink}: the only place where core-produced
  * data meets widgets. Every method marshals to the EDT via {@code SwingUtilities.invokeLater}
  * (dialogs excepted: they block the calling vo worker thread until the user answers).
- * Not a bean: built by {@code gui.RenderSinkProducer} only when the Swing UI is active.
+ * Not a bean: built by {@code gui.UiBootstrap} only when the Swing UI is active.
  */
 public class SwingRenderSink implements RenderSink {
     private final static int LONGER_RENDER_INTERVAL = 10;
