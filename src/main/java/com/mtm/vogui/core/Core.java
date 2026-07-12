@@ -239,7 +239,8 @@ public class Core {
         Exception processingException = null;
 
         ProcessingStatus status = ProcessingStatus.build();
-        params.pointFactory(PointFactory.from(context, params));
+        params.pointFactory(PointFactory.from(sink.chartsCount(),
+                params.frozenContext().settings().chart().type()));
 
         sink.renderStartPoint(params);
         sink.resizeAndRepositionVideoFrames(params);

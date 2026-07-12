@@ -17,18 +17,15 @@ import io.quarkus.logging.Log;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 
 import java.awt.Dimension;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.List;
 
 /**
  * Wrapper around V4L4J for processing videos with BoofCv.
  * </p>
  */
-public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
+public class V4l4jVideo implements CaptureCallback {
 
     private FrameGrabber frameGrabber;
     private VideoDevice videoDevice;
@@ -151,17 +148,6 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
         this.videoCallBack.stopped();
     }
 
-    /**
-     * Window closing event
-     * </p>
-     * Close camera before exiting
-     *
-     * @param e window event
-     */
-    public void windowClosing(WindowEvent e) {
-        this.stopCapture();
-    }
-
     @Override
     public void exceptionReceived(@NotNull V4L4JException ex) {
         // This method is called by v4l4j if an exception occurs while waiting for a new frame to be ready.
@@ -254,33 +240,4 @@ public class V4l4jVideo extends WindowAdapter implements CaptureCallback {
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            V4l4jVideo camera = new V4l4jVideo();
-            camera.start("/dev/video0", 320, 240,
-                    new ImageType<>(ImageType.Family.GRAY, ImageDataType.U8, 1),
-                    new VideoCallBack() {
-                        @Override
-                        public void init(int width, int height, ImageType<? extends ImageBase<?>> imageType) {
-                        }
-
-                        @Override
-                        public void nextFrame(ImageBase<?> frame, Object sourceData, long timeStamp) {
-                        }
-
-                        @Override
-                        public void stop() {
-                        }
-
-                        @Override
-                        public boolean stopRequested() {
-                            return false;
-                        }
-
-                        @Override
-                        public void stopped() {
-                        }
-                    });
-        });
-    }
 }

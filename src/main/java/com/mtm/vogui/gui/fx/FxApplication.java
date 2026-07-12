@@ -7,6 +7,7 @@ package com.mtm.vogui.gui.fx;
 
 import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
+import com.mtm.vogui.models.constants.AppConstants;
 import jakarta.enterprise.inject.spi.CDI;
 import javafx.application.Application;
 import javafx.application.ColorScheme;
@@ -39,7 +40,7 @@ public class FxApplication extends Application {
         Parent root = loader.load();
 
         stage.setScene(new Scene(root));
-        stage.setTitle("Visual Odometry");
+        stage.setTitle(AppConstants.APP_TITLE);
         stage.show();
     }
 
