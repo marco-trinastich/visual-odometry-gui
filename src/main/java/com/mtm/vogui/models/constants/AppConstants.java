@@ -10,6 +10,17 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 public class AppConstants {
+    // App identity
+    public final static String APP_TITLE = "Visual Odometry GUI";
+    public final static String APP_TITLE_PATTERN = APP_TITLE + " %s";
+    public final static String ABOUT_TITLE = "About";
+    public final static String APP_DESCRIPTION = "Tracking and Mapping System based on Visual Odometry";
+    public final static String AUTHOR_INFO = "Marco Trinastich ©%s";
+    public final static String JAVA_INFO = "Running on java %s / quarkus 3.x";
+    public final static String BOOFCV_INFO = "Based on BoofCv %s (%s)";
+    public final static String LICENSE_INFO = "Released under Apache 2.0 license";
+    public final static String JAVA_VERSION = "java.version";
+
     // Time patterns
     public final static String SECONDS_PATTERN = "%ss";
     public final static String MINUTES_PATTERN = "%sm %ss";

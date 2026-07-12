@@ -6,7 +6,7 @@
 package com.mtm.vogui.gui.fx.rendering;
 
 import com.mtm.vogui.core.rendering.RenderSink;
-import com.mtm.vogui.gui.fx.FxUtils;
+import com.mtm.vogui.gui.fx.utils.FxUtils;
 import com.mtm.vogui.gui.fx.state.GuiState;
 import com.mtm.vogui.models.context.settings.common.PathSettings;
 import com.mtm.vogui.models.core.integration.BufferStatus;
@@ -17,6 +17,7 @@ import com.mtm.vogui.models.enums.gui.AppStatus;
 import com.mtm.vogui.models.enums.gui.RecentPathTarget;
 import com.mtm.vogui.models.enums.settings.DevicePath;
 import com.mtm.vogui.models.interfaces.Resolution;
+import jakarta.enterprise.inject.spi.CDI;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 
@@ -27,6 +28,8 @@ import java.util.function.Consumer;
  * JavaFX implementation of the core {@link RenderSink}: writes into the observable
  * {@link GuiState} (views bind to it) and shows dialogs on the FX thread. Per-frame channels
  * use coalesced hand-off so the vo worker never floods the FX thread.
+ * Not a bean: built by {@code gui.UiBootstrap} only when the JavaFX UI is active; resolves
+ * its own dependencies programmatically (same pattern as the launchers).
  * <p>
  * Migration status: dialogs and app status are live; video (Fase 2), charts/info (Fase 3)
  * land with their panels.
@@ -36,8 +39,8 @@ public class FxRenderSink implements RenderSink {
     private final GuiState guiState;
     private final Consumer<AppStatus> coalescedAppStatus;
 
-    public FxRenderSink(GuiState guiState) {
-        this.guiState = guiState;
+    public FxRenderSink() {
+        this.guiState = CDI.current().select(GuiState.class).get();
         this.coalescedAppStatus = FxUtils.coalescedFxConsumer(status -> this.guiState.appStatusProperty().set(status));
     }
 
@@ -59,6 +62,14 @@ public class FxRenderSink implements RenderSink {
             alert.setHeaderText(null);
             return alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
         });
+    }
+
+    // Synchronous queries
+
+    @Override
+    public int chartsCount() {
+        // TODO Fase 3: derive from the charts state; until then every run starts from chart id 0
+        return 0;
     }
 
     // App status

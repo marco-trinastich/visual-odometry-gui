@@ -22,8 +22,9 @@ import java.awt.image.BufferedImage;
  * Presentation boundary of the processing core.
  * <p>
  * Everything the core wants shown to the user goes through this interface: the core never
- * touches widgets, toolkit classes or the {@code guiComponents} map directly, so the GUI
- * implementation ({@code gui.rendering.SwingRenderSink}) stays replaceable as a whole.
+ * touches widgets, toolkit classes or the GUI state directly, so the GUI implementation
+ * ({@code gui.swing.rendering.SwingRenderSink}, {@code gui.fx.rendering.FxRenderSink})
+ * stays replaceable as a whole.
  * Implementations are responsible for marshalling to their UI thread; methods are called
  * from the vo worker thread.
  */
@@ -39,6 +40,14 @@ public interface RenderSink {
      * @return {@code true} only if the user confirmed with OK
      */
     boolean confirmOrCancel(String message);
+
+    // Synchronous queries
+
+    /**
+     * Number of charts currently rendered by the GUI: the core derives the next chart id
+     * from it when a new processing run starts.
+     */
+    int chartsCount();
 
     // App status
 

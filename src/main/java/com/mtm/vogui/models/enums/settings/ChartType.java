@@ -13,8 +13,8 @@ import org.jetbrains.annotations.Nullable;
 
 @Getter
 public enum ChartType implements WithValue, Comparable {
-    YSeconds("X/Z (translation) and Y/seconds (altitude per second)", "Y/s"),
-    YFrames("X/Z (translation) and Y/frames (altitude per frame)", "Y/f");
+    YSeconds("second", "Y/s"),
+    YFrames("frame", "Y/f");
 
     private final String value;
     private final String id;

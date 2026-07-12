@@ -5,15 +5,12 @@
 
 package com.mtm.vogui.models.core.processing.tracking;
 
-import com.mtm.vogui.models.context.AppContext;
-import com.mtm.vogui.models.core.processing.ProcessingParameters;
 import com.mtm.vogui.models.core.processing.ProcessingStatus;
 import com.mtm.vogui.models.enums.settings.ChartType;
 import com.mtm.vogui.utilities.CommonUtils;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.math.BigDecimal;
 
 @Builder
@@ -65,31 +62,10 @@ public class PointFactory {
         return this.newPoint(status, null);
     }
 
-    public static void removeLastChart(@NotNull DefaultListModel<TrackedPoint> trackedPoints) {
-        int lastChartStartIndex = -1;
-        for (int i = trackedPoints.getSize() - 1; i >= 0; i--) {
-            var trackedPoint = trackedPoints.get(i);
-            if (trackedPoint.startPoint) {
-                lastChartStartIndex = i;
-                break;
-            }
-        }
-        if (lastChartStartIndex > -1) {
-            trackedPoints.removeRange(lastChartStartIndex, trackedPoints.getSize() - 1);
-        }
-    }
-
     public static PointFactory from(int chartId, ChartType ChartType) {
         return PointFactory.builder()
                 .chartId(chartId)
                 .chartType(ChartType)
                 .build();
-    }
-
-    public static PointFactory from(@NotNull AppContext context, @NotNull ProcessingParameters params) {
-        var chartType = params.frozenContext().settings().chart().type();
-        var chartXZPanel = context.state().guiController().chartXZPanel();
-
-        return PointFactory.from(chartXZPanel.getChartsCount(), chartType);
     }
 }

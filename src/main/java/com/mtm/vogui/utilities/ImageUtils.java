@@ -7,55 +7,20 @@ package com.mtm.vogui.utilities;
 
 import boofcv.io.image.ConvertBufferedImage;
 import boofcv.struct.image.*;
-import com.mtm.vogui.models.constants.GuiConstants;
 import com.mtm.vogui.models.enums.settings.ImageTypeDescriptor;
-import lombok.SneakyThrows;
 import org.imgscalr.Scalr;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.*;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 public class ImageUtils {
 
-    // Image resources getters
-
-    public static BufferedImage getResourceImage(String imageRes) {
-        return getResourceImage(imageRes, null, null);
-    }
-
-    public static BufferedImage getResourceImage(String imageRes, Integer width, Float alpha) {
-        return getResourceImage(imageRes, width, null, alpha);
-    }
-
-    @SneakyThrows
-    public static BufferedImage getResourceImage(String imageRes, Integer width, Integer height, Float alpha) {
-        BufferedImage image = null;
-        try (InputStream imageStream = CoreUtils.class.getResourceAsStream(imageRes)) {
-            if (imageStream != null) {
-                // Load image
-                image = ImageIO.read(imageStream);
-
-                // Apply alpha
-                if (alpha != null && alpha < 1.0) {
-                    image = modifyBufferedImageAlpha(image, alpha);
-                }
-
-                // Scale
-                if (width != null) {
-                    image = resizeBufferedImage(image, width, height);
-                }
-            }
-        }
-
-        return image;
-    }
-
+    // Desktop property holding the OS text rendering hints (antialiasing etc.)
+    private final static String AWT_DESKTOP_HINTS = "awt.font.desktophints";
 
     // Image converters
 
@@ -312,6 +277,6 @@ public class ImageUtils {
     @SuppressWarnings("unchecked")
     public static Map<RenderingHints.Key, Object> getDesktopHints() {
         return (Map<RenderingHints.Key, Object>) Toolkit.getDefaultToolkit()
-                .getDesktopProperty(GuiConstants.AWT_DESKTOP_HINTS);
+                .getDesktopProperty(AWT_DESKTOP_HINTS);
     }
 }

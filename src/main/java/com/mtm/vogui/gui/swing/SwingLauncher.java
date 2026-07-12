@@ -6,8 +6,8 @@
 package com.mtm.vogui.gui.swing;
 
 import com.mtm.vogui.core.Core;
-import com.mtm.vogui.core.rendering.RenderSink;
 import com.mtm.vogui.gui.UiLauncher;
+import com.mtm.vogui.gui.swing.state.GuiState;
 import com.mtm.vogui.models.context.AppContext;
 import io.quarkus.runtime.Quarkus;
 import jakarta.enterprise.inject.spi.CDI;
@@ -23,11 +23,10 @@ public class SwingLauncher implements UiLauncher {
     @Override
     public void launchAndWait(String... args) {
         var cdi = CDI.current();
-        var application = new GuiApplication(
+        var application = new SwingApplication(
                 cdi.select(AppContext.class).get(),
                 cdi.select(Core.class).get(),
-                cdi.select(GuiController.class).get(),
-                cdi.select(RenderSink.class).get(),
+                cdi.select(GuiState.class).get(),
                 ConfigProvider.getConfig().getValue("quarkus.application.version", String.class));
 
         application.start();

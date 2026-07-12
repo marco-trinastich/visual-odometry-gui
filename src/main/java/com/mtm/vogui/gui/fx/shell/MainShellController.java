@@ -6,6 +6,7 @@
 package com.mtm.vogui.gui.fx.shell;
 
 import com.mtm.vogui.gui.fx.state.GuiState;
+import com.mtm.vogui.models.constants.AppConstants;
 import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.enums.gui.AppStatus;
 import com.mtm.vogui.models.enums.settings.SettingsType;
@@ -75,10 +76,10 @@ public class MainShellController {
     @FXML
     private void onAbout() {
         Alert about = new Alert(Alert.AlertType.INFORMATION,
-                "Tracking and Mapping System based on Visual Odometry (BoofCV)\nVersion " + appVersion,
+                AppConstants.APP_DESCRIPTION + "\nVersion " + appVersion,
                 javafx.scene.control.ButtonType.OK);
-        about.setTitle("About");
-        about.setHeaderText("Visual Odometry GUI");
+        about.setTitle(AppConstants.ABOUT_TITLE);
+        about.setHeaderText(AppConstants.APP_TITLE);
         about.showAndWait();
     }
 }
