@@ -103,7 +103,7 @@ public class SwingApplication {
         }
 
         // Set app icon
-        Image appIcon = SwingUtils.getResourceImage(GuiConstants.APP_ICON);
+        Image appIcon = SwingUtils.getResourceImage(AppConstants.APP_ICON);
         if (appIcon != null) {
             Taskbar taskbar = Taskbar.getTaskbar();
             taskbar.setIconImage(appIcon);
@@ -120,7 +120,7 @@ public class SwingApplication {
 
     private @NotNull JFrame createAboutFrame() {
         JLabel appImage = new JLabel();
-        Image appIcon = SwingUtils.getResourceImage(GuiConstants.APP_ICON, 150, 1f);
+        Image appIcon = SwingUtils.getResourceImage(AppConstants.APP_ICON, 150, 1f);
         if (appIcon != null) {
             appImage.setIcon(new ImageIcon(appIcon));
         }

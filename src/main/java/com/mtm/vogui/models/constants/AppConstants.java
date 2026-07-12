@@ -20,6 +20,7 @@ public class AppConstants {
     public final static String BOOFCV_INFO = "Based on BoofCv %s (%s)";
     public final static String LICENSE_INFO = "Released under Apache 2.0 license";
     public final static String JAVA_VERSION = "java.version";
+    public final static String APP_ICON = "/gui/icons/app_logo.png";
 
     // Time patterns
     public final static String SECONDS_PATTERN = "%ss";

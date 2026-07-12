@@ -6,7 +6,6 @@
 package com.mtm.vogui.gui.fx.shell;
 
 import com.mtm.vogui.gui.fx.state.GuiState;
-import com.mtm.vogui.models.constants.AppConstants;
 import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.enums.gui.AppStatus;
 import com.mtm.vogui.models.enums.settings.SettingsType;
@@ -15,7 +14,6 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -75,11 +73,6 @@ public class MainShellController {
 
     @FXML
     private void onAbout() {
-        Alert about = new Alert(Alert.AlertType.INFORMATION,
-                AppConstants.APP_DESCRIPTION + "\nVersion " + appVersion,
-                javafx.scene.control.ButtonType.OK);
-        about.setTitle(AppConstants.ABOUT_TITLE);
-        about.setHeaderText(AppConstants.APP_TITLE);
-        about.showAndWait();
+        AboutDialog.show(appVersion, statusLabel.getScene().getWindow());
     }
 }
