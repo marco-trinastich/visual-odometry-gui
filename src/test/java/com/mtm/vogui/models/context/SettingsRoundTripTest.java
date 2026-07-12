@@ -7,6 +7,7 @@ package com.mtm.vogui.models.context;
 
 import com.mtm.vogui.models.context.config.Config;
 import com.mtm.vogui.models.context.settings.Settings;
+import com.mtm.vogui.models.enums.gui.UiToolkit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,17 @@ class SettingsRoundTripTest {
     private static final String TEST_FILE_NAME = "target/settings-roundtrip-test";
     private static final String[] TEST_VIDEO_PATHS = new String[]{"assets/example_a.mjpeg", "assets/example_b.mp4"};
 
-    private final Config config = () -> () -> TEST_FILE_NAME;
+    private final Config config = new Config() {
+        @Override
+        public UiToolkit ui() {
+            return UiToolkit.JavaFx;
+        }
+
+        @Override
+        public Config.Settings settings() {
+            return () -> TEST_FILE_NAME;
+        }
+    };
 
     @BeforeEach
     void deleteTestFiles() throws IOException {

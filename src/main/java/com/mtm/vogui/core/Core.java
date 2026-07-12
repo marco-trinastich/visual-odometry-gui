@@ -25,6 +25,7 @@ import com.mtm.vogui.core.rendering.SettingsSync;
 
 import com.mtm.vogui.utilities.CoreUtils;
 import com.mtm.vogui.utilities.OSUtils;
+import io.quarkus.arc.Unremovable;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -34,8 +35,12 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Visual Odometry processing core
+ * <p>
+ * {@code @Unremovable}: resolved programmatically by the UI launchers ({@code CDI.current()}),
+ * so Arc sees no injection point and would otherwise drop the bean at build time.
  */
 @ApplicationScoped
+@Unremovable
 public class Core {
 
     private final AppContext context;
