@@ -190,7 +190,6 @@ public class GuiConstants {
 
 
     // Icons
-    public final static String APP_ICON = "/gui/icons/app_logo.png";
     public final static String BTN_SETTINGS = "/gui/icons/btn_settings.png";
     public final static String BTN_START = "/gui/icons/btn_play.png";
     public final static String BTN_START_DISABLED = "/gui/icons/btn_play_disabled.png";

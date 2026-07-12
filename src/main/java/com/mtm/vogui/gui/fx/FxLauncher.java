@@ -6,6 +6,7 @@
 package com.mtm.vogui.gui.fx;
 
 import com.mtm.vogui.gui.UiLauncher;
+import com.mtm.vogui.gui.fx.utils.FxUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 
@@ -18,7 +19,12 @@ public class FxLauncher implements UiLauncher {
 
     @Override
     public void launchAndWait(String... args) {
+        FxUtils.suppressUnnamedModuleWarning();
+        // Blocks until the FX runtime shuts down (window X, menu Exit, dock/Cmd+Q -> Platform.exit).
         Application.launch(FxApplication.class, args);
+        // FX left non-daemon threads (and quarkus:dev would just drop to its restart prompt), so force
+        // the process down; the shutdown hook still runs (ShutdownEvent autosave).
+        System.exit(0);
     }
 
     @Override

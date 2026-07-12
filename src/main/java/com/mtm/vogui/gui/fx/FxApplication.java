@@ -7,6 +7,7 @@ package com.mtm.vogui.gui.fx;
 
 import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
+import com.mtm.vogui.gui.fx.utils.FxUtils;
 import com.mtm.vogui.models.constants.AppConstants;
 import jakarta.enterprise.inject.spi.CDI;
 import javafx.application.Application;
@@ -41,6 +42,7 @@ public class FxApplication extends Application {
 
         stage.setScene(new Scene(root));
         stage.setTitle(AppConstants.APP_TITLE);
+        FxUtils.applyAppIcon(stage);
         stage.show();
     }
 
