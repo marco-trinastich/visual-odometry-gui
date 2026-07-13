@@ -31,6 +31,12 @@ public final class Combos {
         });
     }
 
+    /** Commits the editor's typed text to the combo value now — for reading the value without a
+     *  focus change first (e.g. a Save reached straight from a menu, which doesn't fire focus-out). */
+    public static void commit(ComboBox<?> combo) {
+        commitEditorText(combo);
+    }
+
     private static <T> void commitEditorText(ComboBox<T> combo) {
         if (!combo.isEditable()) {
             return;

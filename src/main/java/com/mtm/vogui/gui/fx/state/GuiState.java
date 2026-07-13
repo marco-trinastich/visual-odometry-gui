@@ -22,6 +22,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+
 /**
  * Observable state of the JavaFX GUI, written by {@code fx.rendering.FxRenderSink} (fed by the
  * core through {@code RenderSink}) and bound by the views. Views never talk to the core directly.
@@ -96,6 +99,23 @@ public class GuiState {
     /** The run's tracked-points log (append-only during a run, cleared on Clear); bound by the list view. */
     private final ObservableList<TrackedPoint> trackedPoints = FXCollections.observableArrayList();
 
+    /**
+     * Trajectory event stream. The sink emits {@link TrajectoryEvent}s (per-frame plot points + segment
+     * lifecycle); the charts feature registers the consumer that applies them to its LineCharts. A single
+     * registered handler rather than an observable list, so events are not retained — the chart holds the
+     * state and is the only consumer. Both the setter and {@link #emitTrajectory} run on the FX thread.
+     */
+    private Consumer<TrajectoryEvent> trajectoryHandler = _ -> {
+    };
+
+    /**
+     * Open-segment count mirror, read from the vo worker thread by {@code FxRenderSink.chartsCount()} to
+     * tag each run's points (the core queries it synchronously before a run). Seeded to 1 (one open
+     * segment, like the Swing chart), advanced by the charts feature when it actually closes a segment or
+     * clears — an {@link AtomicInteger} so the cross-thread read needs no FX hop.
+     */
+    private final AtomicInteger segmentCount = new AtomicInteger(1);
+
     public ObjectProperty<AppStatus> appStatusProperty() {
         return appStatus;
     }
@@ -142,5 +162,20 @@ public class GuiState {
 
     public ObservableList<TrackedPoint> trackedPoints() {
         return trackedPoints;
+    }
+
+    /** Registers the charts feature's consumer of the trajectory event stream (FX thread). */
+    public void setTrajectoryHandler(Consumer<TrajectoryEvent> handler) {
+        this.trajectoryHandler = handler;
+    }
+
+    /** Delivers one trajectory event to the registered handler (call on the FX thread). */
+    public void emitTrajectory(TrajectoryEvent event) {
+        this.trajectoryHandler.accept(event);
+    }
+
+    /** Open-segment count mirror (see {@link #segmentCount}); read cross-thread, advanced by the charts feature. */
+    public AtomicInteger segmentCount() {
+        return segmentCount;
     }
 }

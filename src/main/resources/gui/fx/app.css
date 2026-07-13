@@ -35,6 +35,11 @@
     -fx-padding: 8px;
 }
 
+/* Tracked-points log: tighter inset than the readouts pane — the virtual list draws its own border. */
+.telemetry-tracked-points {
+    -fx-padding: 8px;
+}
+
 /*
  * Direction dial (gui.fx.shared.components.DirectionDial): a small compass-like indicator. Colours come
  * from AtlantaFX looked-up colours so it adapts to the light/dark theme automatically — the ring is a
@@ -102,6 +107,61 @@
 .smooth-list-cell:selected {
     -fx-background-color: -color-accent-emphasis;
     -fx-text-fill: -color-fg-emphasis;
+}
+
+/*
+ * Trajectory charts (gui.fx.features.trajectory.TrajectoryView): the ground-track + altitude LineCharts
+ * and their compact navigation bars. Chrome only — the LineChart keeps its AtlantaFX default look; the
+ * control bar gets a small inset so the buttons don't touch the chart edges.
+ */
+/*
+ * Floating control bar overlaid on each chart (bottom-right): no frame or fill — just the icon buttons
+ * floating over the plot so they read as chrome, not data. Dimmed at rest so they don't fight the
+ * trajectory, full opacity on hover.
+ */
+.chart-controls {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-opacity: 0.7;
+}
+
+.chart-controls:hover {
+    -fx-opacity: 1.0;
+}
+
+/*
+ * Compact the icon buttons so they hug their glyph instead of reserving AtlantaFX's default square.
+ * Applied only inside the floating chart chrome, so app-wide buttons keep their normal sizing.
+ */
+.chart-controls .button,
+.chart-controls .toggle-button {
+    -fx-padding: 3px;
+}
+
+/*
+ * Lucide-style stroked icons for the chart nav buttons (no icon-font dependency): a thin, round-capped
+ * SVGPath painted with the theme foreground colour. to-start / to-end mirror Lucide skip-back /
+ * skip-forward (origin vs latest point); markers is a three-dot scatter for the markers toggle.
+ */
+.chart-nav-icon {
+    -fx-fill: transparent;
+    -fx-stroke: -color-fg-default;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+/* Floating chart title (top-left overlay): muted and unobtrusive so it doesn't eat plot height. */
+.chart-title {
+    -fx-text-fill: -color-fg-muted;
+    -fx-font-size: 1.05em;
+    -fx-font-weight: bold;
+    -fx-padding: 4px 8px;
+    -fx-opacity: 0.6;
+}
+
+.chart-card {
+    -fx-padding: 0;
 }
 
 /*
