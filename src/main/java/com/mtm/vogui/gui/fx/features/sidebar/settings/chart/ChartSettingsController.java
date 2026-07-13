@@ -12,8 +12,10 @@ import com.mtm.vogui.models.enums.settings.ChartType;
 import io.quarkus.arc.Unremovable;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
@@ -39,7 +41,13 @@ public class ChartSettingsController {
     private Spinner<Double> scaleXZSpinner;
 
     @FXML
+    private CheckBox autoScaleXZCheck;
+
+    @FXML
     private Spinner<Double> scaleYSpinner;
+
+    @FXML
+    private CheckBox autoScaleYCheck;
 
     private ChartSettingsViewModel viewModel;
 
@@ -51,8 +59,8 @@ public class ChartSettingsController {
         chartTypeCombo.setConverter(new WithValueStringConverter<ChartType>());
         chartTypeCombo.valueProperty().bindBidirectional(viewModel.typeProperty());
 
-        bindScaleSpinner(scaleXZSpinner, viewModel.scaleXZProperty());
-        bindScaleSpinner(scaleYSpinner, viewModel.scaleYProperty());
+        bindScaleSpinner(scaleXZSpinner, autoScaleXZCheck, viewModel.scaleXZProperty(), viewModel.autoScaleXZProperty());
+        bindScaleSpinner(scaleYSpinner, autoScaleYCheck, viewModel.scaleYProperty(), viewModel.autoScaleYProperty());
     }
 
     /** Re-syncs the section from the domain after a settings load/reset. */
@@ -60,7 +68,8 @@ public class ChartSettingsController {
         viewModel.load();
     }
 
-    private static void bindScaleSpinner(Spinner<Double> spinner, DoubleProperty property) {
+    private static void bindScaleSpinner(Spinner<Double> spinner, CheckBox autoCheck,
+                                         DoubleProperty property, BooleanProperty autoProperty) {
         // Scales are non-zero magnitudes (Swing enforced NumberConstraints.NotZero): a smallest-positive
         // floor keeps zero unreachable without clamping any realistic saved value.
         var factory = new SpinnerValueFactory.DoubleSpinnerValueFactory(
@@ -71,5 +80,9 @@ public class ChartSettingsController {
         // trajectory chart reads the committed scale as its initial zoom at the next Start (lean UX:
         // the chart's live interaction is mouse pan/zoom, not a scale field).
         Spinners.commitOnFocusLost(spinner);
+
+        // Auto: the axis auto-ranges (fit-all) and this scale is ignored, so grey the spinner out.
+        autoCheck.selectedProperty().bindBidirectional(autoProperty);
+        spinner.disableProperty().bind(autoProperty);
     }
 }

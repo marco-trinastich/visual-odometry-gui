@@ -7,8 +7,10 @@ package com.mtm.vogui.gui.fx.features.sidebar.settings.chart;
 
 import com.mtm.vogui.models.context.settings.chart.ChartSettings;
 import com.mtm.vogui.models.enums.settings.ChartType;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -19,7 +21,8 @@ import java.util.function.Supplier;
 /**
  * ViewModel of the Chart settings section (hand-rolled MVVM, twin of the settings-bearing part of the
  * Swing {@code ChartSettingsView}). Exposes the altitude-basis chart type and the two axis scales as
- * JavaFX properties, live-committing each into the domain {@link ChartSettings}.
+ * JavaFX properties (each scale paired with an auto-range toggle), live-committing each into the
+ * domain {@link ChartSettings}.
  * <p>
  * Scope note: the Swing section also carried action buttons (Apply / Origin / Last / 3D points). In the
  * JavaFX UI those live beside the chart itself (see {@code fx.features.trajectory.TrajectoryView}), per
@@ -33,7 +36,9 @@ public class ChartSettingsViewModel {
     private ChartSettings settings;
 
     private final ObjectProperty<ChartType> type = new SimpleObjectProperty<>();
+    private final BooleanProperty autoScaleXZ = new SimpleBooleanProperty();
     private final DoubleProperty scaleXZ = new SimpleDoubleProperty();
+    private final BooleanProperty autoScaleY = new SimpleBooleanProperty();
     private final DoubleProperty scaleY = new SimpleDoubleProperty();
 
     private final ObservableList<ChartType> chartTypes =
@@ -45,7 +50,9 @@ public class ChartSettingsViewModel {
 
         // Live commit into the domain (fluent accessors).
         type.addListener((_, _, value) -> settings.type(value));
+        autoScaleXZ.addListener((_, _, value) -> settings.autoScaleXZ(value));
         scaleXZ.addListener((_, _, value) -> settings.scaleXZ(value.doubleValue()));
+        autoScaleY.addListener((_, _, value) -> settings.autoScaleY(value));
         scaleY.addListener((_, _, value) -> settings.scaleY(value.doubleValue()));
     }
 
@@ -53,7 +60,9 @@ public class ChartSettingsViewModel {
     public void load() {
         settings = settingsSupplier.get();
         type.set(settings.type());
+        autoScaleXZ.set(settings.autoScaleXZ());
         scaleXZ.set(settings.scaleXZ());
+        autoScaleY.set(settings.autoScaleY());
         scaleY.set(settings.scaleY());
     }
 
@@ -61,8 +70,16 @@ public class ChartSettingsViewModel {
         return type;
     }
 
+    public BooleanProperty autoScaleXZProperty() {
+        return autoScaleXZ;
+    }
+
     public DoubleProperty scaleXZProperty() {
         return scaleXZ;
+    }
+
+    public BooleanProperty autoScaleYProperty() {
+        return autoScaleY;
     }
 
     public DoubleProperty scaleYProperty() {

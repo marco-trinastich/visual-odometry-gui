@@ -44,8 +44,11 @@ import javafx.scene.shape.SVGPath;
  */
 public final class TrajectoryView {
 
-    /** A run's scale is 1.0 by default; only a non-default scale switches a chart to fixed zoom. */
-    private static final double DEFAULT_SCALE = 1.0;
+    /**
+     * Floor on the altitude Y axis' auto-ranged span: its values hover near a large baseline, so
+     * without this the fit collapses to a microscopic (all-identical-labels, un-zoomable) range.
+     */
+    private static final double ALTITUDE_MIN_SPAN = 1.0;
 
     private final GuiState guiState;
     private final TrajectoryChart xzChart;
@@ -56,10 +59,20 @@ public final class TrajectoryView {
         this.guiState = guiState;
         this.xzChart = new TrajectoryChart(ChartAxis.X.value(), ChartAxis.Z.value());
         this.yChart = new TrajectoryChart(ChartAxis.Frame.value(), ChartAxis.Y.value());
+        // Altitude hovers near a large baseline: hug the data (don't anchor 0), but floor the span so
+        // the trace fills the pane and the Y axis stays readable and zoomable.
+        this.yChart.fitYAxisToData(ALTITUDE_MIN_SPAN);
+
+        Region altitudeCard = card("Altitude", yChart, yControls());
+        // Let the user collapse the altitude pane fully (divider dragged to the bottom): zero its min
+        // height so the ground track can take the whole area. The chart node's min is zeroed too, so it
+        // shrinks with the pane instead of overflowing it near collapse.
+        yChart.node().setMinHeight(0);
+        altitudeCard.setMinHeight(0);
 
         this.content = new SplitPane(
                 card("Ground track", xzChart, xzControls()),
-                card("Altitude", yChart, yControls()));
+                altitudeCard);
         this.content.setOrientation(Orientation.VERTICAL);
         // Give the ground track the larger share (the altitude trace is a single dimension).
         this.content.setDividerPositions(0.8);
@@ -93,8 +106,8 @@ public final class TrajectoryView {
         switch (event) {
             case TrajectoryEvent.StartSegment start -> {
                 yChart.setAxisNames(xAxisName(start.chartType()), ChartAxis.Y.value());
-                applyInitialZoom(xzChart, start.xzScale());
-                applyInitialZoom(yChart, start.yScale());
+                applyInitialZoom(xzChart, start.autoXZ(), start.xzScale());
+                applyInitialZoom(yChart, start.autoY(), start.yScale());
             }
             case TrajectoryEvent.Plot plot -> {
                 xzChart.addPoint(plot.xzX(), plot.xzZ());
@@ -137,9 +150,11 @@ public final class TrajectoryView {
         }
     }
 
-    private static void applyInitialZoom(TrajectoryChart chart, double scale) {
-        // A non-default scale means the user wants a fixed zoom; scale 1.0 keeps auto-range/fit-all.
-        if (scale != DEFAULT_SCALE) {
+    private static void applyInitialZoom(TrajectoryChart chart, boolean auto, double scale) {
+        // Auto -> fit-all as the trajectory grows; otherwise the scale is the fixed initial zoom.
+        if (auto) {
+            chart.autoRange();
+        } else {
             chart.applyScale(scale);
         }
     }
