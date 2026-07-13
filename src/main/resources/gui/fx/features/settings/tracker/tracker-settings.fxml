@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+  Licensed under GNU GPL v3 - see LICENSE file for details
+-->
+
+<?import atlantafx.base.controls.ToggleSwitch?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+
+<TitledPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mtm.vogui.gui.fx.features.settings.tracker.TrackerSettingsController"
+            text="Tracker" collapsible="true" animated="true">
+
+    <VBox spacing="10">
+        <padding>
+            <Insets top="2" right="2" bottom="2" left="2"/>
+        </padding>
+
+        <!-- Tracker type -->
+        <GridPane hgap="10" vgap="7">
+            <columnConstraints>
+                <ColumnConstraints halignment="LEFT" minWidth="-Infinity"/>
+                <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+            </columnConstraints>
+            <Label text="Tracker Type" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <ComboBox fx:id="trackerTypeCombo" maxWidth="Infinity"
+                      GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        </GridPane>
+
+        <!-- KLT parameters (shown for KLT-based types; greyed out for Default) -->
+        <GridPane fx:id="kltGroup" hgap="10" vgap="7">
+            <columnConstraints>
+                <ColumnConstraints halignment="LEFT" minWidth="-Infinity"/>
+                <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+            </columnConstraints>
+            <Label text="Template Radius" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <Spinner fx:id="templateRadiusSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            <Label text="Pyramid Levels" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <Spinner fx:id="pyramidLevelsSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+            <Label text="Max Features" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+            <Spinner fx:id="maxFeaturesSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+            <Label text="Radius" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+            <Spinner fx:id="radiusSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+            <Label text="Threshold" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+            <Spinner fx:id="thresholdSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        </GridPane>
+
+        <!-- SURF parameters (shown for SURF-based types) -->
+        <GridPane fx:id="surfGroup" hgap="10" vgap="7">
+            <columnConstraints>
+                <ColumnConstraints halignment="LEFT" minWidth="-Infinity"/>
+                <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+            </columnConstraints>
+            <Label text="Max Features Per Scale" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <Spinner fx:id="maxFeaturesPerScaleSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            <Label text="Extract Radius" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <Spinner fx:id="extractRadiusSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+            <Label text="Initial Sample Size" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+            <Spinner fx:id="initialSampleSizeSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        </GridPane>
+
+        <!-- Track display: label | switch grid so the two switches line up in a column -->
+        <GridPane hgap="10" vgap="7">
+            <columnConstraints>
+                <ColumnConstraints halignment="LEFT" minWidth="-Infinity"/>
+                <ColumnConstraints halignment="LEFT"/>
+            </columnConstraints>
+            <Label text="Show Active Tracks" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <ToggleSwitch fx:id="showActiveTracksToggle" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            <Label text="Show New Tracks" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <ToggleSwitch fx:id="showNewTracksToggle" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        </GridPane>
+    </VBox>
+</TitledPane>

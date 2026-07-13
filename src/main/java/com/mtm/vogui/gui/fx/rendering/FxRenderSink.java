@@ -5,9 +5,11 @@
 
 package com.mtm.vogui.gui.fx.rendering;
 
+import boofcv.gui.feature.VisualizeFeatures;
 import com.mtm.vogui.core.rendering.RenderSink;
 import com.mtm.vogui.gui.fx.utils.FxUtils;
 import com.mtm.vogui.gui.fx.state.GuiState;
+import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.context.settings.common.PathSettings;
 import com.mtm.vogui.models.core.integration.BufferStatus;
 import com.mtm.vogui.models.core.processing.ProcessingParameters;
@@ -16,11 +18,18 @@ import com.mtm.vogui.models.core.processing.fps.FpsStatus;
 import com.mtm.vogui.models.enums.gui.AppStatus;
 import com.mtm.vogui.models.enums.gui.RecentPathTarget;
 import com.mtm.vogui.models.enums.settings.DevicePath;
+import com.mtm.vogui.models.enums.settings.SourceType;
 import com.mtm.vogui.models.interfaces.Resolution;
+import georegression.struct.point.Point2D_F64;
 import jakarta.enterprise.inject.spi.CDI;
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.image.Image;
+import org.jetbrains.annotations.NotNull;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.function.Consumer;
 
@@ -36,12 +45,22 @@ import java.util.function.Consumer;
  */
 public class FxRenderSink implements RenderSink {
 
+    private final AppContext context;
     private final GuiState guiState;
     private final Consumer<AppStatus> coalescedAppStatus;
+    private final Consumer<Image> coalescedInputFrame;
+    private final Consumer<Image> coalescedOutputFrame;
+    private final Consumer<Integer> coalescedKltPyramidLevels;
 
     public FxRenderSink() {
-        this.guiState = CDI.current().select(GuiState.class).get();
-        this.coalescedAppStatus = FxUtils.coalescedFxConsumer(status -> this.guiState.appStatusProperty().set(status));
+        var cdi = CDI.current();
+        this.context = cdi.select(AppContext.class).get();
+        this.guiState = cdi.select(GuiState.class).get();
+        this.coalescedAppStatus = FxUtils.coalescedFxConsumer(status -> guiState.appStatusProperty().set(status));
+        this.coalescedInputFrame = FxUtils.coalescedFxConsumer(image -> guiState.inputFrameProperty().set(image));
+        this.coalescedOutputFrame = FxUtils.coalescedFxConsumer(image -> guiState.outputFrameProperty().set(image));
+        this.coalescedKltPyramidLevels =
+                FxUtils.coalescedFxConsumer(levels -> guiState.kltPyramidLevelsProperty().set(levels));
     }
 
     // Dialogs
@@ -98,19 +117,24 @@ public class FxRenderSink implements RenderSink {
 
     @Override
     public void resizeAndRepositionVideoFrames(ProcessingParameters params) {
-        // TODO Fase 2: video panels
+        // No-op in the single-window layout: the viewports letterbox to their SplitPane slots, so
+        // there are no free-floating frames to size/position (the Swing sink drove separate JFrames).
     }
 
     // Per-frame rendering
 
     @Override
     public void renderVO(ProcessingStatus status, ProcessingParameters params, boolean voResult) {
-        // TODO Fase 2/3: video, info, charts
+        renderInputVideo(status);
+        renderTrackedFeatures(status, voResult);
+        renderOutputVideo(status);
+        // TODO Fase 3: info panel + charts
     }
 
     @Override
     public void renderInputVideo(BufferedImage image) {
-        // TODO Fase 2: video panels
+        // Mirror the Swing sink: show the preview only when enabled, otherwise clear the viewport.
+        coalescedInputFrame.accept(context.settings().input().inputPreview() ? FxUtils.toFxImage(image) : null);
     }
 
     @Override
@@ -127,21 +151,60 @@ public class FxRenderSink implements RenderSink {
 
     @Override
     public void deviceResolutionChanged(Resolution resolution) {
-        // TODO Fase 2: settings form (with bindings this becomes automatic)
+        // Low-frequency (once per run start): publish on GuiState; the input section reflects it.
+        Platform.runLater(() -> guiState.healedDeviceResolutionProperty().set(resolution));
     }
 
     @Override
     public void devicePathChanged(DevicePath devicePath) {
-        // TODO Fase 2: settings form (with bindings this becomes automatic)
+        Platform.runLater(() -> guiState.healedDevicePathProperty().set(devicePath));
     }
 
     @Override
     public void recentPathUsed(RecentPathTarget target, PathSettings pathSettings, String usedPath) {
-        // TODO Fase 2: settings form (with bindings this becomes automatic)
+        // The history in `pathSettings` is already updated core-side; the section re-reads it from the
+        // domain, so only the (target, usedPath) tag needs to cross to the FX thread.
+        Platform.runLater(() ->
+                guiState.recentPathUsedProperty().set(new GuiState.RecentPathUsed(target, usedPath)));
     }
 
     @Override
     public void kltPyramidLevelsChanged(int pyramidLevels) {
-        // TODO Fase 2: settings form (with bindings this becomes automatic)
+        // Publish on GuiState; the tracker settings section reflects it into its field.
+        coalescedKltPyramidLevels.accept(pyramidLevels);
+    }
+
+    // Private members (mirror the Swing sink: input is re-rendered for file sources, tracked
+    // features are drawn onto the vo frame, then the output frame is handed off)
+
+    private void renderInputVideo(@NotNull ProcessingStatus status) {
+        // Device sources push their preview through renderInputVideo(BufferedImage) directly; file
+        // sources have no preview thread, so the input frame is re-rendered here per processed frame.
+        if (SourceType.Video.is(context.settings().input().source())) {
+            renderInputVideo(status.frame().input().buffered());
+        }
+    }
+
+    private void renderTrackedFeatures(@NotNull ProcessingStatus status, boolean voResult) {
+        if (!voResult) {
+            return;
+        }
+        // Draw active/new tracks onto the vo output frame (pure AWT on a BufferedImage: data, not widgets)
+        Graphics2D g2 = status.frame().vo().buffered().createGraphics();
+        if (context.settings().tracker().showActiveTracks()) {
+            for (Point2D_F64 p : status.tracking().trackInliers()) {
+                VisualizeFeatures.drawPoint(g2, (int) p.getX(), (int) p.getY(), Color.blue);
+            }
+        }
+        if (context.settings().tracker().showNewTracks()) {
+            for (Point2D_F64 p : status.tracking().trackNew()) {
+                VisualizeFeatures.drawPoint(g2, (int) p.getX(), (int) p.getY(), Color.green);
+            }
+        }
+        g2.dispose();
+    }
+
+    private void renderOutputVideo(@NotNull ProcessingStatus status) {
+        coalescedOutputFrame.accept(FxUtils.toFxImage(status.frame().vo().buffered()));
     }
 }

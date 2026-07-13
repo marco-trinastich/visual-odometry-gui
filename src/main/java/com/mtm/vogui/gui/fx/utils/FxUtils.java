@@ -8,14 +8,21 @@ package com.mtm.vogui.gui.fx.utils;
 import com.mtm.vogui.models.constants.AppConstants;
 import com.mtm.vogui.utilities.OSUtils;
 import io.quarkus.logging.Log;
+import jakarta.enterprise.inject.spi.CDI;
 import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.image.WritableImage;
 import javafx.stage.Stage;
 
 import javax.imageio.ImageIO;
 import java.awt.Taskbar;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -134,6 +141,44 @@ public final class FxUtils {
         AtomicReference<T> result = new AtomicReference<>();
         runOnFxThreadAndWait(() -> result.set(action.get()));
         return result.get();
+    }
+
+    /**
+     * Adds the app-wide scene stylesheet ({@code app.css}) on top of the AtlantaFX user-agent theme.
+     * A scene stylesheet (not user-agent) so it survives the live light/dark theme swap.
+     */
+    public static void applyAppStylesheet(Scene scene) {
+        scene.getStylesheets().add(Objects.requireNonNull(
+                FxUtils.class.getResource("/gui/fx/app.css"), "app.css not found").toExternalForm());
+    }
+
+    /**
+     * Builds an {@link FXMLLoader} for the given classpath resource with the CDI controller factory
+     * wired in, so FXML controllers are resolved as beans (Dependent/Unremovable). Central place for
+     * the loader setup shared by the shell and every feature that loads its own FXML.
+     */
+    public static FXMLLoader newFxmlLoader(String resourcePath) {
+        FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
+                FxUtils.class.getResource(resourcePath), () -> "FXML resource not found: " + resourcePath));
+        loader.setControllerFactory(type -> CDI.current().select(type).get());
+        return loader;
+    }
+
+    /**
+     * Converts an AWT {@link BufferedImage} (as produced by BoofCV/the capture stack) into a JavaFX
+     * {@link Image}. Safe to call off the FX Application Thread — it only allocates pixels, touching no
+     * live scene — so the vo worker converts frames before the coalesced hand-off to the FX thread.
+     * {@code getRGB} normalises any source {@code BufferedImage} type to ARGB, so no assumption is made
+     * about the incoming raster layout.
+     */
+    public static Image toFxImage(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int[] argb = image.getRGB(0, 0, width, height, null, 0, width);
+        WritableImage fxImage = new WritableImage(width, height);
+        fxImage.getPixelWriter().setPixels(0, 0, width, height,
+                PixelFormat.getIntArgbInstance(), argb, 0, width);
+        return fxImage;
     }
 
     /**

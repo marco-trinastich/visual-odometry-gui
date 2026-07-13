@@ -1,0 +1,13 @@
+/*
+ * Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+ * Licensed under GNU GPL v3 - see LICENSE file for details
+ *
+ * App-wide tweaks layered on top of the AtlantaFX user-agent stylesheet (scene stylesheet, so it
+ * survives the light/dark theme swap). Deliberately minimal: only a denser base font. Controls keep
+ * their AtlantaFX default sizing/padding — earlier attempts to trim control/popup padding made them
+ * cramped and the dropdowns ugly, so that was all reverted (clean baseline).
+ */
+
+.root {
+    -fx-font-size: 12px;
+}
