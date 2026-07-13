@@ -32,7 +32,6 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
@@ -59,8 +58,12 @@ public class FxRenderSink implements RenderSink {
     private final AppContext context;
     private final GuiState guiState;
     private final Consumer<AppStatus> coalescedAppStatus;
-    private final Consumer<Image> coalescedInputFrame;
-    private final Consumer<Image> coalescedOutputFrame;
+    // Coalesced hand-off of the raw AWT frame across the thread boundary: the worker does
+    // no conversion; each converter unpacks into its own reused PixelBuffer on the FX thread.
+    private final Consumer<BufferedImage> coalescedInputFrame;
+    private final Consumer<BufferedImage> coalescedOutputFrame;
+    private final FxFrameConverter inputConverter = new FxFrameConverter();
+    private final FxFrameConverter outputConverter = new FxFrameConverter();
     private final Consumer<Integer> coalescedKltPyramidLevels;
     // Ordered (non-dropping) hand-off for tracked-point log ops, applied in order on the FX thread.
     private final Consumer<Consumer<ObservableList<TrackedPoint>>> pointOps;
@@ -73,8 +76,10 @@ public class FxRenderSink implements RenderSink {
         this.context = cdi.select(AppContext.class).get();
         this.guiState = cdi.select(GuiState.class).get();
         this.coalescedAppStatus = FxUtils.coalescedFxConsumer(status -> guiState.appStatusProperty().set(status));
-        this.coalescedInputFrame = FxUtils.coalescedFxConsumer(image -> guiState.inputFrameProperty().set(image));
-        this.coalescedOutputFrame = FxUtils.coalescedFxConsumer(image -> guiState.outputFrameProperty().set(image));
+        this.coalescedInputFrame = FxUtils.coalescedFxConsumer(buffered ->
+                guiState.inputFrameProperty().set(buffered == null ? null : inputConverter.convert(buffered)));
+        this.coalescedOutputFrame = FxUtils.coalescedFxConsumer(buffered ->
+                guiState.outputFrameProperty().set(outputConverter.convert(buffered)));
         this.coalescedKltPyramidLevels =
                 FxUtils.coalescedFxConsumer(levels -> guiState.kltPyramidLevelsProperty().set(levels));
         this.pointOps = FxUtils.orderedFxConsumer(op -> op.accept(guiState.trackedPoints()));
@@ -167,8 +172,9 @@ public class FxRenderSink implements RenderSink {
 
     @Override
     public void renderInputVideo(BufferedImage image) {
-        // Mirror the Swing sink: show the preview only when enabled, otherwise clear the viewport.
-        coalescedInputFrame.accept(context.settings().input().inputPreview() ? FxUtils.toFxImage(image) : null);
+        // Mirror the Swing sink: hand the raw frame over when preview is enabled, else clear the viewport.
+        // Conversion happens on the FX thread (see the coalesced consumer), not here on the vo worker.
+        coalescedInputFrame.accept(context.settings().input().inputPreview() ? image : null);
     }
 
     @Override
@@ -258,7 +264,8 @@ public class FxRenderSink implements RenderSink {
     }
 
     private void renderOutputVideo(@NotNull ProcessingStatus status) {
-        coalescedOutputFrame.accept(FxUtils.toFxImage(status.frame().vo().buffered()));
+        // Hand the raw vo frame over; the FX thread converts it (see the coalesced consumer).
+        coalescedOutputFrame.accept(status.frame().vo().buffered());
     }
 
     private void renderTelemetry(@NotNull ProcessingStatus status, @NotNull ProcessingParameters params,

@@ -14,13 +14,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.image.PixelFormat;
-import javafx.scene.image.WritableImage;
 import javafx.stage.Stage;
 
 import javax.imageio.ImageIO;
 import java.awt.Taskbar;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
@@ -177,23 +174,6 @@ public final class FxUtils {
                 FxUtils.class.getResource(resourcePath), () -> "FXML resource not found: " + resourcePath));
         loader.setControllerFactory(type -> CDI.current().select(type).get());
         return loader;
-    }
-
-    /**
-     * Converts an AWT {@link BufferedImage} (as produced by BoofCV/the capture stack) into a JavaFX
-     * {@link Image}. Safe to call off the FX Application Thread — it only allocates pixels, touching no
-     * live scene — so the vo worker converts frames before the coalesced hand-off to the FX thread.
-     * {@code getRGB} normalises any source {@code BufferedImage} type to ARGB, so no assumption is made
-     * about the incoming raster layout.
-     */
-    public static Image toFxImage(BufferedImage image) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-        int[] argb = image.getRGB(0, 0, width, height, null, 0, width);
-        WritableImage fxImage = new WritableImage(width, height);
-        fxImage.getPixelWriter().setPixels(0, 0, width, height,
-                PixelFormat.getIntArgbInstance(), argb, 0, width);
-        return fxImage;
     }
 
     /**
