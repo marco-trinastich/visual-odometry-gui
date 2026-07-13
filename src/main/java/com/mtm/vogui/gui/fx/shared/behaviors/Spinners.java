@@ -32,6 +32,12 @@ public final class Spinners {
         });
     }
 
+    /** Commits the editor's typed text to the spinner value now — for reading the value without a
+     *  focus change first (e.g. an action fired straight from the editor). */
+    public static void commit(Spinner<?> spinner) {
+        commitEditorText(spinner);
+    }
+
     private static <T> void commitEditorText(Spinner<T> spinner) {
         if (!spinner.isEditable()) {
             return;

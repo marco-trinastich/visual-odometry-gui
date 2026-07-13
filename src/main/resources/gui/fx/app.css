@@ -11,3 +11,112 @@
 .root {
     -fx-font-size: 12px;
 }
+
+/*
+ * The left rail is a TabPane. JavaFX's default tab-content-area padding would inset every mounted
+ * feature (settings accordion, telemetry) on top of the feature's own padding — a double inset that
+ * narrows the panels and reads as a wider-than-needed rail. Zero it so a feature sits flush against
+ * the rail edges, as if the tab weren't there; each feature keeps its own internal breathing room.
+ */
+.tab-pane > .tab-content-area {
+    -fx-padding: 0;
+}
+
+/*
+ * Per-tab inset knobs for the left rail. Kept separate on purpose: the settings accordion reads best
+ * flush (its TitledPanes already carry their own border), while the telemetry readouts want a small
+ * inset so labels don't touch the rail edges. Tune each independently here.
+ */
+.settings-content {
+    -fx-padding: 0;
+}
+
+.telemetry-content {
+    -fx-padding: 8px;
+}
+
+/*
+ * Direction dial (gui.fx.shared.components.DirectionDial): a small compass-like indicator. Colours come
+ * from AtlantaFX looked-up colours so it adapts to the light/dark theme automatically — the ring is a
+ * muted border, the needle the accent colour, the hub a subtle foreground dot.
+ */
+.direction-dial-ring {
+    -fx-fill: transparent;
+    -fx-stroke: -color-border-muted;
+    -fx-stroke-width: 1.5;
+}
+
+.direction-dial-needle {
+    -fx-stroke: -color-accent-emphasis;
+    -fx-stroke-width: 3;
+}
+
+.direction-dial-hub {
+    -fx-fill: -color-fg-muted;
+}
+
+/* Telemetry section header: bold, only slightly larger than the content (compact rail). */
+.telemetry-header {
+    -fx-font-weight: bold;
+    -fx-font-size: 1.06em;
+}
+
+/* Numeric readouts that must not jitter as digits change width (e.g. X/Y/Z). */
+.telemetry-num {
+    -fx-font-family: monospace;
+}
+
+/* Rotation matrix readout: monospace so the columns line up. */
+.telemetry-matrix {
+    -fx-font-family: monospace;
+}
+
+/* Segment start/end markers in the tracked-points list read muted (not data rows). */
+.tracked-point-marker {
+    -fx-text-fill: -color-fg-muted;
+}
+
+/*
+ * SmoothList (gui.fx.shared.components.SmoothList): a Flowless-backed virtual list with pixel-smooth
+ * scrolling. Styled to read like an AtlantaFX ListView — theme-aware looked-up colours, rounded
+ * border, subtle full-width row hover.
+ */
+.smooth-list {
+    -fx-background-color: -color-bg-default;
+    -fx-border-color: -color-border-default;
+    -fx-border-width: 1;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.smooth-list-cell {
+    -fx-padding: 0 8px;
+    -fx-text-fill: -color-fg-default;
+    -fx-alignment: center-left;
+}
+
+.smooth-list-cell:hover {
+    -fx-background-color: -color-bg-subtle;
+}
+
+.smooth-list-cell:selected {
+    -fx-background-color: -color-accent-emphasis;
+    -fx-text-fill: -color-fg-emphasis;
+}
+
+/*
+ * Timed-stop popover (gui.fx.features.toolbar.ToolbarView): a small card anchored under the toolbar
+ * button, replacing the old modal seconds prompt. Lives in a Popup (its own scene), so app.css is
+ * scoped onto the card directly; looked-up colours still resolve from the AtlantaFX user-agent theme,
+ * so it stays theme-aware. Card chrome only — the spinner/buttons keep their AtlantaFX defaults.
+ */
+.timed-popover {
+    -fx-background-color: -color-bg-default;
+    -fx-background-radius: 8px;
+    -fx-border-color: -color-border-default;
+    -fx-border-width: 1;
+    -fx-border-radius: 8px;
+    -fx-padding: 12px;
+    -fx-min-width: 200px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 12, 0.1, 0, 4);
+}

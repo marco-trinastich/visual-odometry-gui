@@ -84,6 +84,13 @@
             <artifactId>atlantafx-base</artifactId>
             <version>${atlantafx.version}</version>
         </dependency>
+        <!-- Flowless: pixel-based virtual flow (used by RichTextFX). Backs gui.fx.shared.components.SmoothList
+             because JavaFX's own VirtualFlow snaps the wheel cell-by-cell (snapToPixel) with no smooth mode. -->
+        <dependency>
+            <groupId>org.fxmisc.flowless</groupId>
+            <artifactId>flowless</artifactId>
+            <version>0.7.4</version>
+        </dependency>
 
         <!-- Vision -->
         <dependency>

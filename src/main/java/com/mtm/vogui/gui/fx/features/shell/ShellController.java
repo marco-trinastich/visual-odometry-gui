@@ -6,7 +6,7 @@
 package com.mtm.vogui.gui.fx.features.shell;
 
 import com.mtm.vogui.core.Core;
-import com.mtm.vogui.gui.fx.features.settings.SettingsView;
+import com.mtm.vogui.gui.fx.features.sidebar.SidebarView;
 import com.mtm.vogui.gui.fx.features.toolbar.SettingsMenuController;
 import com.mtm.vogui.gui.fx.features.toolbar.ToolbarView;
 import com.mtm.vogui.gui.fx.features.toolbar.VoController;
@@ -63,7 +63,7 @@ public class ShellController {
     private RadioMenuItem formatYaml;
 
     @FXML
-    private StackPane settingsPane;
+    private StackPane sidebarPane;
 
     @FXML
     private StackPane videoPane;
@@ -96,9 +96,10 @@ public class ShellController {
 
         mnuAutosave.setSelected(context.settings().autosave());
 
-        // Compose the settings feature and mount it into the left slot.
-        SettingsView settingsView = new SettingsView();
-        settingsPane.getChildren().setAll(settingsView.content());
+        // Compose the left rail (Settings + Telemetry tabs, with its own tab state machine) and mount
+        // it into the left slot. The sidebar owns the tab choreography; the shell just mounts + delegates.
+        SidebarView sidebarView = new SidebarView(guiState);
+        sidebarPane.getChildren().setAll(sidebarView.content());
 
         // Compose the video feature (it owns its own input|output split) and mount it.
         VideoView videoView = new VideoView(guiState);
@@ -107,10 +108,11 @@ public class ShellController {
         // Toolbar + settings-menu commands (command pattern: button/menu -> controller -> core).
         ToolbarView toolbar = new ToolbarView(startButton, pauseButton, resetButton, stopButton,
                 clearButton, timedStopButton);
-        voController = new VoController(context, core, guiState, toolbar);
+        voController = new VoController(context, core, guiState, toolbar,
+                sidebarView::showTelemetry, sidebarView::resetToSettings);
         settingsMenu = new SettingsMenuController(context, guiState,
                 () -> {
-                    settingsView.reload();
+                    sidebarView.reloadSettings();
                     // Re-sync the shell-level menu state too (outside the sections' reload).
                     mnuAutosave.setSelected(context.settings().autosave());
                     syncFormatRadios();

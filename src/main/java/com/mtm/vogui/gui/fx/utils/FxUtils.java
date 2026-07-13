@@ -11,6 +11,7 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.inject.spi.CDI;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelFormat;
@@ -23,7 +24,9 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -148,8 +151,20 @@ public final class FxUtils {
      * A scene stylesheet (not user-agent) so it survives the live light/dark theme swap.
      */
     public static void applyAppStylesheet(Scene scene) {
-        scene.getStylesheets().add(Objects.requireNonNull(
-                FxUtils.class.getResource("/gui/fx/app.css"), "app.css not found").toExternalForm());
+        scene.getStylesheets().add(appStylesheetUrl());
+    }
+
+    /**
+     * Adds {@code app.css} to a parent's own stylesheets — for subtrees that live outside the main
+     * scene (e.g. a {@link javafx.stage.Popup}'s content), which do not inherit the scene stylesheet.
+     */
+    public static void applyAppStylesheet(Parent parent) {
+        parent.getStylesheets().add(appStylesheetUrl());
+    }
+
+    private static String appStylesheetUrl() {
+        return Objects.requireNonNull(
+                FxUtils.class.getResource("/gui/fx/app.css"), "app.css not found").toExternalForm();
     }
 
     /**
@@ -191,6 +206,38 @@ public final class FxUtils {
         return value -> {
             if (pending.getAndSet(value) == null) {
                 Platform.runLater(() -> fxThreadAction.accept(pending.getAndSet(null)));
+            }
+        };
+    }
+
+    /**
+     * Ordered, non-dropping hand-off to the FX thread: every submitted value is delivered (unlike
+     * {@link #coalescedFxConsumer}, which keeps only the latest), but FX jobs are coalesced — at most
+     * one drain is queued at a time and it flushes the whole backlog in order. For append-style streams
+     * (e.g. the tracked-points log) where losing an item is not acceptable but per-item {@code runLater}
+     * flooding is. Submit from any thread; {@code fxThreadAction} runs on the FX Application Thread.
+     */
+    public static <T> Consumer<T> orderedFxConsumer(Consumer<T> fxThreadAction) {
+        ConcurrentLinkedQueue<T> queue = new ConcurrentLinkedQueue<>();
+        AtomicBoolean scheduled = new AtomicBoolean(false);
+        Runnable drain = new Runnable() {
+            @Override
+            public void run() {
+                T item;
+                while ((item = queue.poll()) != null) {
+                    fxThreadAction.accept(item);
+                }
+                scheduled.set(false);
+                // A value enqueued during the drain must not be stranded: re-arm if the queue refilled.
+                if (!queue.isEmpty() && scheduled.compareAndSet(false, true)) {
+                    Platform.runLater(this);
+                }
+            }
+        };
+        return value -> {
+            queue.offer(value);
+            if (scheduled.compareAndSet(false, true)) {
+                Platform.runLater(drain);
             }
         };
     }
