@@ -3,7 +3,7 @@
  * Licensed under GNU GPL v3 - see LICENSE file for details
  */
 
-package com.mtm.vogui.gui.fx.shell;
+package com.mtm.vogui.gui.fx.features.shell;
 
 import atlantafx.base.theme.Styles;
 import boofcv.BoofVersion;

@@ -7,19 +7,14 @@ package com.mtm.vogui.gui.fx;
 
 import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
+import com.mtm.vogui.gui.fx.features.shell.ShellView;
 import com.mtm.vogui.gui.fx.utils.FxUtils;
 import com.mtm.vogui.models.constants.AppConstants;
-import jakarta.enterprise.inject.spi.CDI;
 import javafx.application.Application;
 import javafx.application.ColorScheme;
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import java.io.IOException;
-import java.util.Objects;
 
 /**
  * JavaFX entry point, launched by {@code VisualOdometryGui} AFTER the Quarkus container is up,
@@ -29,18 +24,15 @@ import java.util.Objects;
 public class FxApplication extends Application {
 
     @Override
-    public void start(Stage stage) throws IOException {
+    public void start(Stage stage) {
         // Theme following the OS color scheme, live (Platform preferences API, JavaFX 22+)
         var preferences = Platform.getPreferences();
         applyTheme(preferences.getColorScheme());
         preferences.colorSchemeProperty().addListener((_, _, scheme) -> applyTheme(scheme));
 
-        FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
-                getClass().getResource("/gui/fx/shell/main-shell.fxml")));
-        loader.setControllerFactory(type -> CDI.current().select(type).get());
-        Parent root = loader.load();
-
-        stage.setScene(new Scene(root));
+        Scene scene = new Scene(new ShellView().content());
+        FxUtils.applyAppStylesheet(scene);
+        stage.setScene(scene);
         stage.setTitle(AppConstants.APP_TITLE);
         FxUtils.applyAppIcon(stage);
         stage.show();

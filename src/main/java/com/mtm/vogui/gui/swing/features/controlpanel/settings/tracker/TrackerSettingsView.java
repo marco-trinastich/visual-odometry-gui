@@ -58,10 +58,13 @@ public class TrackerSettingsView {
 
         // Tracker type
         var lblTrackerType = new JLabel("<html><b>Tracker Type:</b></html>");
+        // Only the implemented types are offered (filtered centrally on the enum, shared with the FX
+        // UI); the index generator must map into the same filtered array the combo is built from.
+        TrackerType[] trackerTypes = TrackerType.enabledValues();
         this.txtTrackerType = new DisplayValueComboBox<>(
-                TrackerType.values(),
+                trackerTypes,
                 trackerSettings::type,
-                index -> TrackerType.values()[index],
+                index -> trackerTypes[index],
                 selection -> this.switchTrackerPanel(selection.current().value())
         );
         this.txtTrackerType.setSelectedItem(trackerSettings.type());

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+  Licensed under GNU GPL v3 - see LICENSE file for details
+-->
+
+<?import atlantafx.base.controls.ToggleSwitch?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+
+<TitledPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mtm.vogui.gui.fx.features.settings.image.ImageSettingsController"
+            text="Image" collapsible="true" animated="true">
+
+    <GridPane hgap="10" vgap="8">
+        <padding>
+            <Insets top="2" right="2" bottom="2" left="2"/>
+        </padding>
+
+        <columnConstraints>
+            <ColumnConstraints halignment="LEFT" minWidth="-Infinity"/>
+            <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+        </columnConstraints>
+
+        <!-- Image type -->
+        <Label text="Image Type" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="imageTypeCombo" maxWidth="Infinity"
+                  GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <!-- Resize + target resolution -->
+        <ToggleSwitch fx:id="resizeToggle" text="Resize"
+                      GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="resolutionCombo" editable="true" maxWidth="Infinity"
+                  GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <!-- Internal image preview -->
+        <ToggleSwitch fx:id="internalPreviewToggle" text="Preview Internal Image (Slower)"
+                      GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+
+        <!-- Frame skip -->
+        <ToggleSwitch fx:id="frameSkipToggle" text="Frame skip"
+                      GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <Spinner fx:id="frameSkipSpinner" editable="true" prefWidth="70"
+                 GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+    </GridPane>
+</TitledPane>

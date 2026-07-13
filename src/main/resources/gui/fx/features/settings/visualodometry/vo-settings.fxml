@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+  Licensed under GNU GPL v3 - see LICENSE file for details
+-->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+
+<TitledPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mtm.vogui.gui.fx.features.settings.visualodometry.VoSettingsController"
+            text="Visual Odometry" collapsible="true" animated="true">
+
+    <VBox spacing="10">
+        <padding>
+            <Insets top="2" right="2" bottom="2" left="2"/>
+        </padding>
+
+        <!-- VO type -->
+        <GridPane hgap="10" vgap="7">
+            <columnConstraints>
+                <ColumnConstraints halignment="LEFT" minWidth="-Infinity"/>
+                <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+            </columnConstraints>
+            <Label text="VO Type" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <ComboBox fx:id="voTypeCombo" maxWidth="Infinity"
+                      GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        </GridPane>
+
+        <!-- Mono-plane-infinity parameters (shown for MonoPlaneInfinity; greyed out for Default) -->
+        <GridPane fx:id="monoInfinityGroup" hgap="10" vgap="7">
+            <columnConstraints>
+                <ColumnConstraints halignment="LEFT" minWidth="-Infinity"/>
+                <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+            </columnConstraints>
+            <Label text="Threshold Add" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <Spinner fx:id="infThresholdAddSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            <Label text="Threshold Retire" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <Spinner fx:id="infThresholdRetireSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+            <Label text="Inlier Pixel Tolerance" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+            <Spinner fx:id="infInlierPixelTolSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+            <Label text="Ransac Iterations" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+            <Spinner fx:id="infRansacIterationsSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        </GridPane>
+
+        <!-- Mono-plane-overhead parameters (shown for MonoPlaneOverhead) -->
+        <GridPane fx:id="monoOverheadGroup" hgap="10" vgap="7">
+            <columnConstraints>
+                <ColumnConstraints halignment="LEFT" minWidth="-Infinity"/>
+                <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+            </columnConstraints>
+            <Label text="Cell Size" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <Spinner fx:id="ovhCellSizeSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            <Label text="Max Cells Per Pixel" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <Spinner fx:id="ovhMaxCellsPerPixelSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+            <Label text="Map Height Fraction" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+            <Spinner fx:id="ovhMapHeightFractionSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+            <Label text="Inlier Ground Tolerance" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+            <Spinner fx:id="ovhInlierGroundTolSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+            <Label text="Ransac Iterations" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+            <Spinner fx:id="ovhRansacIterationsSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+            <Label text="Threshold Retire" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+            <Spinner fx:id="ovhThresholdRetireSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+            <Label text="Absolute Minimum Tracks" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+            <Spinner fx:id="ovhAbsoluteMinimumTracksSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+            <Label text="Respawn Track Fraction" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+            <Spinner fx:id="ovhRespawnTrackFractionSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+            <Label text="Respawn Coverage Fraction" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+            <Spinner fx:id="ovhRespawnCoverageFractionSpinner" editable="true" prefWidth="70"
+                     GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+        </GridPane>
+
+        <!-- Fallback: the not-implemented stereo/depth types carry no editable parameters yet -->
+        <Label fx:id="fallbackLabel" wrapText="true"
+               text="This visual odometry type is not implemented yet — it has no configurable parameters."/>
+    </VBox>
+</TitledPane>

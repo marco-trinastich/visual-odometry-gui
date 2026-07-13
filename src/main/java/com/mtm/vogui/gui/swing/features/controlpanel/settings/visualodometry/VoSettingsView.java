@@ -55,10 +55,13 @@ public class VoSettingsView {
 
         // Visual odometry type
         var lblVisualOdometryType = new JLabel("<html><b>VO Type:</b></html>");
+        // Only the implemented types are offered (filtered centrally on the enum, shared with the FX
+        // UI); the index generator must map into the same filtered array the combo is built from.
+        VisualOdometryType[] voTypes = VisualOdometryType.enabledValues();
         this.txtVisualOdometryType = new DisplayValueComboBox<>(
-                VisualOdometryType.values(),
+                voTypes,
                 voSettings::type,
-                index -> VisualOdometryType.values()[index],
+                index -> voTypes[index],
                 selection -> this.switchVoPanel(selection.current().value())
         );
         this.txtVisualOdometryType.setSelectedItem(voSettings.type());
