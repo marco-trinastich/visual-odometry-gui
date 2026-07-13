@@ -21,11 +21,10 @@ import java.util.function.Supplier;
  * Swing {@code ChartSettingsView}). Exposes the altitude-basis chart type and the two axis scales as
  * JavaFX properties, live-committing each into the domain {@link ChartSettings}.
  * <p>
- * Scope note: the Swing section also carries action buttons (Apply / Origin / Last / 3D points) that
- * drive the trajectory chart through {@code TrajectoryView}. Those are intentionally absent here — the
- * JavaFX trajectory/dashboard is not migrated yet, so there is nothing for them to act on. They land
- * with the FX trajectory chart, alongside re-applying these scales to it.
- * No Lombok (the {@code xxxProperty()} convention is hand-written).
+ * Scope note: the Swing section also carried action buttons (Apply / Origin / Last / 3D points). In the
+ * JavaFX UI those live beside the chart itself (see {@code fx.features.trajectory.TrajectoryView}), per
+ * the lean-UX decision — this section is pure persistence (the scales feed the chart's initial zoom at
+ * Start). No Lombok (the {@code xxxProperty()} convention is hand-written).
  */
 public class ChartSettingsViewModel {
 

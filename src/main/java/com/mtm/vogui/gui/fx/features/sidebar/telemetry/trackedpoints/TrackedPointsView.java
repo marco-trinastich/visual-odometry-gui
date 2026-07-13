@@ -10,6 +10,7 @@ import com.mtm.vogui.gui.fx.shared.components.SmoothList;
 import com.mtm.vogui.models.core.processing.tracking.TrackedPoint;
 import com.mtm.vogui.utilities.CommonUtils;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -41,24 +42,30 @@ public class TrackedPointsView {
     private static final double ROW_HEIGHT = 24;
 
     private final ObservableList<TrackedPoint> points;
+    private final SmoothList<TrackedPoint> list;
     private final Region root;
 
     public TrackedPointsView(ObservableList<TrackedPoint> points) {
         this.points = points;
 
-        SmoothList<TrackedPoint> list = new SmoothList<>(points, ROW_HEIGHT, TrackedPointsView::renderRow);
+        this.list = new SmoothList<>(points, ROW_HEIGHT, TrackedPointsView::renderRow);
         list.setContextMenu(contextMenu(list));
         list.setOnCopy(() -> copySelected(list));
 
         Region listNode = list.node();
         VBox box = new VBox(6, TelemetryUi.header("Tracked points"), listNode);
-        box.getStyleClass().add("telemetry-content");
+        box.getStyleClass().add("telemetry-tracked-points");
         VBox.setVgrow(listNode, Priority.ALWAYS);
         this.root = box;
     }
 
     public Region node() {
         return this.root;
+    }
+
+    /** The user-selected point (identity selection from the list), for cross-feature chart navigation. */
+    public ReadOnlyObjectProperty<TrackedPoint> selectedProperty() {
+        return this.list.selectedItemProperty();
     }
 
     /** Fills a recycled row label; must reset the marker class each call (see {@link SmoothList}). */

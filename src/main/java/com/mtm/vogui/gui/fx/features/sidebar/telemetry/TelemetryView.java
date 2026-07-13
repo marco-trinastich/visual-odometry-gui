@@ -11,6 +11,8 @@ import com.mtm.vogui.gui.fx.features.sidebar.telemetry.processing.ProcessingInfo
 import com.mtm.vogui.gui.fx.features.sidebar.telemetry.trackedpoints.TrackedPointsView;
 import com.mtm.vogui.gui.fx.features.sidebar.telemetry.tracking.TrackingInfoView;
 import com.mtm.vogui.gui.fx.state.GuiState;
+import com.mtm.vogui.models.core.processing.tracking.TrackedPoint;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
@@ -32,6 +34,7 @@ import javafx.scene.layout.VBox;
 public class TelemetryView {
 
     private final SplitPane content;
+    private final TrackedPointsView trackedPoints;
 
     public TelemetryView(GuiState guiState) {
         ProcessingInfoView processing = new ProcessingInfoView();
@@ -45,7 +48,7 @@ public class TelemetryView {
         ScrollPane readouts = new ScrollPane(sections);
         readouts.setFitToWidth(true);
 
-        TrackedPointsView trackedPoints = new TrackedPointsView(guiState.trackedPoints());
+        this.trackedPoints = new TrackedPointsView(guiState.trackedPoints());
 
         this.content = new SplitPane(readouts, trackedPoints.node());
         this.content.setOrientation(Orientation.VERTICAL);
@@ -71,5 +74,10 @@ public class TelemetryView {
 
     public Region content() {
         return this.content;
+    }
+
+    /** The user-selected tracked point, for the shell's point-selection → chart navigation wiring. */
+    public ReadOnlyObjectProperty<TrackedPoint> selectedTrackedPoint() {
+        return this.trackedPoints.selectedProperty();
     }
 }

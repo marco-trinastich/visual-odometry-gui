@@ -125,7 +125,7 @@ public class TrackerSettingsController {
         // Counts/radii/levels are all >= 1; the core additionally heals pyramid levels at capture time.
         var factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, property.get());
         spinner.setValueFactory(factory);
-        factory.valueProperty().bindBidirectional(property.asObject());
+        Spinners.bindBidirectional(factory, property);
         // Commit typed text on focus-out (editable Spinners otherwise only commit on Enter).
         Spinners.commitOnFocusLost(spinner);
     }
@@ -134,7 +134,7 @@ public class TrackerSettingsController {
         var factory = new SpinnerValueFactory.DoubleSpinnerValueFactory(
                 0.0, Double.MAX_VALUE, viewModel.thresholdProperty().get(), 0.1);
         thresholdSpinner.setValueFactory(factory);
-        factory.valueProperty().bindBidirectional(viewModel.thresholdProperty().asObject());
+        Spinners.bindBidirectional(factory, viewModel.thresholdProperty());
         Spinners.commitOnFocusLost(thresholdSpinner);
     }
 }

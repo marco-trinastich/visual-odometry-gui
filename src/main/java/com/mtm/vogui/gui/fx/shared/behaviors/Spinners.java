@@ -5,6 +5,8 @@
 
 package com.mtm.vogui.gui.fx.shared.behaviors;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.util.StringConverter;
@@ -17,10 +19,37 @@ import javafx.util.StringConverter;
  * parsed into the value on {@code Enter}, so clicking or tabbing away silently discards it. Wiring
  * this makes the edit commit on focus-out — which, for a value bound to the domain, means the change
  * applies as soon as the field loses focus (no separate "Apply" button needed).
+ * <p>
+ * {@link #bindBidirectional} avoids the {@code DoubleProperty.asObject()}/{@code IntegerProperty.asObject()}
+ * trap: that adapter is only weakly held by the resulting bidirectional binding, so once the GC collects
+ * it the factory ↔ domain-property link snaps silently and edits stop persisting. Wiring the two-way sync
+ * with explicit (strongly held) listeners keeps the binding alive for the widget's whole lifetime.
  */
 public final class Spinners {
 
     private Spinners() {
+    }
+
+    /** Two-way syncs a Double spinner factory with a domain {@link DoubleProperty} (GC-safe — see class doc). */
+    public static void bindBidirectional(SpinnerValueFactory<Double> factory, DoubleProperty property) {
+        factory.setValue(property.get());
+        factory.valueProperty().addListener((_, _, value) -> {
+            if (value != null) {
+                property.set(value);
+            }
+        });
+        property.addListener((_, _, value) -> factory.setValue(value.doubleValue()));
+    }
+
+    /** Two-way syncs an Integer spinner factory with a domain {@link IntegerProperty} (GC-safe — see class doc). */
+    public static void bindBidirectional(SpinnerValueFactory<Integer> factory, IntegerProperty property) {
+        factory.setValue(property.get());
+        factory.valueProperty().addListener((_, _, value) -> {
+            if (value != null) {
+                property.set(value);
+            }
+        });
+        property.addListener((_, _, value) -> factory.setValue(value.intValue()));
     }
 
     /** Commits the editor's typed text to the spinner value whenever the spinner loses focus. */

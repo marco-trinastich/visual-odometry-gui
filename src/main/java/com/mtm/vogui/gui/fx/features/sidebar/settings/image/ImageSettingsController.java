@@ -78,7 +78,7 @@ public class ImageSettingsController {
                 new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE,
                         viewModel.frameSkipValueProperty().get());
         frameSkipSpinner.setValueFactory(frameSkipFactory);
-        frameSkipFactory.valueProperty().bindBidirectional(viewModel.frameSkipValueProperty().asObject());
+        Spinners.bindBidirectional(frameSkipFactory, viewModel.frameSkipValueProperty());
         frameSkipSpinner.disableProperty().bind(frameSkipToggle.selectedProperty().not());
         // Commit typed text on focus-out (editable Spinners otherwise only commit on Enter).
         Spinners.commitOnFocusLost(frameSkipSpinner);

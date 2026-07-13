@@ -133,7 +133,7 @@ public class VoSettingsController {
         // Thresholds/iterations/track counts are all >= 0.
         var factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, property.get());
         spinner.setValueFactory(factory);
-        factory.valueProperty().bindBidirectional(property.asObject());
+        Spinners.bindBidirectional(factory, property);
         // Commit typed text on focus-out (editable Spinners otherwise only commit on Enter).
         Spinners.commitOnFocusLost(spinner);
     }
@@ -142,7 +142,7 @@ public class VoSettingsController {
         var factory = new SpinnerValueFactory.DoubleSpinnerValueFactory(
                 0.0, Double.MAX_VALUE, property.get(), step);
         spinner.setValueFactory(factory);
-        factory.valueProperty().bindBidirectional(property.asObject());
+        Spinners.bindBidirectional(factory, property);
         Spinners.commitOnFocusLost(spinner);
     }
 }

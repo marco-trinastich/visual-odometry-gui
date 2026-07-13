@@ -11,6 +11,7 @@ import com.mtm.vogui.gui.fx.utils.FxUtils;
 import com.mtm.vogui.gui.fx.state.CurrentFps;
 import com.mtm.vogui.gui.fx.state.GuiState;
 import com.mtm.vogui.gui.fx.state.Telemetry;
+import com.mtm.vogui.gui.fx.state.TrajectoryEvent;
 import com.mtm.vogui.models.context.AppContext;
 import com.mtm.vogui.models.context.settings.common.PathSettings;
 import com.mtm.vogui.models.core.integration.BufferStatus;
@@ -46,8 +47,9 @@ import java.util.function.Consumer;
  * Not a bean: built by {@code gui.UiBootstrap} only when the JavaFX UI is active; resolves
  * its own dependencies programmatically (same pattern as the launchers).
  * <p>
- * Migration status: dialogs and app status are live; video (Fase 2), charts/info (Fase 3)
- * land with their panels.
+ * The trajectory charts are fed through a dedicated ordered channel: the sink emits
+ * {@link TrajectoryEvent}s (plot points + segment lifecycle) that the charts feature applies — so the
+ * sink stays widget-free, driving everything through {@link GuiState}.
  */
 public class FxRenderSink implements RenderSink {
 
@@ -62,6 +64,9 @@ public class FxRenderSink implements RenderSink {
     private final Consumer<Integer> coalescedKltPyramidLevels;
     // Ordered (non-dropping) hand-off for tracked-point log ops, applied in order on the FX thread.
     private final Consumer<Consumer<ObservableList<TrackedPoint>>> pointOps;
+    // Ordered (non-dropping) hand-off for trajectory events (plot points + segment lifecycle), applied
+    // in order on the FX thread; the charts feature is the registered consumer (via GuiState).
+    private final Consumer<TrajectoryEvent> chartOps;
 
     public FxRenderSink() {
         var cdi = CDI.current();
@@ -73,6 +78,7 @@ public class FxRenderSink implements RenderSink {
         this.coalescedKltPyramidLevels =
                 FxUtils.coalescedFxConsumer(levels -> guiState.kltPyramidLevelsProperty().set(levels));
         this.pointOps = FxUtils.orderedFxConsumer(op -> op.accept(guiState.trackedPoints()));
+        this.chartOps = FxUtils.orderedFxConsumer(guiState::emitTrajectory);
     }
 
     // Dialogs
@@ -99,8 +105,8 @@ public class FxRenderSink implements RenderSink {
 
     @Override
     public int chartsCount() {
-        // TODO Fase 3: derive from the charts state; until then every run starts from chart id 0
-        return 0;
+        // Open-segment count, kept in sync by the charts feature; read cross-thread (no FX hop needed).
+        return guiState.segmentCount().get();
     }
 
     // App status
@@ -110,23 +116,33 @@ public class FxRenderSink implements RenderSink {
         coalescedAppStatus.accept(appStatus);
     }
 
-    // Processing lifecycle (charts/video land in Fase 2/3)
+    // Processing lifecycle
 
     @Override
     public void renderStartPoint(ProcessingParameters params) {
-        // Log a segment-start marker; the chart segment lifecycle lands in Slice B.
+        // Open the chart segment (align the altitude axis + carry the initial-zoom scales) and log the
+        // matching start marker. The start marker is the log's own record; the chart holds the points.
+        var settings = params.frozenContext().settings();
+        chartOps.accept(new TrajectoryEvent.StartSegment(
+                settings.chart().type(),
+                context.settings().chart().scaleXZ(),
+                context.settings().chart().scaleY()));
+
         TrackedPoint marker = params.pointFactory().newStartPoint();
         pointOps.accept(points -> points.add(marker));
     }
 
     @Override
     public void renderEndPoint(ProcessingParameters params) {
-        // TODO Slice B: close/drop the segment based on the chart's open-segment points, then add
-        // the matching end marker (the drop decision needs the trajectory chart, not built yet).
+        // Close-or-drop is the charts feature's call (it holds both series): on close it appends this end
+        // marker to the log, on drop it removes the whole open segment from the log. The marker is built
+        // here because the sink owns the run's PointFactory.
+        chartOps.accept(new TrajectoryEvent.EndSegment(params.pointFactory().newEndPoint()));
     }
 
     @Override
     public void renderClearAllPoints() {
+        chartOps.accept(new TrajectoryEvent.ClearAll());
         pointOps.accept(ObservableList::clear);
     }
 
@@ -144,7 +160,7 @@ public class FxRenderSink implements RenderSink {
         renderTrackedFeatures(status, voResult);
         renderOutputVideo(status);
         renderTelemetry(status, params, voResult);
-        // TODO Slice B: trajectory charts
+        renderCharts(status, params, voResult);
     }
 
     @Override
@@ -164,10 +180,14 @@ public class FxRenderSink implements RenderSink {
         CurrentFps snapshot = new CurrentFps(inputCurrent, fpsStatus.currentFPS());
         Platform.runLater(() -> guiState.currentFpsProperty().set(snapshot));
 
-        // Time-based chart: log a per-second altitude sample (the chart curve itself lands in Slice B).
+        // Time-based chart: plot a per-second altitude sample on the Y chart and log it (mirrors the
+        // Swing sink's renderCurrentFps; the frame-based case plots from renderCharts instead).
         if (context.state().processing().not(ProcessingState.Paused)
                 && ChartType.YSeconds.is(context.settings().chart().type())) {
-            TrackedPoint point = params.pointFactory().newPoint(status.deepClone());
+            ProcessingStatus frozen = status.deepClone();
+            chartOps.accept(new TrajectoryEvent.Altitude(
+                    frozen.fps().totalSeconds(), -frozen.translation().getY()));
+            TrackedPoint point = params.pointFactory().newPoint(frozen);
             pointOps.accept(points -> points.add(point));
         }
     }
@@ -272,5 +292,25 @@ public class FxRenderSink implements RenderSink {
             TrackedPoint point = params.pointFactory().newPoint(frozen, loggedY);
             pointOps.accept(points -> points.add(point));
         }
+    }
+
+    private void renderCharts(@NotNull ProcessingStatus status, @NotNull ProcessingParameters params,
+                             boolean voResult) {
+        if (!voResult) {
+            return;
+        }
+        // Ground-track point every processed frame; the frame-based altitude point rides along (the
+        // second-based one is plotted from renderCurrentFps instead). Mirrors the Swing sink.
+        var chartType = params.frozenContext().settings().chart().type();
+        ProcessingStatus frozen = status.deepClone();
+
+        Double altitudeX = null;
+        Double altitudeY = null;
+        if (ChartType.YFrames.is(chartType)) {
+            altitudeX = (double) frozen.fps().totalProcessed();
+            altitudeY = -frozen.translation().getY();
+        }
+        chartOps.accept(new TrajectoryEvent.Plot(
+                frozen.translation().getX(), frozen.translation().getZ(), altitudeX, altitudeY));
     }
 }

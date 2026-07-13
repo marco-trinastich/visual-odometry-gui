@@ -66,10 +66,10 @@ public class ChartSettingsController {
         var factory = new SpinnerValueFactory.DoubleSpinnerValueFactory(
                 Double.MIN_VALUE, Double.MAX_VALUE, property.get(), 0.1);
         spinner.setValueFactory(factory);
-        factory.valueProperty().bindBidirectional(property.asObject());
-        // Commit typed text on focus-out so the scale applies as soon as the field is left — replacing
-        // the Swing "Apply" button. Once the FX trajectory chart exists it re-applies live off the
-        // committed value (no dedicated button).
+        Spinners.bindBidirectional(factory, property);
+        // Commit typed text on focus-out so the value persists as soon as the field is left. The
+        // trajectory chart reads the committed scale as its initial zoom at the next Start (lean UX:
+        // the chart's live interaction is mouse pan/zoom, not a scale field).
         Spinners.commitOnFocusLost(spinner);
     }
 }

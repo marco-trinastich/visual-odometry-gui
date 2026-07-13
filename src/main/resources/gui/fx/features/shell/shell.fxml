@@ -28,7 +28,7 @@
     <top>
         <VBox>
             <MenuBar>
-                <Menu text="Settings">
+                <Menu text="Settings" onShowing="#onSettingsMenuShowing">
                     <MenuItem text="Load Settings" onAction="#onLoadSettings"/>
                     <MenuItem text="Save Settings" onAction="#onSaveSettings"/>
                     <MenuItem text="Reset Settings" onAction="#onResetSettings"/>
@@ -36,6 +36,11 @@
                     <Menu text="Save Format">
                         <RadioMenuItem fx:id="formatJson" text="JSON" onAction="#onSelectJsonFormat"/>
                         <RadioMenuItem fx:id="formatYaml" text="YAML" onAction="#onSelectYamlFormat"/>
+                    </Menu>
+                    <Menu text="Theme">
+                        <RadioMenuItem fx:id="themeAuto" text="Auto" onAction="#onSelectThemeAuto"/>
+                        <RadioMenuItem fx:id="themeLight" text="Light" onAction="#onSelectThemeLight"/>
+                        <RadioMenuItem fx:id="themeDark" text="Dark" onAction="#onSelectThemeDark"/>
                     </Menu>
                     <CheckMenuItem fx:id="mnuAutosave" text="Autosave on Exit" onAction="#onToggleAutosave"/>
                     <SeparatorMenuItem/>
@@ -59,10 +64,8 @@
     <center>
         <SplitPane dividerPositions="0.20">
             <StackPane fx:id="sidebarPane"/>
-            <SplitPane orientation="VERTICAL" dividerPositions="0.62">
-                <StackPane>
-                    <Label text="Charts — Fase 3"/>
-                </StackPane>
+            <SplitPane orientation="VERTICAL" dividerPositions="0.73">
+                <StackPane fx:id="trajectoryPane"/>
                 <StackPane fx:id="videoPane"/>
             </SplitPane>
         </SplitPane>

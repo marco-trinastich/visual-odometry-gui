@@ -8,6 +8,8 @@ package com.mtm.vogui.gui.fx.features.sidebar;
 import com.mtm.vogui.gui.fx.features.sidebar.settings.SettingsView;
 import com.mtm.vogui.gui.fx.features.sidebar.telemetry.TelemetryView;
 import com.mtm.vogui.gui.fx.state.GuiState;
+import com.mtm.vogui.models.core.processing.tracking.TrackedPoint;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
@@ -28,10 +30,11 @@ public class SidebarView {
     private final TabPane tabs;
     private final Tab telemetryTab;
     private final SettingsView settingsView;
+    private final TelemetryView telemetryView;
 
     public SidebarView(GuiState guiState) {
         this.settingsView = new SettingsView();
-        TelemetryView telemetryView = new TelemetryView(guiState);
+        this.telemetryView = new TelemetryView(guiState);
 
         Tab settingsTab = new Tab("Settings", settingsView.content());
         this.telemetryTab = new Tab("Telemetry", telemetryView.content());
@@ -63,5 +66,10 @@ public class SidebarView {
     /** Re-syncs the settings sections after a settings load/reset (delegated by the shell's menu). */
     public void reloadSettings() {
         this.settingsView.reload();
+    }
+
+    /** The user-selected tracked point, for the shell's point-selection → chart navigation wiring. */
+    public ReadOnlyObjectProperty<TrackedPoint> selectedTrackedPoint() {
+        return this.telemetryView.selectedTrackedPoint();
     }
 }
