@@ -20,10 +20,12 @@ import com.mtm.vogui.models.enums.settings.ChartType;
 public sealed interface TrajectoryEvent {
 
     /**
-     * Opens a run's segment: aligns the Y chart abscissa to the altitude basis and carries the
-     * persisted axis scales, applied as the initial zoom (scale {@code 1.0} keeps auto-range/fit-all).
+     * Opens a run's segment: aligns the Y chart abscissa to the altitude basis and carries each axis'
+     * initial-zoom choice. When {@code autoXZ}/{@code autoY} is set the axis auto-ranges (fit-all) and
+     * the paired scale is ignored; otherwise the scale is applied as a fixed zoom.
      */
-    record StartSegment(ChartType chartType, double xzScale, double yScale) implements TrajectoryEvent {
+    record StartSegment(ChartType chartType, boolean autoXZ, double xzScale, boolean autoY, double yScale)
+            implements TrajectoryEvent {
     }
 
     /**

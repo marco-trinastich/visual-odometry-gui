@@ -39,7 +39,9 @@ public class CoreValidation {
 
         // Chart settings
         var chartType = params.frozenContext().settings().chart().type();
+        var chartAutoXZScale = params.frozenContext().settings().chart().autoScaleXZ();
         var chartXZScale = params.frozenContext().settings().chart().scaleXZ();
+        var chartAutoYScale = params.frozenContext().settings().chart().autoScaleY();
         var chartYScale = params.frozenContext().settings().chart().scaleY();
 
 
@@ -130,14 +132,14 @@ public class CoreValidation {
             return false;
         }
 
-        //XZ Chart Scale Check
-        if (chartXZScale == 0) {
+        //XZ Chart Scale Check (skipped when the axis auto-ranges: the scale is then ignored)
+        if (!chartAutoXZScale && chartXZScale == 0) {
             sink.notifyError("Insert an XZ Chart scaling factor different from zero!");
             return false;
         }
 
-        //Y Chart Scale Check
-        if (chartYScale == 0) {
+        //Y Chart Scale Check (skipped when the axis auto-ranges: the scale is then ignored)
+        if (!chartAutoYScale && chartYScale == 0) {
             sink.notifyError("Insert an Y Chart scaling factor different from zero!");
             return false;
         }

@@ -99,6 +99,18 @@ public final class TrajectoryChart {
         yAxis.setLabel(yName);
     }
 
+    /** X axis hugs the data (no forced 0) but never auto-ranges tighter than {@code minSpan} units. */
+    public void fitXAxisToData(double minSpan) {
+        xAxis.setForceZeroInRange(false);
+        xAxis.setMinAutoRange(minSpan);
+    }
+
+    /** Y axis hugs the data (no forced 0) but never auto-ranges tighter than {@code minSpan} units. */
+    public void fitYAxisToData(double minSpan) {
+        yAxis.setForceZeroInRange(false);
+        yAxis.setMinAutoRange(minSpan);
+    }
+
     // Points
 
     /** Appends a point to the open (last) segment; recentres on it while following in MANUAL mode. */
@@ -155,6 +167,12 @@ public final class TrajectoryChart {
         if (visible) {
             scheduleSymbolRefresh();
         }
+    }
+
+    /** Enters AUTO (fit-all) mode: axes auto-range as the trajectory grows, and following resumes. */
+    public void autoRange() {
+        following = true;
+        setAutoRanging(true);
     }
 
     /**

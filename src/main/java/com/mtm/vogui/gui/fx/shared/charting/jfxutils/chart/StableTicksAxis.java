@@ -77,6 +77,13 @@ public class StableTicksAxis extends ValueAxis<Number> {
      */
     private final BooleanProperty forceZeroInRange = new SimpleBooleanProperty(true);
 
+    /**
+     * Minimum span the auto-range may produce; 0 disables it. Guards against tightly-clustered data
+     * (e.g. altitude hovering around a large baseline) collapsing to a microscopic range that reads as
+     * all-identical labels and, since wheel zoom is multiplicative, is impractical to zoom back out of.
+     */
+    private final DoubleProperty minAutoRange = new SimpleDoubleProperty(0.0);
+
     public StableTicksAxis() {
     }
 
@@ -126,6 +133,27 @@ public class StableTicksAxis extends ValueAxis<Number> {
         this.forceZeroInRange.set(forceZeroInRange);
     }
 
+    /**
+     * Minimum span the auto-range may produce; 0 disables it.
+     */
+    public double getMinAutoRange() {
+        return minAutoRange.get();
+    }
+
+    /**
+     * Minimum span the auto-range may produce; 0 disables it.
+     */
+    public DoubleProperty minAutoRangeProperty() {
+        return minAutoRange;
+    }
+
+    /**
+     * Minimum span the auto-range may produce; 0 disables it.
+     */
+    public void setMinAutoRange(double minAutoRange) {
+        this.minAutoRange.set(minAutoRange);
+    }
+
     @Override
     protected Range autoRange(double minValue, double maxValue, double length, double labelSize) {
 //		System.out.printf( "autoRange(%f, %f, %f, %f)",
@@ -165,6 +193,16 @@ public class StableTicksAxis extends ValueAxis<Number> {
                 minValue = 0;
                 maxValue += maxValue * autoRangePadding.get();
             }
+        }
+
+        //Enforce a minimum span: near-constant data (e.g. altitude around a large baseline) would
+        //otherwise collapse to a microscopic range - unreadable, and awkward to zoom out of since the
+        //wheel zoom is multiplicative. Expand symmetrically about the centre up to the minimum.
+        double minSpan = minAutoRange.get();
+        if (minSpan > 0 && (maxValue - minValue) < minSpan) {
+            double center = (minValue + maxValue) / 2;
+            minValue = center - minSpan / 2;
+            maxValue = center + minSpan / 2;
         }
 
         //		System.out.printf( " = %s%n", ret );

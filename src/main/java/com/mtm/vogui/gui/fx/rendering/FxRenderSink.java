@@ -125,8 +125,10 @@ public class FxRenderSink implements RenderSink {
         var settings = params.frozenContext().settings();
         chartOps.accept(new TrajectoryEvent.StartSegment(
                 settings.chart().type(),
-                context.settings().chart().scaleXZ(),
-                context.settings().chart().scaleY()));
+                settings.chart().autoScaleXZ(),
+                settings.chart().scaleXZ(),
+                settings.chart().autoScaleY(),
+                settings.chart().scaleY()));
 
         TrackedPoint marker = params.pointFactory().newStartPoint();
         pointOps.accept(points -> points.add(marker));

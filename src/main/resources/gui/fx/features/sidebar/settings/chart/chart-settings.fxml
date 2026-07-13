@@ -6,6 +6,7 @@
 -->
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Spinner?>
@@ -25,21 +26,26 @@
         <columnConstraints>
             <ColumnConstraints halignment="LEFT" minWidth="-Infinity"/>
             <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+            <ColumnConstraints halignment="LEFT" minWidth="-Infinity"/>
         </columnConstraints>
 
-        <!-- X/Z chart scale -->
+        <!-- X/Z chart scale (Auto: the axis fit-all auto-ranges and the scale is ignored) -->
         <Label text="X/Z Scale" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
         <Spinner fx:id="scaleXZSpinner" editable="true" prefWidth="90"
                  GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <CheckBox fx:id="autoScaleXZCheck" text="Auto"
+                  GridPane.rowIndex="0" GridPane.columnIndex="2"/>
 
         <!-- Y chart scale -->
         <Label text="Y Scale" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
         <Spinner fx:id="scaleYSpinner" editable="true" prefWidth="90"
                  GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <CheckBox fx:id="autoScaleYCheck" text="Auto"
+                  GridPane.rowIndex="1" GridPane.columnIndex="2"/>
 
         <!-- Altitude basis: governs the Y chart abscissa (seconds vs frames) -->
         <Label text="Altitude Per" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
         <ComboBox fx:id="chartTypeCombo" maxWidth="Infinity"
-                  GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                  GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
     </GridPane>
 </TitledPane>
