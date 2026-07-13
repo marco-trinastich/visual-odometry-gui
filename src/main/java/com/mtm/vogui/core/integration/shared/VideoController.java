@@ -22,6 +22,10 @@ import java.util.function.Consumer;
 
 public class VideoController implements VideoCallBack {
 
+    // The per-frame fps stats are computed every frame but only logged at this interval: at capture
+    // rate a per-frame log floods the console (shared by the OpenCv and V4L4J camera paths).
+    private static final long FPS_LOG_INTERVAL_MS = 5_000;
+
     @Getter
     private Dimension frameSize;
     private final Consumer<BufferedImage> imageConsumer;
@@ -29,6 +33,7 @@ public class VideoController implements VideoCallBack {
     // FPS counter
     private FpsCounter counter;
     private FpsStatus fpsStatus;
+    private long lastFpsLogMs;
 
     // State
     private boolean stopRequested;
@@ -115,13 +120,17 @@ public class VideoController implements VideoCallBack {
         this.counter.addProcessedFrame();
         this.fpsStatus.setAverage(this.counter.getStatus());
 
-        // Log to console
-        Log.infof(Messages.DEVICE_FPS_LOG,
-                this.fpsStatus.averageFPS(),
-                this.fpsStatus.currentFPS(),
-                this.fpsStatus.totalProcessed(),
-                this.fpsStatus.totalSeconds()
-        );
+        // Log to console, throttled: a per-frame log floods the terminal at capture rate.
+        long now = System.currentTimeMillis();
+        if (now - this.lastFpsLogMs >= FPS_LOG_INTERVAL_MS) {
+            this.lastFpsLogMs = now;
+            Log.infof(Messages.DEVICE_FPS_LOG,
+                    this.fpsStatus.averageFPS(),
+                    this.fpsStatus.currentFPS(),
+                    this.fpsStatus.totalProcessed(),
+                    this.fpsStatus.totalSeconds()
+            );
+        }
     }
 
     private void updateCurrentFps(@NotNull FpsStatus fpsStatus) {
