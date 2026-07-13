@@ -30,7 +30,7 @@ Visual Odometry GUI is a cross-platform **Java desktop application** that provid
 
 ## Project Overview
 
-Visual Odometry GUI wraps BoofCV's **plane-based monocular visual-odometry** estimators in a Swing desktop application, turning a computer-vision library into a visual, real-time **tracking and mapping** tool.
+Visual Odometry GUI wraps BoofCV's **plane-based monocular visual-odometry** estimators in a **JavaFX** desktop application, turning a computer-vision library into a visual, real-time **tracking and mapping** tool. (A legacy **Swing** UI is still available as an alternative — see [How to Run](#how-to-run).)
 
 Given a video source (a recorded file, an image-sequence folder, or a live camera) and the matching camera **calibration**, the application:
 
@@ -38,7 +38,7 @@ Given a video source (a recorded file, an image-sequence folder, or a live camer
 - computes the incremental camera motion and accumulates the global **pose** across the sequence;
 - displays the live video with the tracked features overlaid, and plots the reconstructed **trajectory** (top-down X/Z map plus a Y/altitude graph) together with live processing statistics.
 
-The project is intended for **research, learning, and experimentation** in visual odometry, giving an immediate visual feel for how a monocular VO pipeline behaves on real data. It was born as a university **thesis project (2014)** on tracking and mapping systems, originally targeting BoofCV 0.19, and has since been modernized to a current toolchain (**Java 25**, **Quarkus**, BoofCV 1.x).
+The project is intended for **research, learning, and experimentation** in visual odometry, giving an immediate visual feel for how a monocular VO pipeline behaves on real data. It was born as a university **thesis project (2014)** on tracking and mapping systems, originally targeting BoofCV 0.19, and has since been modernized to a current toolchain (**Java 25**, **Quarkus**, **JavaFX** UI, BoofCV 1.x).
 
 ## Features
 
@@ -59,16 +59,17 @@ The project is intended for **research, learning, and experimentation** in visua
 ### Flexible Input Sources
 
 - **Video files** (MJPEG, MP4, AVI) and **image-sequence folders** for offline processing.
-- **Live cameras** through two backends:
-  - **BoofCV / webcam-capture** — cross-platform webcam access;
-  - **V4L4J** — Video4Linux devices (`/dev/video*`, auto-discovered) with extra device controls.
-- Camera **calibration files** (BoofCV YAML / XML intrinsics), with a history of recently used calibrations and videos persisted across sessions.
+- **Live cameras** through three backends:
+  - **BoofCV / webcam-capture** (default) — cross-platform webcam access, using the **eduramiba** native driver so capture also works on **Apple Silicon**;
+  - **OpenCV / JavaCV** — capture by bare device index (no enumeration by design);
+  - **V4L4J** — Video4Linux devices (`/dev/video*`, auto-discovered) with extra device controls (Linux only).
+- Camera **calibration files** (BoofCV YAML intrinsics), with a history of recently used calibrations and videos persisted across sessions.
 - Configurable acquisition resolution, image type (`GrayU8` / `GrayF32`), optional resize and frame skipping.
 
 ### Real-Time Visualization
 
 - **Video panel** — current frame with tracked features overlaid (full-resolution or internal processed image).
-- **Trajectory charts** — top-down **X/Z map** and **Y (altitude)** per frame or per second, with adjustable scales.
+- **Trajectory charts** — top-down **X/Z map** and **Y (altitude)** per frame or per second, with mouse pan/zoom, a fixed initial scale, or per-axis **auto-range**.
 - **Info panel** — live statistics: processing status, FPS, inliers, track counts, buffer usage.
 
 ### Processing Controls
@@ -85,9 +86,13 @@ The project is intended for **research, learning, and experimentation** in visua
 
 ## Screenshots
 
-![Visual Odometry GUI](assets/screenshots/Visual%20Odometry%20GUI.jpg)
+![Visual Odometry GUI — a run in progress](assets/screenshots/visual-odometry-gui-telemetry.jpg)
 
-_The main window: trajectory charts (X/Z map and Y/altitude), and processing statistics on the left; input, image, tracker, and visual-odometry settings on the center; live video preview with tracked features on the right._
+_A completed run (JavaFX): the **Telemetry** tab (processing statistics, odometry, tracking, FPS) beside the **trajectory charts** — the top-down X/Z ground track and the Y/altitude trace — and the live **video preview** with tracked features below._
+
+![Visual Odometry GUI — the settings sidebar](assets/screenshots/visual-odometry-gui-settings.jpg)
+
+_The collapsible **Settings** sidebar, with the **Input** section expanded (calibration, source, preview) above the Image / Tracker / Visual Odometry / Chart sections._
 
 ## Environment Setup
 
@@ -112,7 +117,7 @@ Video datasets and calibration files are **not included in the repository** (the
 assets/datasets/
 ├── boofcv/applet/vo/drc/          # BoofCV sample: left_mono.mjpeg + mono_plane.yaml
 └── vogui/
-    ├── calibrations/mono/         # Camera intrinsics (XML/YAML)
+    ├── calibrations/mono/         # Camera intrinsics (BoofCV YAML)
     └── media/                     # Recorded test videos / image sequences
 ```
 
@@ -146,7 +151,13 @@ The build produces a Quarkus fast-jar under `target/quarkus-app/`.
   config.settings.file-name=settings
   ```
 
-- **Headless flag:** Quarkus dev mode forces `java.awt.headless=true` by default, which would prevent the Swing GUI from opening. The `quarkus-maven-plugin` is already configured with `-Djava.awt.headless=false` in `pom.xml` — keep it if you customize the build.
+- **Active UI toolkit:** `application.properties` selects which UI boots:
+
+  ```properties
+  config.ui=JavaFx   # JavaFx (default) | Swing (legacy alternative)
+  ```
+
+- **Headless flag:** Quarkus dev mode forces `java.awt.headless=true` by default, which would prevent the desktop GUI from opening. The `quarkus-maven-plugin` is already configured with `-Djava.awt.headless=false` in `pom.xml` — keep it if you customize the build.
 
 ## Usage
 
@@ -161,7 +172,13 @@ mvn clean package -DskipTests
 java -Djava.awt.headless=false -jar target/quarkus-app/quarkus-run.jar
 ```
 
-The main window opens with the chart area/settings panels on the left and the video area on the right.
+The JavaFX main window opens with the settings/telemetry sidebar on the left, the trajectory charts in the center, and the video preview below.
+
+To boot the **legacy Swing UI** instead, override the toolkit at launch:
+
+```bash
+java -Dconfig.ui=Swing -Djava.awt.headless=false -jar target/quarkus-app/quarkus-run.jar
+```
 
 ### Typical Workflow
 
@@ -180,7 +197,7 @@ The main window opens with the chart area/settings panels on the left and the vi
 | **Image**           | Internal image type (`GrayU8` / `GrayF32`), keep-original vs. resize, frame skipping.              |
 | **Tracker**         | Tracker type (KLT / SURF variants / Default) and per-tracker parameters; track overlay toggles.    |
 | **Visual Odometry** | Algorithm (MonoPlaneInfinity / MonoPlaneOverhead) and per-algorithm parameters.                    |
-| **Chart**           | Y-axis mode (per frame / per second) and X/Z & Y chart scales.                                     |
+| **Chart**           | Altitude basis (per frame / per second) and the X/Z & Y initial scales, each with an **Auto** (auto-range) toggle. |
 
 ## Development
 
@@ -189,13 +206,18 @@ The main window opens with the chart area/settings panels on the left and the vi
 ```
 ├── src/main/java/com/mtm/vogui/
 │   ├── VisualOdometryGui.java   # Quarkus main entry point
-│   ├── core/          # Processing engine: setup, validation, processing loop, rendering
-│   │   └── integration/   # Camera backends (BoofCV, V4L4J) and buffered pipeline
+│   ├── core/          # Processing engine: setup, validation, processing loop
+│   │   ├── integration/   # Camera backends (BoofCV, OpenCV, V4L4J) and buffered pipeline
+│   │   └── rendering/     # RenderSink / SettingsSync — the only core→GUI channel
 │   ├── factory/       # Tracker and visual-odometry factories (BoofCV wiring)
-│   ├── gui/           # Swing application: components, listeners, renderers, editors
+│   ├── gui/           # UI bootstrap + two toolkits, package-by-feature humble views:
+│   │   ├── fx/            # JavaFX UI (default): features, shared, state, rendering
+│   │   └── swing/         # Legacy Swing UI (alternative): features, shared, state, rendering
 │   ├── models/        # Settings model, config mapping, enums, constants, interfaces
-│   └── utilities/     # Shared helpers
-├── src/main/resources/application.properties
+│   └── utilities/     # Shared, toolkit-agnostic helpers
+├── src/main/resources/
+│   ├── application.properties    # Settings file name + active UI toolkit (config.ui)
+│   └── gui/fx/                    # FXML views, CSS, icons
 ├── src/test/java/     # Unit tests (settings save/load round-trip)
 ├── assets/
 │   ├── datasets/      # Videos & calibrations (git-ignored, provided separately)
@@ -204,20 +226,21 @@ The main window opens with the chart area/settings panels on the left and the vi
 └── pom.xml            # Maven + Quarkus build definition
 ```
 
-The application is CDI-managed (**Quarkus ArC / Jakarta CDI**): settings, GUI, and core engine are injected beans; **Lombok** keeps the model classes lean.
+The application is CDI-managed (**Quarkus ArC / Jakarta CDI**): settings, GUI, and core engine are injected beans; **Lombok** keeps the model classes lean. The JavaFX UI follows an **MVVM** structure (FXML views + ViewModels/controllers), styled with **AtlantaFX**; core→GUI communication goes only through the `RenderSink` abstraction, keeping the core toolkit-blind.
 
 ### Target Platforms
 
-The GUI itself runs anywhere Java and Swing do (**Windows / macOS / Linux**, including ARM). Camera backends differ:
+The GUI runs anywhere Java, JavaFX, and Swing do (**Windows / macOS / Linux**, including ARM). Camera backends differ:
 
-- **BoofCV / webcam-capture** — Windows, Linux, and Intel macOS. Webcam discovery is **not available on Apple Silicon** (the underlying BridJ library ships no macOS ARM64 natives), so on those machines use video-file input.
-- **V4L4J** — **Linux only** (Video4Linux). Device nodes are discovered by scanning `/dev/video*`. The V4L4J native libraries (`libvideo.so` and `libv4l4j.so`) must be resolvable by the JVM: install them in a system library directory (e.g. `/usr/lib/jni`, or any `ldconfig`-known path) or point `-Djava.library.path` to their folder at launch.
+- **BoofCV / webcam-capture** (default) — Windows, Linux, and macOS **including Apple Silicon**: the app ships the **eduramiba** native driver, which provides macOS ARM64 natives (the stock BridJ driver does not, and is broken on macOS ≥ Catalina).
+- **OpenCV / JavaCV** — Windows, Linux, and macOS (**Intel and Apple Silicon**). Per-platform OpenCV + OpenBLAS natives only (not the ~1 GB `javacv-platform`). Devices are opened by **bare capture index** (OpenCV has no enumeration by design), so this stack is intentionally decoupled from the others.
+- **V4L4J** — **Linux only** (Video4Linux); a deprecation candidate. Device nodes are discovered by scanning `/dev/video*`. Its native libraries (`libvideo.so` and `libv4l4j.so`) must be resolvable by the JVM: install them in a system library directory (e.g. `/usr/lib/jni`, or any `ldconfig`-known path) or point `-Djava.library.path` to their folder at launch.
 
 Video-file processing works on every platform.
 
 ### Debugging
 
-- `mvn quarkus:dev` gives live reload and the Quarkus dev tooling; the Swing window opens thanks to the headless override in `pom.xml`.
+- `mvn quarkus:dev` gives live reload and the Quarkus dev tooling; the desktop window opens thanks to the headless override in `pom.xml`.
 - From an IDE, run the `VisualOdometryGui` main class (make sure `-Djava.awt.headless=false` is set if you launch through a Quarkus run configuration).
 - Settings load/save problems are logged with their cause (e.g. `Error loading settings from: settings.json (…)`); deleting a stale `settings.json` regenerates it from defaults.
 
@@ -238,7 +261,7 @@ Potential future enhancements:
 A: The settings file on disk is stale or corrupted (e.g. produced by an older version). Delete it — the app starts from defaults and recreates it at the next save.
 
 **Q: No webcams appear in the device list on my Mac.**
-A: On Apple Silicon the webcam-capture/BridJ stack has no native libraries, so discovery is disabled by design. Use video-file input, or a Linux/Windows/Intel-mac machine for live cameras.
+A: Live webcam capture works on Apple Silicon via the bundled **eduramiba** driver (default BoofCV backend). If discovery still comes up empty, grant the app camera permission in **System Settings → Privacy & Security → Camera**, or try the **OpenCV** backend; video-file input always works regardless.
 
 **Q: The GUI never opens when running through Quarkus.**
 A: Quarkus forces AWT headless mode by default. The provided `pom.xml` already overrides it for `quarkus:dev`; for packaged runs launch with `-Djava.awt.headless=false`.
@@ -252,8 +275,8 @@ This project builds upon excellent open-source work:
 
 - **[BoofCV](https://boofcv.org/)** — the computer-vision library by Peter Abeles providing the visual-odometry estimators, trackers, and calibration tooling.
 - **[Quarkus](https://quarkus.io/)** — application framework and CDI container.
-- **[webcam-capture](https://github.com/sarxos/webcam-capture)** and **[V4L4J](https://github.com/sarxos/v4l4j)** — live camera access.
-- **[JavaCV](https://github.com/bytedeco/javacv)** — media decoding support.
+- **[JavaFX](https://openjfx.io/)** and **[AtlantaFX](https://github.com/mkpaz/atlantafx)** — the desktop UI toolkit and its theming.
+- **[webcam-capture](https://github.com/sarxos/webcam-capture)** with the **[eduramiba native driver](https://github.com/eduramiba/webcam-capture-driver-native)**, **[JavaCV / OpenCV](https://github.com/bytedeco/javacv)**, and **[V4L4J](https://github.com/sarxos/v4l4j)** — live camera capture and media decoding.
 - **[Jackson](https://github.com/FasterXML/jackson)** — JSON/YAML settings persistence.
 - **[Lombok](https://projectlombok.org/)** — boilerplate reduction.
 

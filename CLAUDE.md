@@ -1,14 +1,16 @@
 # VisualOdometry GUI
 
-Swing GUI (2014, modernized 2026) for BoofCV visual odometry. Quarkus is used as CDI/config
-runtime only — there is no web endpoint; the "app" is the Swing UI itself.
+Desktop GUI (2014, modernized 2026) for BoofCV visual odometry. Two toolkits live side by side:
+JavaFX (`config.ui=JavaFx`, the default) and the legacy Swing UI (still available as an
+alternative). Quarkus is used as CDI/config runtime only — there is no web endpoint; the "app" is
+the desktop UI itself.
 
 ## Build & run
 
 - Java 25
 - Build with plain `mvn <goal>`. Root `settings.json`/`settings.yaml` are the application's
   saved settings (gitignored user state), read/written by the in-app Load/Save Settings.
-- Don't run `quarkus dev` expecting a headless service: startup opens Swing windows.
+- Don't run `quarkus dev` expecting a headless service: startup opens desktop windows.
 
 ## Conventions
 
@@ -50,6 +52,27 @@ runtime only — there is no web endpoint; the "app" is the Swing UI itself.
 
 ## GUI architecture traps
 
+### JavaFX (default, `gui.fx`)
+
+- Package-by-feature under `gui.fx.features.{shell, sidebar, toolbar, trajectory, video}`; the sidebar
+  splits into `settings.{input,image,tracker,visualodometry,chart}` and `telemetry.{processing,
+  odometry,tracking,framerate,trackedpoints}`. Each feature is **MVVM**: an FXML view (under
+  `resources/gui/fx/...`) + a `XxxController` (thin, `@Dependent @Unremovable` CDI bean, binding only)
+  + a hand-rolled `XxxViewModel` exposing JavaFX properties that live-commit into the domain settings.
+  Trajectory/telemetry that the core drives are **humble views** fed via the event stream, not MVVM forms.
+- Core→GUI is the same `RenderSink` rule as Swing: `gui.fx.rendering.FxRenderSink` emits pure-data
+  `gui.fx.state.TrajectoryEvent`s (and coalesced status/frame ops) onto the FX thread; the sink never
+  touches widgets. `gui.fx.state.GuiState` holds the FX-side handlers/state; `FxApplication` is the
+  composition root. Reusable, app-blind widgets live in `gui.fx.shared` (`charting`, `components`,
+  `behaviors`, `converters`); toolkit-agnostic math stays in `utilities` (`OdometryMathUtils`).
+- Charts: `gui.fx.shared.charting.TrajectoryChart` wraps a `LineChart` over two `StableTicksAxis` with
+  vendored **gillius/jfxutils** pan/zoom (`shared.charting.jfxutils`, Apache headers kept, dir-scoped
+  `lombok.config` for the fluent-accessor trap). AUTO vs MANUAL mode is tracked by each axis'
+  `autoRanging` flag (single source of truth). The per-axis initial zoom is an explicit choice — a fixed
+  `scale`, or `autoScaleXZ`/`autoScaleY` for auto-range (NO magic value; `scale` is always literal).
+
+### Swing (legacy alternative, `gui.swing`)
+
 - Swing is organized package-by-feature under `gui.swing.features.{controlpanel, dashboard, video}`
   as **humble views**: each `XxxView` owns its widgets as private typed fields and exposes intent
   methods (`load()`, `show*()`, `setRunning()`, ...) — widgets never leave the view. The two windows
@@ -79,9 +102,11 @@ runtime only — there is no web endpoint; the "app" is the Swing UI itself.
 
 ## Platform constraints (macOS ARM)
 
-- DeviceType: BoofCv (default) > OpenCv > V4L4J (deprecation candidate). BoofCv capture works
-  only via the eduramiba native driver (sarxos drop-in; BridJ/stock sarxos are dead, no ARM64).
-- OpenCv path: per-platform opencv/openblas classifier natives, never javacv-platform (~1 GB).
+- DeviceType: BoofCv (default) > OpenCv > V4L4J (deprecation candidate). Both BoofCv and OpenCv
+  capture work on Apple Silicon; V4L4J does not (Linux-only). BoofCv capture works only via the
+  eduramiba native driver (sarxos drop-in; BridJ/stock sarxos are dead, no ARM64).
+- OpenCv path: per-platform opencv/openblas classifier natives (macosx-arm64 included, so OpenCv
+  capture runs on Apple Silicon too), never javacv-platform (~1 GB).
   OpenCV has no device/resolution enumeration by design (ids are bare capture indices, granted
   size read back from the first frame) — deliberately NOT mapped onto the other drivers'
   enumeration: order mismatch would open the wrong camera silently. Keep the stacks decoupled.
