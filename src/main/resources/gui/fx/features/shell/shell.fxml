@@ -50,15 +50,15 @@
                 <Button fx:id="pauseButton" text="Pause"/>
                 <Button fx:id="resetButton" text="Reset"/>
                 <Button fx:id="stopButton" text="Stop"/>
-                <Button fx:id="timedStopButton" text="Timed Stop"/>
+                <Button fx:id="timedStopButton" text="Timed Stop" disable="true"/>
                 <Button fx:id="clearButton" text="Clear"/>
             </ToolBar>
         </VBox>
     </top>
 
     <center>
-        <SplitPane dividerPositions="0.28">
-            <StackPane fx:id="settingsPane"/>
+        <SplitPane dividerPositions="0.20">
+            <StackPane fx:id="sidebarPane"/>
             <SplitPane orientation="VERTICAL" dividerPositions="0.62">
                 <StackPane>
                     <Label text="Charts — Fase 3"/>

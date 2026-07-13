@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Visual Odometry GUI - Copyright (c) 2014-2024 Marco Trinastich
+  Licensed under GNU GPL v3 - see LICENSE file for details
+-->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+
+<TitledPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mtm.vogui.gui.fx.features.sidebar.settings.chart.ChartSettingsController"
+            text="Chart" collapsible="true" animated="true">
+
+    <GridPane hgap="10" vgap="7">
+        <padding>
+            <Insets top="2" right="2" bottom="2" left="2"/>
+        </padding>
+
+        <columnConstraints>
+            <ColumnConstraints halignment="LEFT" minWidth="-Infinity"/>
+            <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+        </columnConstraints>
+
+        <!-- X/Z chart scale -->
+        <Label text="X/Z Scale" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Spinner fx:id="scaleXZSpinner" editable="true" prefWidth="90"
+                 GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <!-- Y chart scale -->
+        <Label text="Y Scale" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <Spinner fx:id="scaleYSpinner" editable="true" prefWidth="90"
+                 GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <!-- Altitude basis: governs the Y chart abscissa (seconds vs frames) -->
+        <Label text="Altitude Per" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="chartTypeCombo" maxWidth="Infinity"
+                  GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+    </GridPane>
+</TitledPane>

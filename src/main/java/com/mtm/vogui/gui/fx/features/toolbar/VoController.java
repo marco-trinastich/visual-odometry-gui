@@ -42,22 +42,30 @@ public class VoController {
     private final Core core;
     private final GuiState guiState;
     private final ToolbarView toolbar;
+    private final Runnable onRunStarted;
+    private final Runnable onRunCleared;
 
     private final ExecutorService voExecutor =
             Executors.newSingleThreadExecutor(NamedThreadFactory.from(AppConstants.VO_EXECUTOR_THREAD));
     private Future<?> voTask;
 
-    public VoController(AppContext context, Core core, GuiState guiState, ToolbarView toolbar) {
+    public VoController(AppContext context, Core core, GuiState guiState, ToolbarView toolbar,
+                        Runnable onRunStarted, Runnable onRunCleared) {
         this.context = context;
         this.core = core;
         this.guiState = guiState;
         this.toolbar = toolbar;
+        this.onRunStarted = onRunStarted;
+        this.onRunCleared = onRunCleared;
 
         // Initial ready state; the Device-only timed button follows the current input source.
         toolbar.setReady(false, isDeviceSource());
-        guiState.inputSourceProperty().addListener((_, _, _) -> {
+        // React to the property's NEW value, not a settings re-read: the bound inputSource can propagate
+        // here before the separate viewModel listener commits the choice to settings, so isDeviceSource()
+        // would read the previous source and invert the button (Video enabled / Device disabled).
+        guiState.inputSourceProperty().addListener((_, _, source) -> {
             if (isIdle()) {
-                toolbar.setTimedEnabled(isDeviceSource());
+                toolbar.setTimedEnabled(SourceType.Device == source);
             }
         });
     }
@@ -87,6 +95,8 @@ public class VoController {
     }
 
     public void clear() {
+        // Telemetry stays available from Start through Stop; only Clear returns focus to Settings.
+        onRunCleared.run();
         if (context.state().processing().is(ProcessingState.Running)
                 || context.state().processing().is(ProcessingState.Paused)) {
             // The vo task itself restores the toolbar on exit.
@@ -98,9 +108,13 @@ public class VoController {
         }
     }
 
+    /** Opens the toolbar's timed-stop popover; the actual run starts once the user commits a duration. */
     public void timedStop() {
-        Integer totalSeconds = toolbar.promptTimedSeconds();
-        if (totalSeconds == null) {
+        toolbar.openTimedPopover(this::startTimed);
+    }
+
+    private void startTimed(int totalSeconds) {
+        if (totalSeconds <= 0) {
             return;
         }
 
@@ -124,6 +138,9 @@ public class VoController {
     }
 
     private @NotNull Future<?> startVisualOdometry(boolean isTimed) {
+        // Every Start focuses the Telemetry tab (and enables it the first time).
+        onRunStarted.run();
+
         // Signal setup and lock the whole toolbar until the setup outcome is known.
         CoreUtils.setProcessingStateSafe(context, ProcessingState.Init);
         toolbar.lockAll();

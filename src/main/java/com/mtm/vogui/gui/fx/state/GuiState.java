@@ -5,6 +5,8 @@
 
 package com.mtm.vogui.gui.fx.state;
 
+import com.mtm.vogui.models.core.integration.BufferStatus;
+import com.mtm.vogui.models.core.processing.tracking.TrackedPoint;
 import com.mtm.vogui.models.enums.gui.AppStatus;
 import com.mtm.vogui.models.enums.gui.RecentPathTarget;
 import com.mtm.vogui.models.enums.settings.DevicePath;
@@ -16,6 +18,8 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 
 /**
@@ -28,6 +32,14 @@ import javafx.scene.image.Image;
  * <p>
  * {@code @Unremovable}: also resolved programmatically ({@code CDI.current()} in
  * {@code FxRenderSink}), which Arc cannot see at build time.
+ * <p>
+ * Round-trip invariant: inside a listener on one of these properties, always act on the listener's
+ * {@code newValue} — never re-read {@code context.settings()} or another ViewModel property to
+ * recover the value that just changed. A bound/mirrored property (e.g. {@link #inputSource}) can
+ * reach its listeners before the separate listener that commits the choice into settings has run, so
+ * a settings re-read may still see the previous value (this bit the toolbar's Device-only timed
+ * button). Re-reading settings is legitimate only in the reflect pattern, where the core writes
+ * settings before emitting the signal that triggers the listener.
  */
 @Singleton
 @Unremovable
@@ -72,6 +84,18 @@ public class GuiState {
      */
     private final ObjectProperty<SourceType> inputSource = new SimpleObjectProperty<>();
 
+    /** Latest per-frame telemetry snapshot ({@code null} until the first processed frame). */
+    private final ObjectProperty<Telemetry> telemetry = new SimpleObjectProperty<>();
+
+    /** Latest instantaneous framerates ({@code null} until the first per-second tick). */
+    private final ObjectProperty<CurrentFps> currentFps = new SimpleObjectProperty<>();
+
+    /** Latest buffer status, or {@code null} when the buffer section should be hidden. */
+    private final ObjectProperty<BufferStatus> buffer = new SimpleObjectProperty<>();
+
+    /** The run's tracked-points log (append-only during a run, cleared on Clear); bound by the list view. */
+    private final ObservableList<TrackedPoint> trackedPoints = FXCollections.observableArrayList();
+
     public ObjectProperty<AppStatus> appStatusProperty() {
         return appStatus;
     }
@@ -102,5 +126,21 @@ public class GuiState {
 
     public ObjectProperty<SourceType> inputSourceProperty() {
         return inputSource;
+    }
+
+    public ObjectProperty<Telemetry> telemetryProperty() {
+        return telemetry;
+    }
+
+    public ObjectProperty<CurrentFps> currentFpsProperty() {
+        return currentFps;
+    }
+
+    public ObjectProperty<BufferStatus> bufferProperty() {
+        return buffer;
+    }
+
+    public ObservableList<TrackedPoint> trackedPoints() {
+        return trackedPoints;
     }
 }
